@@ -1,7 +1,5 @@
 FROM debian:bullseye-slim
 
-ARG DOMAIN_NAME
-
 RUN apt update && apt install nginx openssl -y
 
 RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \ 
@@ -9,6 +7,6 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 	-out /etc/ssl/certs/proxy.crt \
 	-subj="/C=ES/ST=Barcelona/L=Barcelona/O=42School/OU=transcend/CN=transcend.42.fr"
 
-COPY conf/default /etc/nginx/sites-available/
+COPY conf/default.conf /etc/nginx/conf.d/default.conf
 
 CMD ["nginx", "-g", "daemon off;"]

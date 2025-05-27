@@ -1,6 +1,8 @@
 networks:
     proxy-network:
         driver: bridge
+    backend-network:
+        driver: bridge
 
 services:
     proxy:
@@ -18,10 +20,9 @@ services:
     webServer:
         build: ${WEBSERVER_NGINX_BUILD_PATH}
         init: true
-        image: webServer-img
+        image: webserver-img
         restart: unless-stopped
         container_name: webServer
-        ports:
-            - "8080:8080"
         networks:
             - proxy-network
+            - backend-network
