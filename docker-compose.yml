@@ -1,0 +1,27 @@
+networks:
+    proxy-network:
+        driver: bridge
+
+services:
+    proxy:
+        build: ${PROXY_NGINX_BUILD_PATH}
+        init: true
+        image: proxy-img
+        restart: unless-stopped
+        container_name: proxy
+        ports:
+            - "80:80"
+            - "443:443"
+        networks:
+            - proxy-network
+
+    webServer:
+        build: ${WEBSERVER_NGINX_BUILD_PATH}
+        init: true
+        image: webServer-img
+        restart: unless-stopped
+        container_name: webServer
+        ports:
+            - "8080:8080"
+        networks:
+            - proxy-network

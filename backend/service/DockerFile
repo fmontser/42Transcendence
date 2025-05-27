@@ -1,0 +1,11 @@
+FROM debian:bullseye-slim
+
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends \
+	# Agrega aquí otros paquetes que puedas necesitar
+
+	# Borra el cache de apt, en 42 hay poco espacio!
+	&& rm -rf /var/lib/apt/lists/*
+
+CMD ["/bin/bash"]
+
