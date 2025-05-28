@@ -7,12 +7,14 @@ def create_project_structure(base_path):
 	project_name = os.path.basename(base_path)
 
 	paths = [
-		os.path.join(base_path, "dist"),
 		os.path.join(base_path, "src"),
 	]
 
 	for path in paths:
-		os.makedirs(path, exist_ok=True)
+		# Solo crea 'src' si no existe, 'dist' se maneja en Docker
+		if not os.path.exists(path) and os.path.basename(path) == "src":
+			 os.makedirs(path, exist_ok=True)
+
 
 	# src/main.ts
 	with open(os.path.join(base_path, "src", "main.ts"), "w") as f:
@@ -24,7 +26,7 @@ const server = Fastify({{
 
 async function start() {{
 	try {{
-		await server.listen({{ port: 3000, host: '0.0.0.0' }});	// No cambiar el host, por que estamos usando la red docker!
+		await server.listen({{ port: 3000, host: '0.0.0.0' }});
 	}} catch (err) {{
 		server.log.error(err);
 		process.exit(1);
@@ -39,7 +41,7 @@ start();
 		"compilerOptions": {
 			"target": "ES2020",
 			"module": "commonjs",
-			"outDir": "./dist",
+			"outDir": "./dist", # TypeScript compila a 'dist' dentro de la etapa de build
 			"rootDir": "./src",
 			"strict": True,
 			"esModuleInterop": True,
@@ -57,9 +59,9 @@ start();
 		"name": project_name.lower().replace(" ", "-"),
 		"version": "1.0.0",
 		"description": "",
-		"main": "dist/main.js",
+		"main": "dist/main.js", # Sigue siendo relevante para el CMD final
 		"scripts": {
-			"build": "tsc",
+			"build": "tsc", # Este script se ejecutará en la etapa de build de Docker
 			"start": "node dist/main.js",
 			"dev": "tsc -w & nodemon dist/main.js"
 		},
@@ -72,7 +74,7 @@ start();
 		"devDependencies": {
 			"@types/node": "^20.11.0",
 			"nodemon": "^3.0.0",
-			"typescript": "^5.3.0"
+			"typescript": "^5.3.0" # Necesario en la etapa de build
 		}
 	}
 	with open(os.path.join(base_path, "package.json"), "w") as f:
@@ -82,22 +84,64 @@ start();
 	with open(os.path.join(base_path, ".gitignore"), "w") as f:
 		f.write("node_modules/\ndist/\n.env\n*.log\n")
 
+	# Dockerfile (multi-etapa)
+	main_script_path = package_json_content.get('main', 'dist/main.js')
+	dockerfile_content = f"""
+# Builder
+FROM node:20-slim AS builder
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install
+
+COPY tsconfig.json ./
+COPY src/ ./src/
+RUN npm run build
+
+# Production
+FROM debian:bullseye-slim
+
+RUN apt-get update && \\
+	apt-get install -y nodejs npm --no-install-recommends && \\
+	rm -rf /var/lib/apt/lists/*
+
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+RUN npm install --omit=dev --legacy-peer-deps
+
+COPY --from=builder /usr/src/app/dist ./dist/
+
+CMD ["node", "{main_script_path}"]
+"""
+	with open(os.path.join(base_path, "Dockerfile"), "w") as f:
+		f.write(dockerfile_content.strip()) # .strip() para quitar líneas vacías al inicio/final
+
 	# Run npm install
-	print(f"Running 'npm install' in {base_path}...")
+	print(f"Ejecutando 'npm install' en {base_path} para desarrollo local...")
 	try:
-		subprocess.run(["npm", "install"], cwd=base_path, check=True, shell=sys.platform == "win32")
-		print("'npm install' completed successfully.")
+		use_shell = sys.platform == "win32"
+		subprocess.run(["npm", "install"], cwd=base_path, check=True, shell=use_shell)
+		print("'npm install' completado exitosamente para desarrollo local.")
 	except subprocess.CalledProcessError as e:
-		print(f"Error during 'npm install': {e}")
+		print(f"Error durante 'npm install': {e}")
 	except FileNotFoundError:
-		print("Error: 'npm' command not found. Please ensure Node.js and npm are installed and in your PATH.")
+		print("Error: Comando 'npm' no encontrado.")
 
 
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
-		print("Usage: python script_name.py <project_path>")
+		print("Uso: python nombre_script.py <ruta_del_proyecto>")
 		sys.exit(1)
 	
 	project_path_arg = sys.argv[1]
 	create_project_structure(project_path_arg)
-	print(f"Project structure created and dependencies installed at: {project_path_arg}")
+	print(f"Estructura del proyecto creada en: {project_path_arg}")
+	
+	RED_START = "\033[91m"
+	COLOR_END = "\033[0m"
+
+	print(f"\n{RED_START}¡IMPORTANTE!:{COLOR_END}")
+	print(f"{RED_START}1. Revisa y personaliza el Dockerfile multi-etapa generado si es necesario.{COLOR_END}")
+	print(f"{RED_START}2. Deberás configurar tu archivo 'docker-compose.yml' para construir (build) y ejecutar (run) este nuevo servicio usando el Dockerfile.{COLOR_END}")
