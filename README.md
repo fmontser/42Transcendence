@@ -1,4 +1,4 @@
-# ft_transcendence
+# 42 Transcendence
 
 Proyecto final del Common Core de 42 School, enfocado en el desarrollo de una plataforma web para el juego Pong con funcionalidades multijugador y características adicionales implementadas a través de módulos.
 
