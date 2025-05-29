@@ -3,3 +3,23 @@ TODO
 
 TODO
 	quitar .env del repositorio de la entrega
+
+TODO
+	Lista de modulos provisional (total 14 puntos)
+
+	◦Major module: Use a framework to build the backend. (2pts)
+	◦Minor module: Use a framework or a toolkit to build the frontend. (1pts)
+	◦Minor module: Use a database for the backend (1pts)
+
+	◦Major module: Standard user management, authentication, users across
+	tournaments. (2pts)
+
+	◦Major module: Remote players (2pts)
+
+	◦Minor module: Game customization options. (1pts)
+	◦Major module: Designing the backend as microservices. (2pts)
+
+	◦Major module: Designing the backend as microservices. (2pts)
+
+	◦Major module: Replace basic Pong with server-side Pong and implement an
+	API. (2pts)
