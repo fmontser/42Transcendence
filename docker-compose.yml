@@ -12,10 +12,12 @@ services:
         restart: unless-stopped
         container_name: proxy
         ports:
-            - "80:80"
-            - "443:443"
+            - "8080:8080"
+            - "8443:8443"
         networks:
             - proxy-network
+        depends_on:
+            - webServer
 
     webServer:
         build: ${WEBSERVER_NGINX_BUILD_PATH}
