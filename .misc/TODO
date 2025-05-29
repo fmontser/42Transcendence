@@ -7,19 +7,37 @@ TODO
 TODO
 	Lista de modulos provisional (total 14 puntos)
 
-	◦Major module: Use a framework to build the backend. (2pts)
-	◦Minor module: Use a framework or a toolkit to build the frontend. (1pts)
-	◦Minor module: Use a database for the backend (1pts)
+	Major module: Use a framework to build the backend. (2pts)
+	Minor module: Use a framework or a toolkit to build the frontend. (1pts)
+	Minor module: Use a database for the backend (1pts)
 
-	◦Major module: Standard user management, authentication, users across
+	Major module: Standard user management, authentication, users across
 	tournaments. (2pts)
 
-	◦Major module: Remote players (2pts)
+	Major module: Remote players (2pts)
 
-	◦Minor module: Game customization options. (1pts)
-	◦Major module: Designing the backend as microservices. (2pts)
+	Minor module: Game customization options. (1pts)
+	Major module: Designing the backend as microservices. (2pts)
 
-	◦Major module: Designing the backend as microservices. (2pts)
+	Major module: Designing the backend as microservices. (2pts)
 
-	◦Major module: Replace basic Pong with server-side Pong and implement an
+	Major module: Replace basic Pong with server-side Pong and implement an
 	API. (2pts)
+
+
+TODO
+	Actualizar npm, node.js, instalando NVM
+		curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+		source ~/.zshrc
+		nvm install lts/*
+
+TODO
+		entender imports
+
+		import { sqlite3 } from 'sqlite3';
+		import * as sqlite3 from 'sqlite3';
+
+TODO
+		entender que son los @types
+
+		npm install --save-dev @types/sqlite3
