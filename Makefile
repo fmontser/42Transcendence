@@ -31,6 +31,7 @@ peek:
 all: build
 
 build:
+	@mkdir -p volumes/dataBase-volume/
 	@docker compose -f $(COMPOSE_FILE) build
 
 up: build
@@ -44,6 +45,7 @@ clean:
 
 fclean: clean
 	@docker system prune -a -f
+	@rm -rf volumes
 
 re: fclean build up
 
