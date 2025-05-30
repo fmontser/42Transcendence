@@ -7,7 +7,6 @@ toolchain:
 	@export NVM_DIR="$$HOME/.nvm"; \
 		[ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh"; \
 		nvm install --lts
-.PHONY: new
 
 new:
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
@@ -38,4 +37,4 @@ fclean: clean
 
 re: fclean build up
 
-.PHONY: all build up down clean re
+.PHONY: all build up down clean re new
