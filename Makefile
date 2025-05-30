@@ -7,6 +7,17 @@ toolchain:
 	@export NVM_DIR="$$HOME/.nvm"; \
 		[ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh"; \
 		nvm install --lts
+.PHONY: new
+
+new:
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: debes especificar un carpeta/nombre. Ejemplo: make new backEnd/newService"; \
+		exit 1; \
+	fi
+	@python3 .misc/newService.py $(word 2, $(MAKECMDGOALS))
+%:
+	@:
+
 
 all: build
 
