@@ -8,6 +8,7 @@ toolchain:
 		[ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh"; \
 		nvm install --lts
 
+# Crea una plantilla de servicio nueva
 new:
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
 		echo "Error: debes especificar un carpeta/nombre. Ejemplo: make new backEnd/newService"; \
@@ -17,6 +18,15 @@ new:
 %:
 	@:
 
+# Visualiza por consola el output de un container
+peek:
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: debes especificar el nombre del servicio. Ejemplo: make peek service"; \
+		exit 1; \
+	fi
+	@docker compose logs -f $(word 2, $(MAKECMDGOALS))
+%:
+	@:
 
 all: build
 
