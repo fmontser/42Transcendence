@@ -5,9 +5,13 @@ import subprocess
 
 def create_project_structure(base_path):
 	project_name = os.path.basename(base_path)
-	# Normalizar el nombre del proyecto para títulos (ej. "user-service" -> "User Service")
+	# Normalizar el nombre del proyecto para títulos y nombres de archivo
 	service_title_name = project_name.replace('-', ' ').replace('_', ' ').title()
-
+	# Usaremos project_name (que ya es como "mi-servicio" o "mi_servicio")
+	# para los nombres de archivo, asegurándonos de que sea un identificador válido.
+	# Si el project_name original tiene espacios, los reemplazamos por guiones bajos
+	# y lo pasamos a minúsculas para consistencia en nombres de archivo.
+	file_base_name = project_name.replace(' ', '_').lower()
 
 	paths = [
 		os.path.join(base_path, "src"),
@@ -17,8 +21,9 @@ def create_project_structure(base_path):
 		if not os.path.exists(path):
 			 os.makedirs(path, exist_ok=True)
 
-	# src/main.ts
-	with open(os.path.join(base_path, "src", "main.ts"), "w", encoding='utf-8') as f:
+	# src/{file_base_name}.ts
+	ts_file_path = os.path.join(base_path, "src", f"{file_base_name}.ts")
+	with open(ts_file_path, "w", encoding='utf-8') as f:
 		f.write(f"""import Fastify from 'fastify';
 
 const server = Fastify({{
@@ -56,17 +61,18 @@ start();
 		json.dump(tsconfig_content, f, indent=2)
 
 	# package.json
+	js_main_file = f"dist/{file_base_name}.js"
 	package_json_content = {
-		"name": project_name.lower().replace(" ", "-"),
+		"name": file_base_name, # Usamos el nombre base del archivo para el nombre del paquete
 		"version": "1.0.0",
 		"description": f"Servicio {service_title_name} para el proyecto Trascendence",
-		"main": "dist/main.js",
+		"main": js_main_file,
 		"scripts": {
 			"build": "tsc",
-			"start": "node dist/main.js",
-			"dev": "tsc -w & nodemon dist/main.js"
+			"start": f"node {js_main_file}",
+			"dev": f"tsc -w & nodemon {js_main_file}"
 		},
-		"keywords": ["fastify", "nodejs", "typescript", project_name.lower()],
+		"keywords": ["fastify", "nodejs", "typescript", file_base_name],
 		"author": "",
 		"license": "ISC",
 		"dependencies": {
@@ -86,7 +92,7 @@ start();
 		f.write("node_modules/\ndist/\n.env\n*.log\n")
 
 	# Dockerfile (multi-etapa)
-	main_script_path = package_json_content.get('main', 'dist/main.js')
+	main_script_path_for_docker = package_json_content.get('main', js_main_file)
 	dockerfile_content = f"""
 FROM node:20-slim AS builder
 WORKDIR /usr/src/app
@@ -104,8 +110,8 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps
 COPY --from=builder /usr/src/app/dist ./dist/
-
-CMD ["node", "{main_script_path}"]
+EXPOSE 3000
+CMD ["node", "{main_script_path_for_docker}"]
 """
 	with open(os.path.join(base_path, "Dockerfile"), "w", encoding='utf-8') as f:
 		f.write(dockerfile_content.strip())
@@ -114,6 +120,8 @@ CMD ["node", "{main_script_path}"]
 	readme_service_content = f"""# Servicio: {service_title_name}
 
 Este directorio contiene el código fuente y la configuración para el servicio **{service_title_name}** del proyecto Trascendence.
+
+El archivo principal de TypeScript para este servicio es `src/{file_base_name}.ts`.
 
 ## Documentación del Servicio
 
@@ -140,6 +148,36 @@ Es **fundamental** que la persona o equipo encargado de desarrollar este servici
 	with open(os.path.join(base_path, "README.md"), "w", encoding='utf-8') as f:
 		f.write(readme_service_content)
 
+	# Makefile
+	makefile_content = f"""SRC_DIR		:= src/
+DIST_DIR	:= dist/
+NAME		:= {file_base_name}.js
+NODES_DIR	:= node_modules/
+TSC			:= $(NODES_DIR)/.bin/tsc
+
+all: run
+
+build:
+	@echo "Instalando dependencias..."
+	@npm install
+	@echo "Compilando TypeScript..."
+	@$(TSC)
+
+run: build
+	@echo "Ejecutando servicio Fastify {service_title_name}..."
+	@node $(DIST_DIR)$(NAME)
+
+clean:
+	@echo "Limpiando proyecto {service_title_name}..."
+	@rm -rf $(DIST_DIR) $(NODES_DIR)
+
+re: clean build
+
+.PHONY: all build run clean re
+"""
+	with open(os.path.join(base_path, "Makefile"), "w", encoding='utf-8') as f:
+		f.write(makefile_content)
+
 
 	print(f"Ejecutando 'npm install' en {base_path} para desarrollo local...")
 	try:
@@ -165,5 +203,5 @@ if __name__ == "__main__":
 	COLOR_END = "\033[0m"
 
 	print(f"\n{RED_START}RECORDATORIO IMPORTANTE:{COLOR_END}")
-	print(f"{RED_START}1. Revisa y personaliza el Dockerfile multi-etapa y el README.md generados si es necesario.{COLOR_END}")
+	print(f"{RED_START}1. Revisa y personaliza los archivos generados (Dockerfile, README.md, Makefile) si es necesario.{COLOR_END}")
 	print(f"{RED_START}2. Deberás configurar tu archivo 'docker-compose.yml' para construir (build) y ejecutar (run) este nuevo servicio usando el Dockerfile.{COLOR_END}")
