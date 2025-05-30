@@ -44,7 +44,7 @@ services:
         restart: unless-stopped
         container_name: dataBase
         volumes:
-            - dataBase-volume:/usr/src/app/data #TODO corregir esta ruta para SQLite
+            - dataBase-volume:/usr/src/app/data
         ports:
             - "3000:8033" #TODO usar ports solo para pruebas, no exponer al host
         networks:
