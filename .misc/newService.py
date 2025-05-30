@@ -5,9 +5,8 @@ import subprocess
 
 def create_project_structure(base_path):
 	project_name = os.path.basename(base_path)
-	# Normalizar el nombre del proyecto para títulos (ej. "user-service" -> "User Service")
 	service_title_name = project_name.replace('-', ' ').replace('_', ' ').title()
-
+	file_base_name = project_name.replace(' ', '_').lower()
 
 	paths = [
 		os.path.join(base_path, "src"),
@@ -17,8 +16,8 @@ def create_project_structure(base_path):
 		if not os.path.exists(path):
 			 os.makedirs(path, exist_ok=True)
 
-	# src/main.ts
-	with open(os.path.join(base_path, "src", "main.ts"), "w", encoding='utf-8') as f:
+	ts_file_path = os.path.join(base_path, "src", f"{file_base_name}.ts")
+	with open(ts_file_path, "w", encoding='utf-8') as f:
 		f.write(f"""import Fastify from 'fastify';
 
 const server = Fastify({{
@@ -37,7 +36,6 @@ async function start() {{
 start();
 """)
 
-	# tsconfig.json
 	tsconfig_content = {
 		"compilerOptions": {
 			"target": "ES2020",
@@ -55,18 +53,18 @@ start();
 	with open(os.path.join(base_path, "tsconfig.json"), "w", encoding='utf-8') as f:
 		json.dump(tsconfig_content, f, indent=2)
 
-	# package.json
+	js_main_file = f"dist/{file_base_name}.js"
 	package_json_content = {
-		"name": project_name.lower().replace(" ", "-"),
+		"name": file_base_name,
 		"version": "1.0.0",
 		"description": f"Servicio {service_title_name} para el proyecto Trascendence",
-		"main": "dist/main.js",
+		"main": js_main_file,
 		"scripts": {
 			"build": "tsc",
-			"start": "node dist/main.js",
-			"dev": "tsc -w & nodemon dist/main.js"
+			"start": f"node {js_main_file}",
+			"dev": f"tsc -w & nodemon {js_main_file}"
 		},
-		"keywords": ["fastify", "nodejs", "typescript", project_name.lower()],
+		"keywords": ["fastify", "nodejs", "typescript", file_base_name],
 		"author": "",
 		"license": "ISC",
 		"dependencies": {
@@ -81,14 +79,16 @@ start();
 	with open(os.path.join(base_path, "package.json"), "w", encoding='utf-8') as f:
 		json.dump(package_json_content, f, indent=2)
 
-	# .gitignore
 	with open(os.path.join(base_path, ".gitignore"), "w", encoding='utf-8') as f:
 		f.write("node_modules/\ndist/\n.env\n*.log\n")
 
-	# Dockerfile (multi-etapa)
-	main_script_path = package_json_content.get('main', 'dist/main.js')
-	dockerfile_content = f"""
-FROM node:20-slim AS builder
+	# Dockerfile (actualizado con tu versión)
+	# El CMD en tu Dockerfile es estático "dist/database.js", 
+	# pero el script genera js_main_file dinámicamente.
+	# Si quieres que el CMD del Dockerfile sea dinámico, cambia la última línea del dockerfile_content
+	# a: CMD ["node", "{js_main_file}"]
+	# Por ahora, usaré el CMD que proporcionaste.
+	dockerfile_content = f"""FROM node:20-slim AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
@@ -97,23 +97,33 @@ COPY src/ ./src/
 RUN npm run build
 
 FROM debian:bullseye-slim
+ARG NODE_MAJOR_LTS=20
+
 RUN apt-get update && \\
-	apt-get install -y nodejs npm --no-install-recommends && \\
+	apt-get install -y curl ca-certificates gnupg --no-install-recommends && \\
+	mkdir -p /etc/apt/keyrings && \\
+	curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \\
+	echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR_LTS.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \\
+	apt-get update && \\
+	apt-get install nodejs -y --no-install-recommends && \\
 	rm -rf /var/lib/apt/lists/*
+
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps
 COPY --from=builder /usr/src/app/dist ./dist/
 
-CMD ["node", "{main_script_path}"]
+CMD ["node", "{js_main_file}"]
 """
 	with open(os.path.join(base_path, "Dockerfile"), "w", encoding='utf-8') as f:
 		f.write(dockerfile_content.strip())
 
-	# README.md para el servicio
+
 	readme_service_content = f"""# Servicio: {service_title_name}
 
 Este directorio contiene el código fuente y la configuración para el servicio **{service_title_name}** del proyecto Trascendence.
+
+El archivo principal de TypeScript para este servicio es `src/{file_base_name}.ts`.
 
 ## Documentación del Servicio
 
@@ -141,6 +151,36 @@ Es **fundamental** que la persona o equipo encargado de desarrollar este servici
 		f.write(readme_service_content)
 
 
+	makefile_content = f"""SRC_DIR		:= src/
+DIST_DIR	:= dist/
+NAME		:= {file_base_name}.js
+NODES_DIR	:= node_modules/
+TSC			:= $(NODES_DIR)/.bin/tsc
+
+all: run
+
+build:
+	@echo "Instalando dependencias..."
+	@npm install
+	@echo "Compilando TypeScript..."
+	@$(TSC)
+
+run: build
+	@echo "Ejecutando servicio Fastify {service_title_name}..."
+	@node $(DIST_DIR)$(NAME)
+
+clean:
+	@echo "Limpiando proyecto {service_title_name}..."
+	@rm -rf $(DIST_DIR) $(NODES_DIR)
+
+re: clean build
+
+.PHONY: all build run clean re
+"""
+	with open(os.path.join(base_path, "Makefile"), "w", encoding='utf-8') as f:
+		f.write(makefile_content)
+
+
 	print(f"Ejecutando 'npm install' en {base_path} para desarrollo local...")
 	try:
 		use_shell = sys.platform == "win32"
@@ -165,5 +205,6 @@ if __name__ == "__main__":
 	COLOR_END = "\033[0m"
 
 	print(f"\n{RED_START}RECORDATORIO IMPORTANTE:{COLOR_END}")
-	print(f"{RED_START}1. Revisa y personaliza el Dockerfile multi-etapa y el README.md generados si es necesario.{COLOR_END}")
+	print(f"{RED_START}1. Revisa y personaliza los archivos generados (Dockerfile, README.md, Makefile) si es necesario.{COLOR_END}")
+	print(f"{RED_START}   (El CMD del Dockerfile está fijado a 'dist/database.js' según tu última petición. Si necesitas que sea dinámico, ajusta el script o el Dockerfile).{COLOR_END}")
 	print(f"{RED_START}2. Deberás configurar tu archivo 'docker-compose.yml' para construir (build) y ejecutar (run) este nuevo servicio usando el Dockerfile.{COLOR_END}")

@@ -4,6 +4,14 @@ networks:
     backend-network:
         driver: bridge
 
+volumes:
+    dataBase-volume:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${HOST_DB_VOL_PATH}
+
 services:
     proxy:
         build: ${PROXY_NGINX_BUILD_PATH}
@@ -27,4 +35,18 @@ services:
         container_name: webServer
         networks:
             - proxy-network
+            - backend-network
+
+    dataBase:
+        build: ${DB_BUILD_PATH}
+        init: true
+        image: database-img
+        restart: unless-stopped
+        container_name: dataBase
+        volumes:
+            - dataBase-volume:/usr/src/app/data
+        ports:
+            - "3000:8033" #TODO usar ports solo para pruebas, no exponer al host
+        networks:
+            - proxy-network #TODO proxy solo para pruebas con el host
             - backend-network

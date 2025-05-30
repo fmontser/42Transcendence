@@ -21,13 +21,19 @@ Este proyecto utiliza el modelo de ramificación **GitFlow**. Es imprescindible 
 
 ## Creación de Nuevos Servicios Backend
 
+Antes de crear nada debemos tener instalado y actualizado el toolchain de Node.js.
+
+```bash
+make toolchain
+```
+
 Para la creación estandarizada de la estructura base de nuevos microservicios backend (Fastify/TypeScript), se utilizará el script `newService.py` ubicado en la carpeta `.misc`.
 
 **Uso:**
 ```bash
-python .misc/newService.py backEnd/<nombre-del-nuevo-servicio>
+make new backEnd/<nombre-del-nuevo-servicio>
 ```
-Este script generará la estructura de directorios, archivos de configuración (`package.json`, `tsconfig.json`), un `Dockerfile` multi-etapa básico y un `README.md` para el nuevo servicio.
+Este script generará la estructura de directorios, archivos de configuración (`package.json`, `tsconfig.json`), un `Dockerfile` multi-etapa básico, un `Makefile` para pruebas y un `README.md` para el nuevo servicio.
 
 **Componentes Clave de la Estructura:**
 
