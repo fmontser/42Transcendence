@@ -40,6 +40,7 @@ start();
 		"compilerOptions": {
 			"target": "ES2020",
 			"module": "commonjs",
+			"sourceMap": true,
 			"outDir": "./dist",
 			"rootDir": "./src",
 			"strict": True,
