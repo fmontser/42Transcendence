@@ -17,12 +17,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fastify": "^4.26.0"
+    "@fastify/formbody": "latest",
+    "fastify": "latest",
+    "sqlite3": "latest"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@types/sqlite3": "^3.1.11",
-    "nodemon": "^3.0.0",
-    "typescript": "^5.8.3"
+    "@types/node": "latest",
+    "@types/sqlite3": "latest",
+    "nodemon": "latest",
+    "typescript": "latest"
   }
 }

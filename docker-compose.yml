@@ -45,8 +45,6 @@ services:
         container_name: dataBase
         volumes:
             - dataBase-volume:/usr/src/app/data
-        ports:
-            - "3000:8033" #TODO usar ports solo para pruebas, no exponer al host
         networks:
             - proxy-network #TODO proxy solo para pruebas con el host
             - backend-network

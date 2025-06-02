@@ -69,12 +69,12 @@ start();
 		"author": "",
 		"license": "ISC",
 		"dependencies": {
-			"fastify": "^4.26.0"
+			"fastify": "latest"
 		},
 		"devDependencies": {
-			"@types/node": "^20.11.0",
-			"nodemon": "^3.0.0",
-			"typescript": "^5.3.0"
+			"@types/node": "latest",
+			"nodemon": "latest",
+			"typescript": "latest"
 		}
 	}
 	with open(os.path.join(base_path, "package.json"), "w", encoding='utf-8') as f:

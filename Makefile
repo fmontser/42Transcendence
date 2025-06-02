@@ -34,7 +34,7 @@ build:
 	@mkdir -p volumes/dataBase-volume/
 	@docker compose -f $(COMPOSE_FILE) build
 
-up: build
+up: down build
 	@docker compose -f $(COMPOSE_FILE) up -d
 
 down:
