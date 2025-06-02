@@ -1,9 +1,11 @@
 import Fastify from 'fastify';
-import formBodyPlugin from '@fastify/formbody';
+import FormBodyPlugin from '@fastify/formbody';
 import * as SQLite3 from 'sqlite3'; 
+import * as EndPoints from './endpoint'
+
+const debugMode: boolean = false;
 
 let db: SQLite3.Database;
-const debugMode: boolean = false;
 const server = Fastify({
 	logger: true 
 });
@@ -16,7 +18,7 @@ function connect(): void {
 	else
 		dbPath = "./data/backendDatabase.db";
 
-	//TODO comprobar la creacion en volumen docker en los PC de 42!!!
+	//TODO check 42 PC docker-bind-volumes!! (rootless)
 
 	db = new SQLite3.Database(dbPath, (cb) => {
 		if (cb)
@@ -33,6 +35,8 @@ function setTables(): void {
 			name TEXT UNIQUE NOT NULL,
 			pass TEXT NOT NULL
 		)`
+
+		//Add tables here, comma separated.
 	];
 
 	tables.forEach(table => {
@@ -44,49 +48,43 @@ function setTables(): void {
 }
 
 function setEndPoints(): void {
+	//Add endpoints here
 
-	server.get("/database/front/get/users", async (request, reply) => {
-		const sql = "SELECT * FROM users";
-		try {
-			const rows = await new Promise<any[]>((resolve, reject) => {
-				db.all(sql, [], (cb, rows) => {
-					if (cb)
-						reject(cb);
-					else
-						resolve(rows);
-				});
-			});
-			reply.send(rows);
-		} catch (error) {
-			server.log.error("DataBase: Failed to get users - ", error);
-			reply.status(500).send({ error: "Internal server error: Failed to get users" });
-		}
-	});
+	//GET Sample
+	new EndPoints.getEndpoint(
+		"/database/front/get/users",
+		"SELECT * FROM users",
+		"Failed to get users"
+	);
 
-	server.post("/database/front/post/user", async (request, reply) => {
-		const sql = "INSERT INTO users (name, pass) VALUES (?, ?)";
+	//POST Sample
+	new EndPoints.postEndpoint(
+		"/database/front/post/user",
+		"INSERT INTO users (name, pass) VALUES (?, ?)",
+		"Data insertion error"
+	);
 
-		interface rbody {
-			name: string;
-			pass: string;
-		};
+	//PUT SAMPLE
+	new EndPoints.putEndpoint(
+		"/database/front/put/user",
+		"UPDATE users SET name = ?, pass = ? WHERE id = ?",
+		"Data update error"
+	);
 
-		if (!request.body || typeof request.body !== 'object') {
-			server.log.error("DataBase: Endpoint request is malformed!");
-			return reply.status(400).send({ error: "Endpoint request is malformed!" });
-		}
-		const requestBody = request.body as rbody;
+	//PATCH SAMPLE
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/user",
+		"UPDATE users SET name = ? WHERE id = ?",
+		"Data update error"
+	);
 
-		try {
-			db.run(sql, [requestBody.name, requestBody.pass], (cb) => {
-			if (cb)
-				console.error("SQLite error: Data insertion error - ", cb.message);
-			});
-		} catch (error) {
-			server.log.error("DataBase: Failed to register user - :", error);
-			reply.status(500).send({ error: "Internal server error: Failed to register user" });
-		}
-	});
+	//DELETE SAMPLE
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/user",
+		"DELETE FROM users WHERE id = ?",
+		"Data removal error"
+	);
+	EndPoints.Endpoint.enableAll(server, db);
 }
 
 async function start() {
@@ -96,7 +94,7 @@ async function start() {
 	setEndPoints();
 	
 	try {
-		server.register(formBodyPlugin);
+		server.register(FormBodyPlugin);
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {
 		server.log.error(err);
@@ -105,3 +103,16 @@ async function start() {
 }
 
 start();
+
+	//TODO borrar curl endpoint tests
+	/* 
+		curl -X GET https://localhost:8443/database/front/get/users --insecure
+
+		curl -X POST https://localhost:8443/database/front/post/user   -H "Content-Type: application/json"   -d '{"name":"Fran","pass":"1234"}' --insecure
+
+		curl -X PUT https://localhost:8443/database/front/put/user   -H "Content-Type: application/json"   -d '{"name":"boom","pass":"5678","id":"1"}' --insecure
+
+		curl -X PATCH https://localhost:8443/database/front/patch/user   -H "Content-Type: application/json"   -d '{,"name":"Lemming","id":"1"}' --insecure
+	
+		curl -X DELETE https://localhost:8443/database/front/delete/user   -H "Content-Type: application/json"   -d '{"id":"1"}' --insecure
+	*/

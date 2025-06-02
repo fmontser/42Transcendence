@@ -1,4 +1,10 @@
+MAKEFLAGS 		+= --silent
+
+VOLUMES_DIR		:= volumes/
+DB_DIR			:= backEnd/dataBase/
+
 COMPOSE_FILE	:= docker-compose.yml
+
 
 # Instala y actualiza node.js npm, nvm, npx (necesario en los mac de 42)
 toolchain:
@@ -11,7 +17,7 @@ toolchain:
 # Crea una plantilla de servicio nueva
 new:
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Error: debes especificar un carpeta/nombre. Ejemplo: make new backEnd/newService"; \
+		echo "Error: Use like: make new backEnd/newService"; \
 		exit 1; \
 	fi
 	@python3 .misc/newService.py $(word 2, $(MAKECMDGOALS))
@@ -21,7 +27,7 @@ new:
 # Visualiza por consola el output de un container
 peek:
 	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
-		echo "Error: debes especificar el nombre del servicio. Ejemplo: make peek service"; \
+		echo "Error: Use like: make peek service"; \
 		exit 1; \
 	fi
 	@docker compose logs -f $(word 2, $(MAKECMDGOALS))
@@ -31,21 +37,27 @@ peek:
 all: build
 
 build:
+	@echo "Building docker images..."
 	@mkdir -p volumes/dataBase-volume/
 	@docker compose -f $(COMPOSE_FILE) build
 
 up: down build
+	@echo "Setting services online..."
 	@docker compose -f $(COMPOSE_FILE) up -d
 
 down:
+	@echo "Setting services offline..."
 	@docker compose -f $(COMPOSE_FILE) down
 
 clean:
+	@echo "Cleaning docker..."
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 
 fclean: clean
+	@echo "Force cleaning whole project..."
 	@docker system prune -a -f
 	@rm -rf volumes
+	@make -C $(DB_DIR) clean
 
 re: fclean build up
 

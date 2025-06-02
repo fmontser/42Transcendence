@@ -7,17 +7,17 @@ TSC			:= $(NODES_DIR)/.bin/tsc
 all: run
 
 build:
-	@echo "Instalando dependencias..."
+	@echo "Installing dependencies..."
 	@npm install
-	@echo "Compilando TypeScript..."
+	@echo "Transpiling TypeScript..."
 	@$(TSC)
 
 run: build
-	@echo "Ejecutando servicio Fastify Database..."
+	@echo "Setting dataBase online..."
 	@node $(DIST_DIR)$(NAME)
 
 clean:
-	@echo "Limpiando proyecto Database..."
+	@echo "Cleaning dataBase..."
 	@rm -rf $(DIST_DIR) $(NODES_DIR)
 
 re: clean build
