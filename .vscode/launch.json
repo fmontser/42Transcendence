@@ -2,7 +2,8 @@
 	"configurations": [
 	{
 		"name": "Launch Program",
-		"program": "${fileDirname}/${fileBasename}",
+		"cwd": "${workspaceFolder}",
+		"program": "${workspaceFolder}/backEnd/dataBase/src/database.ts",
 		"request": "launch",
 		"skipFiles": [
 			"<node_internals>/**"
