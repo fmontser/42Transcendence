@@ -46,6 +46,7 @@ export class Game {
 
 	public GameStart(): void {
 
+		//TODO una iteracion por TICK
 		while (this.score[P1] < this.maxScore || this.score[P2]) {
 			
 

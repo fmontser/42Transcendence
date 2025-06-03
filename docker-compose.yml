@@ -26,6 +26,7 @@ services:
             - proxy-network
         depends_on:
             - webServer
+            - serverPong
 
     webServer:
         build: ${WEBSERVER_NGINX_BUILD_PATH}
@@ -48,3 +49,15 @@ services:
         networks:
             - proxy-network #TODO proxy solo para pruebas con el host
             - backend-network
+
+    serverPong:
+        build: ${SPONG_BUILD_PATH}
+        init: true
+        image: serverpong-img
+        restart: unless-stopped
+        container_name: serverPong
+        networks:
+            - proxy-network #TODO proxy solo para pruebas con el host
+            - backend-network
+        depends_on:
+            - webServer

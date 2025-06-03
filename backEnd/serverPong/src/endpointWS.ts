@@ -25,17 +25,21 @@ export class getEndpointWS extends EndpointWS {
 
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			
-			setInterval(() => {
+			//TODO enviar el estado
+
+/* 			setInterval(() => {
 				connection.socket.send(JSON.stringify(
 					{
 						//TODO Game state JSON
 					}
 				));
-			}, TICK_INTERVAL);
+			}, TICK_INTERVAL); */
 
 			connection.socket.on('input', (data: any) => {
 				//TODO Manejar movimiento
 			})
+
+			//TODO @@@@@@@@@@@@@@@@@@@@ continuar aqui, ver si llega el newGame por parte del cliente de pruebas.
 
 			connection.socket.on('newGame', () => {
 				//TODO partida nueva, modo local SOLO!!
