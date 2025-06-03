@@ -40,7 +40,7 @@ start();
 		"compilerOptions": {
 			"target": "ES2020",
 			"module": "commonjs",
-			"sourceMap": true,
+			"sourceMap": True,
 			"outDir": "./dist",
 			"rootDir": "./src",
 			"strict": True,
@@ -83,12 +83,6 @@ start();
 	with open(os.path.join(base_path, ".gitignore"), "w", encoding='utf-8') as f:
 		f.write("node_modules/\ndist/\n.env\n*.log\n")
 
-	# Dockerfile (actualizado con tu versión)
-	# El CMD en tu Dockerfile es estático "dist/database.js", 
-	# pero el script genera js_main_file dinámicamente.
-	# Si quieres que el CMD del Dockerfile sea dinámico, cambia la última línea del dockerfile_content
-	# a: CMD ["node", "{js_main_file}"]
-	# Por ahora, usaré el CMD que proporcionaste.
 	dockerfile_content = f"""FROM node:20-slim AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
@@ -120,33 +114,59 @@ CMD ["node", "{js_main_file}"]
 		f.write(dockerfile_content.strip())
 
 
+	# README.md para el servicio
 	readme_service_content = f"""# Servicio: {service_title_name}
+
+*   Autor: nombre
+*   Contacto: @user en *Slack*
 
 Este directorio contiene el código fuente y la configuración para el servicio **{service_title_name}** del proyecto Trascendence.
 
-El archivo principal de TypeScript para este servicio es `src/{file_base_name}.ts`.
+`src/{file_base_name}.ts`: Archivo main.
+
+`src/other.ts`: Otros archivos.
 
 ## Documentación del Servicio
 
-Es **fundamental** que la persona o equipo encargado de desarrollar este servicio documente aquí su funcionamiento de manera clara y concisa. Esta documentación debe incluir, como mínimo:
+*   **Propósito del Servicio:** Descripcion...
 
-*   **Propósito del Servicio:** Una breve descripción de qué hace este servicio y cuál es su responsabilidad dentro de la arquitectura general de Trascendence.
+---
+
+*   **API:**
+    *   Explicacion de uso del servicio. Ejemplos de codigo de ser necesario.
+
+    ```typescript
+    function sampleFunction(): void {{ 
+
+        let text: string = "text";
+        let number: number = 1;
+    }}
+    ```
+---
 *   **API (Endpoints):**
-	*   Para cada endpoint expuesto por este servicio:
-		*   Método HTTP (GET, POST, PUT, DELETE, etc.).
-		*   Ruta (path).
-		*   Descripción de lo que hace el endpoint.
-		*   Parámetros de ruta (si los hay).
-		*   Parámetros de consulta (query parameters, si los hay).
-		*   Cuerpo de la petición esperado (request body), incluyendo formato y campos obligatorios/opcionales.
-		*   Ejemplos de peticiones.
-		*   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
-		*   Ejemplos de respuestas.
-*   **Dependencias:** Si este servicio depende de otros servicios internos o externos, mencionarlos.
-*   **Variables de Entorno:** Listar las variables de entorno necesarias para configurar y ejecutar el servicio, junto con una descripción de cada una y valores de ejemplo.
-*   **Notas Adicionales:** Cualquier otra información relevante para entender, desarrollar, probar o desplegar este servicio (ej. decisiones de diseño importantes, flujos de trabajo específicos, etc.).
+    *   Para cada endpoint expuesto para el servicio intentar dar la informacion mas completa posible:
+        *   Método HTTP (GET, POST, PUT, DELETE, etc.).
+        *   Ruta (path).
+        *   Descripción de lo que hace el endpoint.
+        *   Parámetros de ruta (si los hay).
+        *   Parámetros de consulta (query parameters, si los hay).
+        *   Cuerpo de la petición esperado (request body), incluyendo formato y campos obligatorios/opcionales.
+        *   Ejemplos de peticiones.
+        *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
+        *   Ejemplos de respuestas.
+---
 
-**¡Mantén esta documentación actualizada a medida que el servicio evoluciona!** Una buena documentación es clave para el éxito del proyecto y la colaboración en equipo.
+*   **Dependencias:** Descripcion de dependencias inter-servicios.
+*   **Variables de Entorno:**
+    *   Nombre del container: **{file_base_name}**
+    *   Archivo **.env**:
+        *   **SAMPLE_ENV_VAR**: Descricion de variables **.env**
+    
+*   **Notas Adicionales:**
+    *   Notas
+
+`¡Mantén esta documentación actualizada a medida que el servicio evoluciona!` Una buena documentación es clave para el éxito del proyecto y la colaboración en equipo.
+
 """
 	with open(os.path.join(base_path, "README.md"), "w", encoding='utf-8') as f:
 		f.write(readme_service_content)
