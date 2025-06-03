@@ -1,3 +1,4 @@
+import { TICK_INTERVAL } from "./serverpong";
 
 export abstract class EndpointWS {
 
@@ -23,8 +24,6 @@ export class getEndpointWS extends EndpointWS {
 	add(server: any): void {
 
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
-			const tickRate = 60;
-			const tickInterval = 1000 / tickRate;
 			
 			setInterval(() => {
 				connection.socket.send(JSON.stringify(
@@ -32,7 +31,7 @@ export class getEndpointWS extends EndpointWS {
 						//TODO Game state JSON
 					}
 				));
-			}, tickInterval);
+			}, TICK_INTERVAL);
 
 			connection.socket.on('input', (data: any) => {
 				//TODO Manejar movimiento

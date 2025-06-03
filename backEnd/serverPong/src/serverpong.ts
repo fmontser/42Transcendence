@@ -1,12 +1,25 @@
 import Fastify from 'fastify';
 import * as EndPoints from './endpointWS'
 
+export const	P1 = 0;
+export const	P2 = 1;
+export const	TICK_RATE = 60;
+export const	TICK_INTERVAL = 1000 / TICK_RATE;
+export const	PLAYFIELD_SIZE = {width: 1280, height: 720};
+export const	PLAYFIELD_POS = {x: 0, y: 0}
+export const	BALL_SPEED = 100;
+export const	BALL_RADIUS = 64;
+export const	PADDLE_SPEED = 100;
+export const	PADDLE_WIDTH = 64;
+export const	PADDLE_HEIGHT = 256;
+export const	PADDLE_MARGIN = 32;
+
 const server = Fastify({
 	logger: true 
 });
 
 function setEndPoints(): void {
-	new EndPoints.getEndpointWS('/pong', 'Error al obtener el endpoint de pong');
+	new EndPoints.getEndpointWS('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
 	EndPoints.EndpointWS.enableAll(server);
 }
 

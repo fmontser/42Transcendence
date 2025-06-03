@@ -1,11 +1,13 @@
+import { TICK_RATE } from "./serverpong";
+
 interface Pos {
 	x: number;
 	y: number;
 }
 
 interface Vect2D {
-	vx: number;
-	vy: number;
+	x: number;
+	y: number;
 }
 
 interface Rect {
@@ -52,27 +54,40 @@ export class PlayField extends GameObject {
 
 export class Ball extends GameObject {
 	radius: number;
+	speed: number;
 	vect: Vect2D;
 
-	constructor(pos: Pos, radius: number) {
+	constructor(pos: Pos, radius: number, speed: number) {
 		super(pos);
 		this.radius = radius;
-		this.vect = {vx: 0,vy: 0};
+		this.speed = speed;
+		this.vect = {x: 0,y: 0};
 	}
+
+	public transpose(vect: Vect2D, paddle0: Paddle, paddle1: Paddle, playField: PlayField) {
+
+		//TODO COLDET
+		//TODO BOUNCE
+		this.pos.x += (this.speed * vect.x) / TICK_RATE;
+		this.pos.y += (this.speed * vect.y) / TICK_RATE;
+	};
+	
 
 }
 
 export class Paddle extends GameObject {
 	pid: number;
+	speed: number;
 	rect: Rect;
 	bounds: Bounds;
 	vect: Vect2D;
 
-
-	constructor(pid: number, rect: Rect, pos: Pos) {
+	constructor(pid: number, speed: number, rect: Rect, pos: Pos, ) {
 		super(pos);
 		this.pid = pid;
+		this.speed = speed;
 		this.rect = rect;
+
 
 		this.bounds = {
 			bottom: rect.height,
@@ -82,6 +97,20 @@ export class Paddle extends GameObject {
 			center: {x: rect.width / 2, y: rect.height /2}
 		};
 
-		this.vect = {vx: 0,vy: 0};
+		this.vect = {x: 0,y: 0};
+	}
+
+	transpose(vect: Vect2D, playField: PlayField): void {
+		let newPos: Pos = this.pos;
+
+		newPos.y += (this.speed * vect.y) / TICK_RATE;
+
+		if (newPos.y >= playField.bounds.bottom)
+			this.pos.y = playField.bounds.bottom - this.bounds.center.y;
+		else if (newPos.y <= playField.bounds.top)
+			this.pos.y = playField.bounds.top + this.bounds.center.y;
+		else
+			this.pos.y = newPos.y;
+	
 	}
 }
