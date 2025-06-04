@@ -22,33 +22,44 @@ export abstract class EndpointWS {
 
 export class getEndpointWS extends EndpointWS {
 	add(server: any): void {
-
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			
 			//TODO enviar el estado
 
 /* 			setInterval(() => {
-				connection.socket.send(JSON.stringify(
+				connection.send(JSON.stringify(
 					{
-						//TODO Game state JSON
+						//TODO Actualizar estado!
 					}
 				));
 			}, TICK_INTERVAL); */
 
-			connection.socket.on('input', (data: any) => {
-				//TODO Manejar movimiento
-			})
+			connection.on('message', (data: any) => {
+				try {
+					const jsonData = JSON.parse(data.toString());
+					console.log("Received message:", jsonData);
 
-			//TODO @@@@@@@@@@@@@@@@@@@@ continuar aqui, ver si llega el newGame por parte del cliente de pruebas.
+					switch (jsonData.type) {
+						case 'newGame':
+							console.log("NewGame requested!");
+							//TODO iniciar nuevo juego!
+							break;
+						case 'input':
+							console.log("Input recieved!");
+							//TODO mover palas!
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
 
-			connection.socket.on('newGame', () => {
-				//TODO partida nueva, modo local SOLO!!
-			})
+			connection.on('close', () => {
+				console.log("Client disconnected!");
+				//TODO terminar juego y limpiar
+			});
 
-			connection.socket.on('close', () => {
-				//TODO Limpiar cuando el cliente se desconecta
-			})
-		})
+		});
 	}
 }
 
@@ -69,17 +80,12 @@ JSON de intercambio entre cliente y servidor:
   direction: "up" | "down" | "stop"
 }
 
-- El cliente cierra la conexión cuando se desconecta.
-{
-  type: "close"
-}
-
 - El servidor envia el estado del juego 60 veces por segundo.
 {
   ball: { x: number, y: number },
   paddles: [
-    { x: number, y: number },
-    { x: number, y: number }
+	{ x: number, y: number },
+	{ x: number, y: number }
   ],
   score: [number, number]
 }

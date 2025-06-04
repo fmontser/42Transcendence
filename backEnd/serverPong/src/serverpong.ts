@@ -25,7 +25,7 @@ function setEndPoints(): void {
 
 async function start() {
 
-	server.register(require('@fastify/websocket'));
+	await server.register(require('@fastify/websocket'));
 
 	setEndPoints();
 
