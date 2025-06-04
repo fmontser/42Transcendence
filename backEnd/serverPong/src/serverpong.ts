@@ -7,13 +7,13 @@ export const	TICK_RATE = 60;
 export const	TICK_INTERVAL = 1000 / TICK_RATE;
 export const	PLAYFIELD_SIZE = {width: 1280, height: 720};
 export const	PLAYFIELD_POS = {x: 0, y: 0}
-export const	BALL_SPEED = 100;
-export const	BALL_RADIUS = 64;
+export const	BALL_SPEED = 600;
+export const	BALL_RADIUS = 32;
 export const	PADDLE_SPEED = 1000;
 export const	PADDLE_WIDTH = 64;
 export const	PADDLE_HEIGHT = 256;
 export const	PADDLE_MARGIN = 32;
-export const	MAX_SCORE = 7;
+export const	MAX_SCORE = 30;
 
 const server = Fastify({
 	logger: true 

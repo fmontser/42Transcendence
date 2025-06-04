@@ -15,7 +15,7 @@ export class Game {
 		this.score = [0,0];
 		this.maxScore = MAX_SCORE;
 
-		this.playField = new PlayField(PLAYFIELD_SIZE, PLAYFIELD_POS);
+		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
 
 		this.playField.setPaddle0(new Paddle(
 			P1,
@@ -39,6 +39,7 @@ export class Game {
 	}
 
 	public GameStart(connection: any): void {
+		this.playField.ball.launchBall();
 
 		this.gameLoop = setInterval(() => {
 
