@@ -1,4 +1,5 @@
-import { TICK_INTERVAL } from "./serverpong";
+import { Game } from './pongEngine'
+import { TICK_INTERVAL } from './serverpong';
 
 export abstract class EndpointWS {
 
@@ -21,19 +22,11 @@ export abstract class EndpointWS {
 }
 
 export class getEndpointWS extends EndpointWS {
+	private currentGame: Game = new Game();
+
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			
-			//TODO enviar el estado
-
-/* 			setInterval(() => {
-				connection.send(JSON.stringify(
-					{
-						//TODO Actualizar estado!
-					}
-				));
-			}, TICK_INTERVAL); */
-
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
@@ -42,11 +35,14 @@ export class getEndpointWS extends EndpointWS {
 					switch (jsonData.type) {
 						case 'newGame':
 							console.log("NewGame requested!");
-							//TODO iniciar nuevo juego!
+							this.currentGame.GameStart(connection);
 							break;
 						case 'input':
 							console.log("Input recieved!");
-							//TODO mover palas!
+							if (jsonData.playerId == '0')
+								this.currentGame.playField.paddle0.updateVector(jsonData.direction);
+							else if (jsonData.playerId == '1')
+								this.currentGame.playField.paddle1.updateVector(jsonData.direction);
 							break;
 					}
 				} catch (error) {

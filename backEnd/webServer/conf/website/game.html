@@ -32,7 +32,7 @@
 	</div>
 
 	<script>
-		const ws = new WebSocket('ws://localhost:8443/serverpong/front/get/pong');
+		const ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
 		const canvas = document.getElementById('pongCanvas');
 		const ctx = canvas.getContext('2d');
 		const scoreElement = document.getElementById('score');
@@ -44,10 +44,10 @@
 
 		// Estado inicial
 		let gameState = {
-			ball: { x: canvas.width/2, y: canvas.height/2 },
+			ball: { x: canvas.width/2, y: canvas.height/2 }, // La pelota sigue centrada
 			paddles: [
-				{ x: 32 + PADDLE_WIDTH/2, y: canvas.height/2 },
-				{ x: canvas.width - 32 - PADDLE_WIDTH/2, y: canvas.height/2 }
+				{ x: 32, y: (canvas.height - PADDLE_HEIGHT)/2 }, // Paddle izquierdo, anclado a esquina
+				{ x: canvas.width - 32 - PADDLE_WIDTH, y: (canvas.height - PADDLE_HEIGHT)/2 } // Paddle derecho, anclado a esquina
 			],
 			score: [0, 0]
 		};
@@ -74,18 +74,18 @@
 			ctx.fillStyle = '#1a1a1a';
 			ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-			// Dibujar paddles
+			// Dibujar paddles (ahora sin ajuste de centro)
 			ctx.fillStyle = 'white';
 			gameState.paddles.forEach(paddle => {
 				ctx.fillRect(
-					paddle.x - PADDLE_WIDTH/2,
-					paddle.y - PADDLE_HEIGHT/2,
+					paddle.x,
+					paddle.y,
 					PADDLE_WIDTH,
 					PADDLE_HEIGHT
 				);
 			});
 
-			// Dibujar pelota
+			// Dibujar pelota (mantiene coordenadas centradas)
 			ctx.beginPath();
 			ctx.arc(gameState.ball.x, gameState.ball.y, BALL_RADIUS, 0, Math.PI * 2);
 			ctx.fill();
