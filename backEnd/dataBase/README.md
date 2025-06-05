@@ -104,8 +104,8 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 *   **Variables de Entorno:**
 	*   Nombre del container: **dataBase**
 	*   Archivo **.env**:
-		*   **HOST_DB_VOL_PATH**: ruta al volumen persistente donde se almacena el archivo **backendDatabase.db**.
-		*   **DB_BUILD_PATH** con la ruta hasta la carpeta del servicio.
+		*   **HOST_DB_VOL_PATH**: Ruta al volumen persistente donde se almacena el archivo **backendDatabase.db**.
+		*   **DB_BUILD_PATH**: Ruta hasta la carpeta del servicio.
 	
 *   **Notas Adicionales:**
 	*   Ninguna
