@@ -39,19 +39,19 @@
 		const ctx = playField.getContext('2d');
 		const scoreElement = document.getElementById('score');
 
-		const PADDLE_WIDTH = 64;
-		const PADDLE_HEIGHT = 256;
-		const BALL_RADIUS = 32;
+		let PADDLE_WIDTH = 64;
+		let PADDLE_HEIGHT = 256;
+		let BALL_RADIUS = 32;
 
 		let gameActive = false;
 		let gameStarted = false;  // Nueva variable para controlar primera pantalla
 
 		// Estado inicial
 		let gameState = {
-			ball: { x: playField.width/2, y: playField.height/2 },
+			ball: { x: 0, y: 0 },
 			paddles: [
-				{ x: 32, y: (playField.height - PADDLE_HEIGHT)/2 },
-				{ x: playField.width - 32 - PADDLE_WIDTH, y: (playField.height - PADDLE_HEIGHT)/2 }
+				{ x: 0, y: 0 },
+				{ x: 0, y: 0 }
 			],
 			score: [0, 0]
 		};
@@ -61,13 +61,15 @@
 
 			ws.onopen = () => {
 				console.log('Conectado al servidor');
-				gameActive = true;
-				ws.send(JSON.stringify({ type: 'newGame', player1UID: 1, player2UID: 2 }));
+				requestGameSetup();
 			};
 
 			ws.onmessage = (event) => {
 				const data = JSON.parse(event.data);
 				switch(data.type) {
+					case 'setupResponse':
+						handleSetupResponse(data);
+						break;
 					case 'update':
 						gameState = data;
 						drawGame();
@@ -86,6 +88,34 @@
 			ws.onerror = (error) => {
 				console.error('Error en WebSocket:', error);
 			};
+		}
+
+		function requestGameSetup() {
+			ws.send(JSON.stringify({ type: 'setupRequest' }));
+		}
+
+		function handleSetupResponse(data) {
+			// Actualizar dimensiones globales
+			PADDLE_WIDTH = data.paddleWidth;
+			PADDLE_HEIGHT = data.paddleHeight;
+			BALL_RADIUS = data.ballRadius;
+
+			// Actualizar estado inicial
+			gameState.ball = data.ballPos;
+			gameState.paddles = data.paddlesPos;
+			gameState.score = data.score;
+
+			// Iniciar juego
+			startNewGame();
+		}
+
+		function startNewGame() {
+			gameActive = true;
+			ws.send(JSON.stringify({ 
+				type: 'newGame',
+				player1UID: 1,
+				player2UID: 2
+			}));
 		}
 
 		function drawGame() {

@@ -1,52 +1,141 @@
 # Servicio: Serverpong
 
-*   Autor: nombre
-*   Contacto: @user en *Slack*
+*   Autor: Fran Montserrat
+*   Contacto: @fmontser en *Slack*
 
 Este directorio contiene el código fuente y la configuración para el servicio **Serverpong** del proyecto Trascendence.
 
-`src/serverpong.ts`: Archivo main.
+`src/serverpong.ts`: Archivo main, configura el servicio.
 
-`src/other.ts`: Otros archivos.
+`src/endpoint.ts`: Configura endpoints con websocket e implementa las comunicaciones.
+
+`src/pongEngine.ts`: Define el objeto juego que orquestra el gameplay genera la informacion para ser enviada a cliente y otros servicios.
+
+`src/gameObject.ts`: Definicion de clase abstracta para gameObjects.
+
+`src/playField.ts`: Define e implementa el comportamiento de la zona de juego.
+
+`src/ball.ts`: Define e implementa el comportamiento de la bola.
+
+`src/paddle.ts`: Define e implementa el comportamiento de las palas.
+
+
 
 ## Documentación del Servicio
 
-*   **Propósito del Servicio:** Descripcion...
+*   **Propósito del Servicio:** Este servicio implementa la logica de juego pong, controla la posicion, el movimiento y el comportamiento de todos los elementos del jeugo. Recibe el input del cliente, lo procesa y devuelve el estado cada 16ms (60 fps). Al finalizar envia el resultado del juego.
 
 ---
 
 *   **API:**
-    *   Explicacion de uso del servicio. Ejemplos de codigo de ser necesario.
+	*   El servicio se comunica por websocket con el cliente, queda pendiente la comunicacion con matchmaker para multijugador online (HTTP).
 
-    ```typescript
-    function sampleFunction(): void { 
+	*   El cliente debe establecer comunicacion con el endpoint mediante secure websocket wss, para luego recibir y enviar mensajes mediante el sistema de eventos (ver endpoint).
 
-        let text: string = "text";
-        let number: number = 1;
-    }
-    ```
+	```typescript
+	function connect(): void { 
+		ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
+		//...
+	}
+	```
 ---
-*   **API (Endpoints):**
-    *   Para cada endpoint expuesto para el servicio intentar dar la informacion mas completa posible:
-        *   Método HTTP (GET, POST, PUT, DELETE, etc.).
-        *   Ruta (path).
-        *   Descripción de lo que hace el endpoint.
-        *   Parámetros de ruta (si los hay).
-        *   Parámetros de consulta (query parameters, si los hay).
-        *   Cuerpo de la petición esperado (request body), incluyendo formato y campos obligatorios/opcionales.
-        *   Ejemplos de peticiones.
-        *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
-        *   Ejemplos de respuestas.
+*   **Endpoints WEBSOCKET:**
+
+*   La comunicación entre cliente y servidor sigue esta secuencia:
+
+1. **Cliente solicita configuración inicial:**
+	```json
+	{
+		"type": "setupRequest"
+	}
+	```
+
+2. **Servidor envía la configuración:**
+	```json
+	{
+		"type": "configuration",
+		"ballPos": {
+			"x": "number",
+			"y": "number"
+		},
+		"ballRadius": "number",
+		"paddlesPos": [
+			{ "x": "number", "y": "number" },
+			{ "x": "number", "y": "number" }
+		],
+		"paddleHeight": "number",
+		"paddleWidth": "number",
+		"score": [0, 0]
+	}
+	```
+
+3. **Cliente configura y solicita nueva partida:**
+	```json
+	{
+		"type": "newGame",
+		"gameUID": "number",
+		"player1UID": "number",
+		"player2UID": "number"
+	}
+	```
+
+4. **Comunicación durante el juego:**
+
+- Cliente envía movimientos de paleta:
+	```json
+	{
+		"type": "input",
+		"playerId": "number",
+		"direction": "up | down | stop"
+	}
+	```
+
+- Servidor envía actualizaciones (60fps):
+	```json
+	{
+		"type": "update",
+		"ball": {
+			"x": "number",
+			"y": "number"
+		},
+		"paddles": [
+			{ "x": "number", "y": "number" },
+			{ "x": "number", "y": "number" }
+		],
+		"score": ["number", "number"]
+	}
+	```
+
+5. **Servidor envía resultado final:**
+	```json
+	{
+		"type": "endGame",
+		"gameUID": "number",
+		"giveUp": "boolean",
+		"player1UID": "number",
+		"player2UID": "number",
+		"winnerUID": "number",
+		"score": ["number", "number"]
+	}
+	```
+
 ---
 
-*   **Dependencias:** Descripcion de dependencias inter-servicios.
+*   **Endpoints HTTP:**
+	*   SECCION PENDIENTE DE MATCHMAKING
+
+---
+
+*   **Dependencias:** Este servicio necesitara al servicio de matchmaking para el multijugador online (no implementado aun).
 *   **Variables de Entorno:**
-    *   Nombre del container: **serverpong**
-    *   Archivo **.env**:
-        *   **SAMPLE_ENV_VAR**: Descricion de variables **.env**
-    
+	*   Nombre del container: **serverpong**
+	*   Archivo **.env**:
+		*   **SPONG_BUILD_PATH**: Ruta hasta la carpeta del servicio.
+	
 *   **Notas Adicionales:**
-    *   Notas
+	*   Pendiente de implementar el multiplayer online, necesita del servicio de matchmaking.
 
 `¡Mantén esta documentación actualizada a medida que el servicio evoluciona!` Una buena documentación es clave para el éxito del proyecto y la colaboración en equipo.
+
+
 

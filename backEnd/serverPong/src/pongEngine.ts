@@ -45,7 +45,24 @@ export class Game {
 		));
 	}
 
-	public GameStart(connection: any, player1UID: number, player2UID: number): void {
+	public gameSetup(connection: any): void {
+		console.log("Sent message: Game configuration");
+
+		connection.send(JSON.stringify({
+			type: 'setupResponse',
+			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
+			ballRadius: this.playField.ball.radius,
+			paddlesPos: [
+				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
+				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
+			],
+			paddleHeight: this.playField.paddle0.rect.height,
+			paddleWidth: this.playField.paddle0.rect.width,
+			score: [0, 0]
+		}));
+	}
+
+	public gameStart(connection: any, player1UID: number, player2UID: number): void {
 		this.playField.ball.launchBall();
 		this.playersUID[P1] = player1UID;
 		this.playersUID[P2] = player2UID;
@@ -59,7 +76,7 @@ export class Game {
 
 			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
 				clearInterval(this.gameLoop);
-				this.GameEnd(connection);
+				this.gameEnd(connection);
 				return;
 			}
 
@@ -76,8 +93,9 @@ export class Game {
 		}, TICK_INTERVAL);
 	}
 
-	public GameEnd(connection: any): void {
+	public gameEnd(connection: any): void {
 		let winnerUID: number = this.score[P1] > this.score[P2] ? this.playersUID[P1] : this.playersUID[P2];
+		console.log("Sent message: End game summary");
 
 		connection.send(JSON.stringify({
 			type: 'endGame',

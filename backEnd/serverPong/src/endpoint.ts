@@ -1,4 +1,5 @@
 import { Game } from './pongEngine'
+import { PADDLE_MARGIN } from './serverpong';
 
 export abstract class Endpoint {
 
@@ -32,10 +33,14 @@ export class GetNewGame extends Endpoint {
 					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
+						case 'setupRequest':
+							this.currentGame = new Game(jsonData.gameUID);
+							this.currentGame.gameSetup(connection);
+							break;
 						case 'newGame':
 							console.log("NewGame requested!");
-							this.currentGame = new Game(jsonData.gameUID);
-							this.currentGame.GameStart(connection, jsonData.player1UID, jsonData.player2UID);
+
+							this.currentGame.gameStart(connection, jsonData.player1UID, jsonData.player2UID);
 							break;
 						case 'input':
 							console.log("Input recieved!");
@@ -52,7 +57,7 @@ export class GetNewGame extends Endpoint {
 
 			connection.on('close', () => {
 				console.log("Client disconnected!");
-				this.currentGame.GameEnd(connection);
+				this.currentGame.gameEnd(connection);
 			});
 		});
 	}
@@ -60,48 +65,6 @@ export class GetNewGame extends Endpoint {
 
 
 /* 
-
-JSON de intercambio entre cliente y servidor:
-
-- El cliente solicita una nueva partida.
-{
-  type: "newGame"
-  gameUID: number (esto sera generado mas tarde en el matchmaker... no el frontend)
-  player1UID: number
-  player2UID: number
-}
-
-- El cliente solo envia el movimiento de la paleta.
-{
-  type: "input",
-  playerId: number,
-  direction: "up" | "down" | "stop"
-}
-
-///////////////////////////////////////////////////////
-
-
-- El servidor envia el estado del juego 60 veces por segundo.
-{
-  type: 'update',
-  ball: { x: number, y: number },
-  paddles: [
-	{ x: number, y: number },
-	{ x: number, y: number }
-  ],
-  score: [number, number]
-}
-
-- El servidor envia el resultado de la partida.
-{
-	type: 'endgame'
-	gameUID: this.gameUID,
-	giveUp: 'true' | 'false' (para partidas invalidas por desconexion, solo por matchmaking, no aplica a local.)
-	player1UID: this.playersUID[P1],
-	player2UID: this.playersUID[P2],
-	winnerUID: 'winnerUID',
-	score: this.score
-}
 
 //TODO online multiplayer
 
