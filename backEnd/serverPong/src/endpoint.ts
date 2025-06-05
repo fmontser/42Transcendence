@@ -1,28 +1,27 @@
 import { Game } from './pongEngine'
-import { TICK_INTERVAL } from './serverpong';
 
-export abstract class EndpointWS {
+export abstract class Endpoint {
 
-	protected static list: Set<EndpointWS> = new Set();
+	protected static list: Set<Endpoint> = new Set();
 	protected path: string;
 	protected errorMsg: string;
 
 	constructor(path: string, errorMsg: string	) {
 		this.path = path;
 		this.errorMsg = errorMsg;
-		EndpointWS.list.add(this);
+		Endpoint.list.add(this);
 	}
 	
 	protected abstract add(server: any): void;
 
 	public static enableAll(server: any): void {
-		for (const endpoint of EndpointWS.list)
+		for (const endpoint of Endpoint.list)
 			endpoint.add(server);
 	}
 }
 
-export class getEndpointWS extends EndpointWS {
-	private currentGame: Game = new Game();
+export class GetNewGame extends Endpoint {
+	private currentGame!: Game;
 
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
@@ -35,7 +34,8 @@ export class getEndpointWS extends EndpointWS {
 					switch (jsonData.type) {
 						case 'newGame':
 							console.log("NewGame requested!");
-							this.currentGame.GameStart(connection);
+							this.currentGame = new Game(jsonData.gameUID);
+							this.currentGame.GameStart(connection, jsonData.player1UID, jsonData.player2UID);
 							break;
 						case 'input':
 							console.log("Input recieved!");
@@ -52,9 +52,8 @@ export class getEndpointWS extends EndpointWS {
 
 			connection.on('close', () => {
 				console.log("Client disconnected!");
-				//TODO terminar juego y limpiar
+				this.currentGame.GameEnd(connection);
 			});
-
 		});
 	}
 }
@@ -67,6 +66,9 @@ JSON de intercambio entre cliente y servidor:
 - El cliente solicita una nueva partida.
 {
   type: "newGame"
+  gameUID: number (esto sera generado mas tarde en el matchmaker... no el frontend)
+  player1UID: number
+  player2UID: number
 }
 
 - El cliente solo envia el movimiento de la paleta.
@@ -76,14 +78,29 @@ JSON de intercambio entre cliente y servidor:
   direction: "up" | "down" | "stop"
 }
 
+///////////////////////////////////////////////////////
+
+
 - El servidor envia el estado del juego 60 veces por segundo.
 {
+  type: 'update',
   ball: { x: number, y: number },
   paddles: [
 	{ x: number, y: number },
 	{ x: number, y: number }
   ],
   score: [number, number]
+}
+
+- El servidor envia el resultado de la partida.
+{
+	type: 'endgame'
+	gameUID: this.gameUID,
+	giveUp: 'true' | 'false' (para partidas invalidas por desconexion, solo por matchmaking, no aplica a local.)
+	player1UID: this.playersUID[P1],
+	player2UID: this.playersUID[P2],
+	winnerUID: 'winnerUID',
+	score: this.score
 }
 
 //TODO online multiplayer

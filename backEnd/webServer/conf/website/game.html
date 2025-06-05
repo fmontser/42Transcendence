@@ -28,53 +28,58 @@
 <body>
 	<div>
 		<div id="score">0 - 0</div>
-		<canvas id="pongCanvas" width="1280" height="720"></canvas>
+		<canvas id="playField" width="1280" height="720"></canvas>
 	</div>
 
 	<script>
 		const ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
-		const canvas = document.getElementById('pongCanvas');
-		const ctx = canvas.getContext('2d');
+		const playField = document.getElementById('playField');
+		const ctx = playField.getContext('2d');
 		const scoreElement = document.getElementById('score');
 
-		// Configuración del juego
 		const PADDLE_WIDTH = 64;
 		const PADDLE_HEIGHT = 256;
 		const BALL_RADIUS = 32;
 
 		// Estado inicial
 		let gameState = {
-			ball: { x: canvas.width/2, y: canvas.height/2 }, // La pelota sigue centrada
+			ball: { x: playField.width/2, y: playField.height/2 }, // La pelota sigue centrada
 			paddles: [
-				{ x: 32, y: (canvas.height - PADDLE_HEIGHT)/2 }, // Paddle izquierdo, anclado a esquina
-				{ x: canvas.width - 32 - PADDLE_WIDTH, y: (canvas.height - PADDLE_HEIGHT)/2 } // Paddle derecho, anclado a esquina
+				{ x: 32, y: (playField.height - PADDLE_HEIGHT)/2 }, // Paddle izquierdo, anclado a esquina
+				{ x: playField.width - 32 - PADDLE_WIDTH, y: (playField.height - PADDLE_HEIGHT)/2 } // Paddle derecho, anclado a esquina
 			],
 			score: [0, 0]
 		};
 
 		// Manejo de WebSocket
 		ws.onopen = () => {
-			console.log('Conectado al servidor');
-			ws.send(JSON.stringify({ type: 'newGame' }));
+			//TODO dibujar un pantalla de inicio con un boton para empezar, la pulsar se envia newGame
+			ws.send(JSON.stringify({ type: 'newGame', player1UID: 1, player2UID: 2 }));
 		};
 
 		ws.onmessage = (event) => {
-			gameState = JSON.parse(event.data);
-			drawGame();
-			scoreElement.textContent = `${gameState.score[0]} - ${gameState.score[1]}`;
+			//TODO deberia dibujarse por primera vez al recibir el primer update...
+			switch(event.type) {
+				case 'update':
+					gameState = JSON.parse(event.data);
+					drawGame();
+					break;
+				case 'endGame':
+					//TODO dibujar pantalla de resultados.
+					break;
+			}
 		};
 
 		ws.onclose = () => {
 			console.log('Desconectado del servidor');
 		};
 
-		// Dibujar el juego
 		function drawGame() {
-			// Limpiar canvas
+			// playField
 			ctx.fillStyle = '#1a1a1a';
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillRect(0, 0, playField.width, playField.height);
 
-			// Dibujar paddles (ahora sin ajuste de centro)
+			// paddles
 			ctx.fillStyle = 'white';
 			gameState.paddles.forEach(paddle => {
 				ctx.fillRect(
@@ -85,13 +90,16 @@
 				);
 			});
 
-			// Dibujar pelota (mantiene coordenadas centradas)
+			// vall
 			ctx.beginPath();
 			ctx.arc(gameState.ball.x, gameState.ball.y, BALL_RADIUS, 0, Math.PI * 2);
 			ctx.fill();
+
+			// score
+			scoreElement.textContent = `${gameState.score[0]} - ${gameState.score[1]}`;
 		}
 
-		// Control de teclado
+		// control
 		document.addEventListener('keydown', (event) => {
 			let input = { type: 'input', playerId: 0, direction: 'stop' };
 			
@@ -134,8 +142,8 @@
 			ws.send(JSON.stringify(input));
 		});
 
-		// Dibujar estado inicial
 		drawGame();
+
 	</script>
 </body>
 </html>

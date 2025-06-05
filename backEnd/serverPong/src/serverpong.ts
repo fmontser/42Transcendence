@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-import * as EndPoints from './endpointWS'
+import * as EndPoints from './endpoint'
 
 export const	P1 = 0;
 export const	P2 = 1;
@@ -13,15 +13,15 @@ export const	PADDLE_SPEED = 1000;
 export const	PADDLE_WIDTH = 64;
 export const	PADDLE_HEIGHT = 256;
 export const	PADDLE_MARGIN = 32;
-export const	MAX_SCORE = 30;
+export const	MAX_SCORE = 3;
 
 const server = Fastify({
-	logger: true 
+	logger: true
 });
 
 function setEndPoints(): void {
-	new EndPoints.getEndpointWS('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
-	EndPoints.EndpointWS.enableAll(server);
+	new EndPoints.GetNewGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
+	EndPoints.Endpoint.enableAll(server);
 }
 
 async function start() {
