@@ -17,8 +17,10 @@
 			border: 2px solid white;
 		}
 		#score {
-			position: absolute;
-			top: 20px;
+			position: flex;
+			width: 100%;
+			text-align: center;
+			top: 40px;
 			color: white;
 			font-size: 24px;
 			font-family: monospace;
@@ -32,7 +34,7 @@
 	</div>
 
 	<script>
-		const ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
+		let ws;
 		const playField = document.getElementById('playField');
 		const ctx = playField.getContext('2d');
 		const scoreElement = document.getElementById('score');
@@ -41,38 +43,50 @@
 		const PADDLE_HEIGHT = 256;
 		const BALL_RADIUS = 32;
 
+		let gameActive = false;
+		let gameStarted = false;  // Nueva variable para controlar primera pantalla
+
 		// Estado inicial
 		let gameState = {
-			ball: { x: playField.width/2, y: playField.height/2 }, // La pelota sigue centrada
+			ball: { x: playField.width/2, y: playField.height/2 },
 			paddles: [
-				{ x: 32, y: (playField.height - PADDLE_HEIGHT)/2 }, // Paddle izquierdo, anclado a esquina
-				{ x: playField.width - 32 - PADDLE_WIDTH, y: (playField.height - PADDLE_HEIGHT)/2 } // Paddle derecho, anclado a esquina
+				{ x: 32, y: (playField.height - PADDLE_HEIGHT)/2 },
+				{ x: playField.width - 32 - PADDLE_WIDTH, y: (playField.height - PADDLE_HEIGHT)/2 }
 			],
 			score: [0, 0]
 		};
 
-		// Manejo de WebSocket
-		ws.onopen = () => {
-			//TODO dibujar un pantalla de inicio con un boton para empezar, la pulsar se envia newGame
-			ws.send(JSON.stringify({ type: 'newGame', player1UID: 1, player2UID: 2 }));
-		};
+		function setupWebSocket() {
+			ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
 
-		ws.onmessage = (event) => {
-			//TODO deberia dibujarse por primera vez al recibir el primer update...
-			switch(event.type) {
-				case 'update':
-					gameState = JSON.parse(event.data);
-					drawGame();
-					break;
-				case 'endGame':
-					//TODO dibujar pantalla de resultados.
-					break;
-			}
-		};
+			ws.onopen = () => {
+				console.log('Conectado al servidor');
+				gameActive = true;
+				ws.send(JSON.stringify({ type: 'newGame', player1UID: 1, player2UID: 2 }));
+			};
 
-		ws.onclose = () => {
-			console.log('Desconectado del servidor');
-		};
+			ws.onmessage = (event) => {
+				const data = JSON.parse(event.data);
+				switch(data.type) {
+					case 'update':
+						gameState = data;
+						drawGame();
+						break;
+					case 'endGame':
+						gameActive = false;
+						showEndGameScreen(data);
+						break;
+				}
+			};
+
+			ws.onclose = () => {
+				console.log('Desconectado del servidor');
+			};
+
+			ws.onerror = (error) => {
+				console.error('Error en WebSocket:', error);
+			};
+		}
 
 		function drawGame() {
 			// playField
@@ -142,8 +156,100 @@
 			ws.send(JSON.stringify(input));
 		});
 
-		drawGame();
+		function showEndGameScreen(endGameData) {
+			// Limpiar canvas
+			ctx.fillStyle = '#1a1a1a';
+			ctx.fillRect(0, 0, playField.width, playField.height);
 
+			// Mostrar resultados
+			ctx.fillStyle = 'white';
+			ctx.font = '48px monospace';
+			ctx.textAlign = 'center';
+			
+			// Título
+			ctx.fillText('Game Over!', playField.width/2, playField.height/3);
+			
+			// Puntuación final
+			ctx.font = '36px monospace';
+			ctx.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
+				playField.width/2, playField.height/2);
+			
+			// Ganador
+			ctx.fillText(`Winner: Player ${endGameData.winnerUID}`, 
+				playField.width/2, playField.height/2 + 50);
+
+			// Botón de nueva partida
+			const buttonY = playField.height/2 + 120;
+			ctx.fillStyle = '#4CAF50';
+			ctx.fillRect(playField.width/2 - 100, buttonY, 200, 50);
+			
+			ctx.fillStyle = 'white';
+			ctx.font = '24px monospace';
+			ctx.fillText('New Game', playField.width/2, buttonY + 32);
+
+			// Añadir listener para el click en el botón
+			playField.addEventListener('click', handleNewGameClick);
+		}
+
+		// Función para manejar el click en "New Game"
+		function handleNewGameClick(event) {
+			const rect = playField.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const y = event.clientY - rect.top;
+			
+			// Comprobar si el click fue en el botón
+			if (x >= playField.width/2 - 100 && x <= playField.width/2 + 100 &&
+				y >= playField.height/2 + 120 && y <= playField.height/2 + 170) {
+				
+				// Remover el listener para evitar múltiples clicks
+				playField.removeEventListener('click', handleNewGameClick);
+				
+				// Crear nueva conexión en lugar de usar la antigua (que está cerrada)
+				setupWebSocket();
+			}
+		}
+
+		function showStartScreen() {
+			// Fondo
+			ctx.fillStyle = '#1a1a1a';
+			ctx.fillRect(0, 0, playField.width, playField.height);
+
+			// Título
+			ctx.fillStyle = 'white';
+			ctx.font = '48px monospace';
+			ctx.textAlign = 'center';
+			ctx.fillText('PONG', playField.width/2, playField.height/3);
+
+			// Botón de inicio
+			const buttonY = playField.height/2 + 50;
+			ctx.fillStyle = '#4CAF50';
+			ctx.fillRect(playField.width/2 - 100, buttonY, 200, 50);
+			
+			ctx.fillStyle = 'white';
+			ctx.font = '24px monospace';
+			ctx.fillText('Start Game', playField.width/2, buttonY + 32);
+
+			// Listener para el botón
+			playField.addEventListener('click', handleStartClick);
+		}
+
+		function handleStartClick(event) {
+			const rect = playField.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const y = event.clientY - rect.top;
+			
+			const buttonY = playField.height/2 + 50;
+			if (x >= playField.width/2 - 100 && x <= playField.width/2 + 100 &&
+				y >= buttonY && y <= buttonY + 50) {
+				
+				playField.removeEventListener('click', handleStartClick);
+				gameStarted = true;
+				setupWebSocket();
+			}
+		}
+
+		// En lugar de llamar directamente a setupWebSocket()
+		showStartScreen();
 	</script>
 </body>
 </html>

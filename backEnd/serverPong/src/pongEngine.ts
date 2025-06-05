@@ -77,7 +77,7 @@ export class Game {
 	}
 
 	public GameEnd(connection: any): void {
-		let winnerUID: number = Math.max(this.score[P1], this.score[P2]);
+		let winnerUID: number = this.score[P1] > this.score[P2] ? this.playersUID[P1] : this.playersUID[P2];
 
 		connection.send(JSON.stringify({
 			type: 'endGame',
