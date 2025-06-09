@@ -86,7 +86,7 @@ start();
 	dockerfile_content = f"""FROM node:20-slim AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
-RUN npm install
+RUN nvm install node --reinstall-packages-from=current
 COPY tsconfig.json ./
 COPY src/ ./src/
 RUN npm run build
