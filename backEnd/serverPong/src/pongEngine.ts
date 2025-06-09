@@ -8,13 +8,14 @@ import { P1, P2, TICK_INTERVAL,
 		 BALL_RADIUS, BALL_SPEED,
 		 MAX_SCORE } from './serverpong';
 
-export class Game {
-	gameUID: number;
-	score: number[];
-	playersUID: number [];
-	maxScore: number;
-	playField: PlayField;
-	private gameLoop!: NodeJS.Timeout;
+
+export abstract class Game {
+	protected gameUID: number;
+	protected score: number[];
+	protected playersUID: number [];
+	protected maxScore: number;
+	public playField: PlayField;
+	protected gameLoop!: NodeJS.Timeout;
 
 	constructor(gameUID: number) {
 		this.gameUID = gameUID;
@@ -62,6 +63,17 @@ export class Game {
 		}));
 	}
 
+	public abstract gameStart(connection: any, player1UID: number, player2UID: number): void;
+	public abstract gameEnd(connection: any): void;
+}
+
+
+export class LocalGame extends Game {
+
+	constructor(gameUID: number) {
+		super(gameUID);
+	}
+
 	public gameStart(connection: any, player1UID: number, player2UID: number): void {
 		this.playField.ball.launchBall();
 		this.playersUID[P1] = player1UID;
@@ -93,6 +105,62 @@ export class Game {
 		}, TICK_INTERVAL);
 	}
 
+	public gameEnd(connection: any): void {
+		let winnerUID: number = this.score[P1] > this.score[P2] ? this.playersUID[P1] : this.playersUID[P2];
+		console.log("Sent message: End game summary");
+
+		connection.send(JSON.stringify({
+			type: 'endGame',
+			gameUID: this.gameUID,
+			player1UID: this.playersUID[P1],
+			player2UID: this.playersUID[P2],
+			winnerUID: winnerUID,
+			score: this.score
+		}));
+
+		connection.close();
+	}
+}
+
+export class MultiGame extends Game {
+	
+	constructor(gameUID: number) {
+		super(gameUID);
+	}
+
+	//TODO refactor a multiplayer
+	public gameStart(connection: any, player1UID: number, player2UID: number): void {
+		this.playField.ball.launchBall();
+		this.playersUID[P1] = player1UID;
+		this.playersUID[P2] = player2UID;
+
+		this.gameLoop = setInterval(() => {
+
+			this.playField.paddle0.transpose();
+			this.playField.paddle1.transpose();
+			this.playField.ball.transpose();
+			this.playField.ball.checkScore();
+
+			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
+				clearInterval(this.gameLoop);
+				this.gameEnd(connection);
+				return;
+			}
+
+			connection.send(JSON.stringify({
+				type: 'update',
+				ball: this.playField.ball.pos,
+				paddles: [
+					this.playField.paddle0.pos,
+					this.playField.paddle1.pos
+				],
+				score: this.score
+			}));
+
+		}, TICK_INTERVAL);
+	}
+
+	//TODO refactor a multiplayer
 	public gameEnd(connection: any): void {
 		let winnerUID: number = this.score[P1] > this.score[P2] ? this.playersUID[P1] : this.playersUID[P2];
 		console.log("Sent message: End game summary");

@@ -20,7 +20,10 @@ const server = Fastify({
 });
 
 function setEndPoints(): void {
-	new EndPoints.GetNewGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
+	new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
+
+	new EndPoints.GetNewMultiGame('/serverpong/front/get/multipong', 'Error al obtener el endpoint de multipong');
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
