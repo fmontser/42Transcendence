@@ -85,7 +85,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	```json
 	{
 		"type": "input",
-		"playerId": "number",
+		"playerSlot": "number",
 		"direction": "up | down | stop"
 	}
 	```
