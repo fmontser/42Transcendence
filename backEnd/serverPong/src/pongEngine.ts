@@ -55,7 +55,7 @@ export class MultiGameManager {
 
 export abstract class Game {
 	protected gameUID: number;
-	protected score: number[];
+	public score: number[];
 	protected players!: Player[];
 	protected maxScore: number;
 	public playField: PlayField;
@@ -91,33 +91,13 @@ export abstract class Game {
 	}
 
 	public addPlayer(newPlayer: Player): void {
-		for (let player of this.players) {
-			let playerSlot: number = P1;
-			if (player.connection == null) {
-				newPlayer.playerSlot = playerSlot;
-				player = newPlayer;
+		for (let i = 0; i < 2; i++){
+			if (this.players[i].connection == null){
+				this.players[i] = newPlayer;
+				this.players[i].playerSlot = i;
 				return;
 			}
-			playerSlot = P2;
 		}
-	}
-
-	public gameSetup(connection: any, player: Player | null): void {
-		console.log("Sent message: Game configuration");
-
-		connection.send(JSON.stringify({
-			type: 'setupResponse',
-			playerSlot: player!.playerSlot,
-			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
-			ballRadius: this.playField.ball.radius,
-			paddlesPos: [
-				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
-				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
-			],
-			paddleHeight: this.playField.paddle0.rect.height,
-			paddleWidth: this.playField.paddle0.rect.width,
-			score: [0, 0]
-		}));
 	}
 
 	public getUID(): number { return this.gameUID; }
@@ -131,6 +111,23 @@ export class LocalGame extends Game {
 
 	constructor(gameUID: number) {
 		super(gameUID);
+	}
+
+	public gameSetup(connection: any): void {
+		console.log("Sent message: Game configuration");
+
+		connection.send(JSON.stringify({
+			type: 'setupResponse',
+			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
+			ballRadius: this.playField.ball.radius,
+			paddlesPos: [
+				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
+				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
+			],
+			paddleHeight: this.playField.paddle0.rect.height,
+			paddleWidth: this.playField.paddle0.rect.width,
+			score: [0, 0]
+		}));
 	}
 
 	public gameStart(connection: any): void {
@@ -164,7 +161,7 @@ export class LocalGame extends Game {
 
 	public gameEnd(connection: any): void {
 		let winnerUID: number = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
-		console.log("Sent message: End game summary");
+		console.log("Sent message: End game summary. winner: " + winnerUID);
 
 		connection.send(JSON.stringify({
 			type: 'endGame',
@@ -205,6 +202,23 @@ export class MultiGame extends Game {
 		});
 	}
 	
+	public gameSetup(connection: any, player: Player): void {
+		console.log("Sent message: Game configuration");
+
+		connection.send(JSON.stringify({
+			type: 'setupResponse',
+			playerSlot: player.playerSlot,
+			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
+			ballRadius: this.playField.ball.radius,
+			paddlesPos: [
+				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
+				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
+			],
+			paddleHeight: this.playField.paddle0.rect.height,
+			paddleWidth: this.playField.paddle0.rect.width,
+			score: [0, 0]
+		}));
+	}
 
 	//TODO refactor a multiplayer
 	public async gameStart(connection: any): Promise<void> {

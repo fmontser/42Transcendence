@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Pong Test Client</title>
+	<title>Multiplayer Pong Test Client</title>
 	<style>
 		body {
 			display: flex;
@@ -43,6 +43,9 @@
 		let PADDLE_HEIGHT = 256;
 		let BALL_RADIUS = 32;
 
+		let isMultiplayer = false;
+		let playerSlot = 0;
+
 		let gameActive = false;
 		let gameStarted = false;  // Nueva variable para controlar primera pantalla
 
@@ -57,7 +60,7 @@
 		};
 
 		function setupWebSocket() {
-			ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
+			ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
 
 			ws.onopen = () => {
 				console.log('Conectado al servidor');
@@ -71,6 +74,7 @@
 						handleSetupResponse(data);
 						break;
 					case 'update':
+						gameActive = true;
 						gameState = data;
 						drawGame();
 						break;
@@ -105,17 +109,29 @@
 			gameState.paddles = data.paddlesPos;
 			gameState.score = data.score;
 
+			//Configurar multiplayer
+			if (data.playerSlot != null) {
+				isMultiplayer = true;
+				playerSlot = data.playerSlot;
+			}
+
 			// Iniciar juego
 			startNewGame();
 		}
 
 		function startNewGame() {
-			gameActive = true;
-			ws.send(JSON.stringify({ 
-				type: 'newGame',
-				player1UID: 11,
-				player2UID: 22
-			}));
+
+			if (isMultiplayer) {
+				ws.send(JSON.stringify({ 
+					type: 'newGame'
+				}));
+			} else {
+				ws.send(JSON.stringify({ 
+					type: 'newGame',
+					player1UID: 11,
+					player2UID: 22
+				}));
+			}
 		}
 
 		function drawGame() {
