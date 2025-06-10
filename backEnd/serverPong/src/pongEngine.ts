@@ -37,8 +37,8 @@ export class MultiGameManager {
 			newGame = new MultiGame(gameUID);
 			newGame.gameStart();
 		}
-		this.multiGameList.add(newGame);
 		newGame.addPlayer(player);
+		this.multiGameList.add(newGame);
 		return (newGame);
 	}
 
@@ -98,6 +98,7 @@ export abstract class Game {
 			if (this.players[i].connection == null){
 				this.players[i] = newPlayer;
 				this.players[i].playerSlot = i;
+				console.log("Player slot is: " + this.players[i].playerSlot);
 				return;
 			}
 		}
@@ -260,8 +261,8 @@ export class MultiGame extends Game {
 		let winnerUID: number;
 		let type: string;
 
-		if (disconnectedPlayer) {
-			winnerUID = this.players[P1] == disconnectedPlayer ? this.players[P1].playerUID : this.players[P2].playerUID;
+		if (disconnectedPlayer != null) {
+			winnerUID = this.players[P1].playerUID != disconnectedPlayer.playerUID ? this.players[P1].playerUID : this.players[P2].playerUID;
 			type = 'playerDisconnected';
 		} else {
 			winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
@@ -279,6 +280,8 @@ export class MultiGame extends Game {
 			score: this.score
 		}));
 
+		//TODO @@@@@@@@@@@@@@@@ continuar aqui...
+		//TODO elminar el juego? cerrar conexion??
 		//TODO this.broadcastClose();
 	}
 

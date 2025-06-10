@@ -70,8 +70,6 @@ export class GetNewMultiGame extends Endpoint {
 	private currentGame!: MultiGame;
 	private player!: Player;
 
-	//TODO refactor multiplayer!!!
-
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			
@@ -82,7 +80,11 @@ export class GetNewMultiGame extends Endpoint {
 
 					switch (jsonData.type) {
 						case 'setupRequest':
-							this.player = new Player(connection, jsonData.player1UID)
+
+							console.log("DEBUG,  UID: " + jsonData.playerUID);
+
+							this.player = new Player(connection, jsonData.playerUID);
+							//TODO gameUID debe ser proporcionada por el matchmaker...ahora esta undefined
 							this.currentGame = multiGameManager.joinGame(jsonData.gameUID, this.player);
 							this.currentGame.gameSetup(connection, this.player);
 							break;
