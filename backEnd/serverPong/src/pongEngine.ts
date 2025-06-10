@@ -1,6 +1,7 @@
 import { PlayField } from './playField';
 import { Ball } from './ball';
 import { Paddle } from './paddle';
+import { multiGameManager } from './serverpong';
 
 import { P1, P2, TICK_INTERVAL,
 		 PLAYFIELD_POS, PLAYFIELD_SIZE,
@@ -32,8 +33,10 @@ export class MultiGameManager {
 
 	public joinGame(gameUID: number, player: Player): MultiGame {
 		let newGame: MultiGame | null = this.findGame(gameUID);
-		if (newGame == null)
+		if (newGame == null) {
 			newGame = new MultiGame(gameUID);
+			newGame.gameStart();
+		}
 		this.multiGameList.add(newGame);
 		newGame.addPlayer(player);
 		return (newGame);
@@ -221,7 +224,7 @@ export class MultiGame extends Game {
 	}
 
 	//TODO refactor a multiplayer
-	public async gameStart(connection: any): Promise<void> {
+	public async gameStart(): Promise<void> {
 
 		await this.waitPlayers();
 		this.playField.ball.launchBall();
@@ -235,11 +238,11 @@ export class MultiGame extends Game {
 
 			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
 				clearInterval(this.gameLoop);
-				this.gameEnd(connection);
+				this.gameEnd(null);
 				return;
 			}
 
-			connection.send(JSON.stringify({
+			this.broadcastSend(JSON.stringify({
 				type: 'update',
 				ball: this.playField.ball.pos,
 				paddles: [
@@ -252,13 +255,23 @@ export class MultiGame extends Game {
 		}, TICK_INTERVAL);
 	}
 
-	//TODO refactor a multiplayer
-	public gameEnd(connection: any): void {
-		let winnerUID: number = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+	//TODO documentar player disconected api
+	public gameEnd(disconnectedPlayer: Player | null): void {
+		let winnerUID: number;
+		let type: string;
+
+		if (disconnectedPlayer) {
+			winnerUID = this.players[P1] == disconnectedPlayer ? this.players[P1].playerUID : this.players[P2].playerUID;
+			type = 'playerDisconnected';
+		} else {
+			winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+			type = 'endGame';
+		}
+
 		console.log("Sent message: End game summary");
 
-		connection.send(JSON.stringify({
-			type: 'endGame',
+		this.broadcastSend(JSON.stringify({
+			type: type,
 			gameUID: this.gameUID,
 			player1UID: this.players[P1].playerUID,
 			player2UID: this.players[P2].playerUID,
@@ -266,6 +279,18 @@ export class MultiGame extends Game {
 			score: this.score
 		}));
 
-		connection.close();
+		//TODO this.broadcastClose();
+	}
+
+	private broadcastSend(json: string): void {
+		for (const player of this.players){
+			player.connection.send(json);
+		}
+	}
+
+	private broadcastClose(): void {
+		for (const player of this.players){
+			player.connection.close();
+		}
 	}
 }

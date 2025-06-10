@@ -89,7 +89,6 @@ export class GetNewMultiGame extends Endpoint {
 						case 'newGame':
 							console.log("NewGame requested!");
 							this.player.isReady = true;
-							this.currentGame.gameStart(connection); //TODO comprobar si hay concurrencia...
 							break;
 						case 'input':
 							console.log("Input recieved!");
@@ -106,7 +105,7 @@ export class GetNewMultiGame extends Endpoint {
 
 			connection.on('close', () => {
 				console.log("Client disconnected!");
-				this.currentGame.gameEnd(connection);
+				this.currentGame.gameEnd(this.player);
 			});
 		});
 	}
