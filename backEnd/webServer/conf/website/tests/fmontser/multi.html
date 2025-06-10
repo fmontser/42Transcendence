@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Pong Test Client</title>
+	<title>Multiplayer Pong Test Client</title>
 	<style>
 		body {
 			display: flex;
@@ -43,8 +43,12 @@
 		let PADDLE_HEIGHT = 256;
 		let BALL_RADIUS = 32;
 
+		 //TODO esto debe obtenerlo del perfil.
+		let playerUID = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
+
+		let playerSlot = 0;
 		let gameActive = false;
-		let gameStarted = false;  // Nueva variable para controlar primera pantalla
+		let gameStarted = false;
 
 		// Estado inicial
 		let gameState = {
@@ -57,7 +61,7 @@
 		};
 
 		function setupWebSocket() {
-			ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
+			ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
 
 			ws.onopen = () => {
 				console.log('Conectado al servidor');
@@ -71,13 +75,15 @@
 						handleSetupResponse(data);
 						break;
 					case 'update':
+						gameActive = true;
 						gameState = data;
-						drawGame();
+						drawFrame();
 						break;
 					case 'endGame':
 						gameActive = false;
 						showEndGameScreen(data);
 						break;
+					//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'
 				}
 			};
 
@@ -91,7 +97,10 @@
 		}
 
 		function requestGameSetup() {
-			ws.send(JSON.stringify({ type: 'setupRequest' }));
+			ws.send(JSON.stringify({
+				type: 'setupRequest',
+				playerUID: playerUID
+			}));
 		}
 
 		function handleSetupResponse(data) {
@@ -104,21 +113,17 @@
 			gameState.ball = data.ballPos;
 			gameState.paddles = data.paddlesPos;
 			gameState.score = data.score;
+			playerSlot = data.playerSlot;
 
 			// Iniciar juego
 			startNewGame();
 		}
 
 		function startNewGame() {
-			gameActive = true;
-			ws.send(JSON.stringify({ 
-				type: 'newGame',
-				player1UID: 11,
-				player2UID: 22
-			}));
+			ws.send(JSON.stringify({ type: 'newGame' }));
 		}
 
-		function drawGame() {
+		function drawFrame() {
 			// playField
 			ctx.fillStyle = '#1a1a1a';
 			ctx.fillRect(0, 0, playField.width, playField.height);
@@ -145,45 +150,51 @@
 
 		// control
 		document.addEventListener('keydown', (event) => {
-			let input = { type: 'input', playerSlot: 0, direction: 'stop' };
-			
-			switch(event.key) {
-				case 'w':
-					input.direction = 'up';
-					input.playerSlot = 0;
-					break;
-				case 's':
-					input.direction = 'down';
-					input.playerSlot = 0;
-					break;
-				case 'ArrowUp':
-					input.direction = 'up';
-					input.playerSlot = 1;
-					break;
-				case 'ArrowDown':
-					input.direction = 'down';
-					input.playerSlot = 1;
-					break;
+			let input = { type: 'input', playerSlot: playerSlot, direction: 'stop' };
+			if (playerSlot == 0) {
+				switch(event.key) {
+					case 'w':
+						input.direction = 'up';
+						ws.send(JSON.stringify(input));
+						break;
+					case 's':
+						input.direction = 'down';
+						ws.send(JSON.stringify(input));
+						break;
+				}
+			} else if (playerSlot == 1) {
+				switch(event.key) {
+					case 'ArrowUp':
+						input.direction = 'up';
+						ws.send(JSON.stringify(input));
+						break;
+					case 'ArrowDown':
+						input.direction = 'down';
+						ws.send(JSON.stringify(input));
+						break;
+				}
 			}
-			
-			ws.send(JSON.stringify(input));
+
 		});
 
 		document.addEventListener('keyup', (event) => {
-			let input = { type: 'input', playerSlot: 0, direction: 'stop' };
+			let input = { type: 'input', playerSlot: playerSlot, direction: 'stop' };
 			
-			switch(event.key) {
-				case 'w':
-				case 's':
-					input.playerSlot = 0;
-					break;
-				case 'ArrowUp':
-				case 'ArrowDown':
-					input.playerSlot = 1;
-					break;
+			if (playerSlot == 0) {
+				switch(event.key) {
+					case 'w':
+					case 's':
+						ws.send(JSON.stringify(input));
+						break;
+				}
+			} else if (playerSlot == 1) {
+				switch(event.key) {
+					case 'ArrowUp':
+					case 'ArrowDown':
+						ws.send(JSON.stringify(input));
+						break;
+				}
 			}
-			
-			ws.send(JSON.stringify(input));
 		});
 
 		function showEndGameScreen(endGameData) {
@@ -277,8 +288,6 @@
 				setupWebSocket();
 			}
 		}
-
-		// En lugar de llamar directamente a setupWebSocket()
 		showStartScreen();
 	</script>
 </body>

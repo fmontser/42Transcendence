@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import * as EndPoints from './endpoint'
+import { MultiGameManager } from './pongEngine';
 
 export const	P1 = 0;
 export const	P2 = 1;
@@ -19,15 +20,20 @@ const server = Fastify({
 	logger: true
 });
 
+export let multiGameManager: MultiGameManager;
+
 function setEndPoints(): void {
-	new EndPoints.GetNewGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
+	new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
+
+	new EndPoints.GetNewMultiGame('/serverpong/front/get/multi', 'Error al obtener el endpoint de multi');
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
 async function start() {
 
 	await server.register(require('@fastify/websocket'));
-
+	multiGameManager = new MultiGameManager();
 	setEndPoints();
 
 	try {

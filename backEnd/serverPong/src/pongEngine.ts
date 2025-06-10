@@ -1,26 +1,74 @@
 import { PlayField } from './playField';
 import { Ball } from './ball';
 import { Paddle } from './paddle';
+import { multiGameManager } from './serverpong';
 
 import { P1, P2, TICK_INTERVAL,
 		 PLAYFIELD_POS, PLAYFIELD_SIZE,
 		 PADDLE_SPEED, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_MARGIN,
 		 BALL_RADIUS, BALL_SPEED,
 		 MAX_SCORE } from './serverpong';
+import { clearInterval } from 'timers';
 
-export class Game {
-	gameUID: number;
-	score: number[];
-	playersUID: number [];
-	maxScore: number;
-	playField: PlayField;
-	private gameLoop!: NodeJS.Timeout;
+
+export class Player {
+	connection: any;
+	playerSlot!: number;
+	playerUID: number;
+	public isReady: boolean;
+
+	constructor(connection: any, playerUID: number) {
+		this.connection = connection;
+		this.playerUID = playerUID;
+		this.isReady = false;
+	}
+}
+
+export class MultiGameManager {
+	private multiGameList: Set<MultiGame>;
+
+	constructor() {
+		this.multiGameList = new Set<MultiGame>();
+	}
+
+	public joinGame(gameUID: number, player: Player): MultiGame {
+		let newGame: MultiGame | null = this.findGame(gameUID);
+		if (newGame == null) {
+			newGame = new MultiGame(gameUID);
+			newGame.gameStart();
+		}
+		newGame.addPlayer(player);
+		this.multiGameList.add(newGame);
+		return (newGame);
+	}
+
+	private findGame(gameUID: number): MultiGame | null {
+		for(const game of this.multiGameList) {
+			if (game.getUID() == gameUID)
+				return (game);
+		}
+		return (null);
+	}
+
+	private deleteGame(game: MultiGame): void {
+		//TODO delete game , informar a matchmaker??
+	}
+
+}
+
+export abstract class Game {
+	protected gameUID: number;
+	public score: number[];
+	protected players!: Player[];
+	protected maxScore: number;
+	public playField: PlayField;
+	protected gameLoop!: NodeJS.Timeout;
 
 	constructor(gameUID: number) {
 		this.gameUID = gameUID;
 		this.score = [0,0];
 		this.maxScore = MAX_SCORE;
-		this.playersUID = [0,0];
+		this.players = [new Player(null, 0), new Player(null, 0)];
 
 		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
 
@@ -45,6 +93,30 @@ export class Game {
 		));
 	}
 
+	public addPlayer(newPlayer: Player): void {
+		for (let i = 0; i < 2; i++){
+			if (this.players[i].connection == null){
+				this.players[i] = newPlayer;
+				this.players[i].playerSlot = i;
+				console.log("Player slot is: " + this.players[i].playerSlot);
+				return;
+			}
+		}
+	}
+
+	public getUID(): number { return this.gameUID; }
+
+	public abstract gameStart(connection: any): void;
+	public abstract gameEnd(connection: any): void;
+}
+
+
+export class LocalGame extends Game {
+
+	constructor(gameUID: number) {
+		super(gameUID);
+	}
+
 	public gameSetup(connection: any): void {
 		console.log("Sent message: Game configuration");
 
@@ -62,10 +134,8 @@ export class Game {
 		}));
 	}
 
-	public gameStart(connection: any, player1UID: number, player2UID: number): void {
+	public gameStart(connection: any): void {
 		this.playField.ball.launchBall();
-		this.playersUID[P1] = player1UID;
-		this.playersUID[P2] = player2UID;
 
 		this.gameLoop = setInterval(() => {
 
@@ -94,18 +164,136 @@ export class Game {
 	}
 
 	public gameEnd(connection: any): void {
-		let winnerUID: number = this.score[P1] > this.score[P2] ? this.playersUID[P1] : this.playersUID[P2];
-		console.log("Sent message: End game summary");
+		let winnerUID: number = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+		console.log("Sent message: End game summary. winner: " + winnerUID);
 
 		connection.send(JSON.stringify({
 			type: 'endGame',
 			gameUID: this.gameUID,
-			player1UID: this.playersUID[P1],
-			player2UID: this.playersUID[P2],
+			player1UID: this.players[P1].playerUID,
+			player2UID: this.players[P2].playerUID,
 			winnerUID: winnerUID,
 			score: this.score
 		}));
 
 		connection.close();
+	}
+}
+
+export class MultiGame extends Game {
+	
+	constructor(gameUID: number) {
+		super(gameUID);
+	}
+
+	private playersReady(): boolean {
+		for (let player of this.players) {
+			if (player.isReady == false)
+				return (false);
+		}
+		return (true);
+	}
+
+	public async waitPlayers() {
+		console.log('Info: Waiting players...');
+		await new Promise(resolve => {
+			const interval = setInterval(() => {
+				if (this.playersReady()) {
+					clearInterval(interval);
+					resolve(true);
+				}
+			}, 1000);
+		});
+	}
+	
+	public gameSetup(connection: any, player: Player): void {
+		console.log("Sent message: Game configuration");
+
+		connection.send(JSON.stringify({
+			type: 'setupResponse',
+			playerSlot: player.playerSlot,
+			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
+			ballRadius: this.playField.ball.radius,
+			paddlesPos: [
+				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
+				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
+			],
+			paddleHeight: this.playField.paddle0.rect.height,
+			paddleWidth: this.playField.paddle0.rect.width,
+			score: [0, 0]
+		}));
+	}
+
+	//TODO refactor a multiplayer
+	public async gameStart(): Promise<void> {
+
+		await this.waitPlayers();
+		this.playField.ball.launchBall();
+
+		this.gameLoop = setInterval(() => {
+
+			this.playField.paddle0.transpose();
+			this.playField.paddle1.transpose();
+			this.playField.ball.transpose();
+			this.playField.ball.checkScore();
+
+			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
+				clearInterval(this.gameLoop);
+				this.gameEnd(null);
+				return;
+			}
+
+			this.broadcastSend(JSON.stringify({
+				type: 'update',
+				ball: this.playField.ball.pos,
+				paddles: [
+					this.playField.paddle0.pos,
+					this.playField.paddle1.pos
+				],
+				score: this.score
+			}));
+
+		}, TICK_INTERVAL);
+	}
+
+	//TODO documentar player disconected api
+	public gameEnd(disconnectedPlayer: Player | null): void {
+		let winnerUID: number;
+		let type: string;
+
+		if (disconnectedPlayer != null) {
+			winnerUID = this.players[P1].playerUID != disconnectedPlayer.playerUID ? this.players[P1].playerUID : this.players[P2].playerUID;
+			type = 'playerDisconnected';
+		} else {
+			winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+			type = 'endGame';
+		}
+
+		console.log("Sent message: End game summary");
+
+		this.broadcastSend(JSON.stringify({
+			type: type,
+			gameUID: this.gameUID,
+			player1UID: this.players[P1].playerUID,
+			player2UID: this.players[P2].playerUID,
+			winnerUID: winnerUID,
+			score: this.score
+		}));
+
+		//TODO @@@@@@@@@@@@@@@@ continuar aqui...
+		//TODO elminar el juego? cerrar conexion??
+		//TODO this.broadcastClose();
+	}
+
+	private broadcastSend(json: string): void {
+		for (const player of this.players){
+			player.connection.send(json);
+		}
+	}
+
+	private broadcastClose(): void {
+		for (const player of this.players){
+			player.connection.close();
+		}
 	}
 }
