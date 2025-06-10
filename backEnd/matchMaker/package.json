@@ -1,0 +1,27 @@
+{
+  "name": "matchmaker",
+  "version": "1.0.0",
+  "description": "Servicio Matchmaker para el proyecto Trascendence",
+  "main": "dist/matchmaker.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/matchmaker.js",
+    "dev": "tsc -w & nodemon dist/matchmaker.js"
+  },
+  "keywords": [
+    "fastify",
+    "nodejs",
+    "typescript",
+    "matchmaker"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "nodemon": "latest",
+    "typescript": "latest"
+  }
+}
