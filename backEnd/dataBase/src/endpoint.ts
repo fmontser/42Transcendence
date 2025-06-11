@@ -20,10 +20,11 @@ export abstract class Endpoint {
 			endpoint.add(server, db);
 	}
 
-	protected async pull(server: any, db: any, reply: any) {
+	protected async pull(server: any, db: any, request:any, reply: any) {
 		try {
+			const values = Object.values(request.query);
 			const rows = await new Promise<any[]>((resolve, reject) => {
-				db.all(this.sql, [], (err: any, rows: any) => {
+				db.all(this.sql, values, (err: any, rows: any) => {
 					if (err)
 						reject(err);
 					else
@@ -62,7 +63,7 @@ export abstract class Endpoint {
 export class getEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			return await this.pull(server, db, reply);
+			return await this.pull(server, db, request, reply);
 		});
 	}
 }

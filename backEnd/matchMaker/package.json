@@ -17,6 +17,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/websocket": "^11.1.0",
     "fastify": "latest"
   },
   "devDependencies": {

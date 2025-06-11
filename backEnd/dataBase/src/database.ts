@@ -83,11 +83,6 @@ async function start() {
 	connect();
 	setTables();
 	setEndPoints();
-
-	//TODO borrar fake data
-	const fakeData: string = "INSERT INTO users (userName, pass) VALUES (?, ?)"
-	db.run(fakeData, {userName: "Pingu", pass: "1234"}, (err: any) => {});
-	db.run(fakeData, {userName: "Pongu", pass: "4321"}, (err: any) => {});
 	
 	try {
 		server.register(FormBodyPlugin);

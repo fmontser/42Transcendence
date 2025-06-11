@@ -47,6 +47,7 @@ services:
         volumes:
             - dataBase-volume:/usr/src/app/data
         networks:
+            - proxy-network
             - backend-network
 
     serverPong:
