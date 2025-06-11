@@ -6,7 +6,7 @@ export abstract class Endpoint {
 	protected sql: string;
 	protected errorMsg: string;
 
-	constructor(path: string, sql: string, errorMsg: string	) {
+	constructor(path: string, sql: string, errorMsg: string) {
 		this.path = path;
 		this.sql = sql;
 		this.errorMsg = errorMsg;
@@ -23,9 +23,9 @@ export abstract class Endpoint {
 	protected async pull(server: any, db: any, reply: any) {
 		try {
 			const rows = await new Promise<any[]>((resolve, reject) => {
-				db.all(this.sql, [], (cb: any, rows: any) => {
-					if (cb)
-						reject(cb);
+				db.all(this.sql, [], (err: any, rows: any) => {
+					if (err)
+						reject(err);
 					else
 						resolve(rows);
 				});
@@ -37,22 +37,26 @@ export abstract class Endpoint {
 		}
 	}
 
-
+	//TODO documentar la respuesta lastID!!!
 	protected async push(server: any, db: any, request: any, reply: any) {
+		const ctx = this;
 		try {
 			if (!request.body || typeof request.body !== 'object')
 				throw new Error("Endpoint request is malformed!");
 
-			db.run(this.sql, Object.values(request.body), (cb: any) => {
-				if (cb)
-					console.error(`SQLite error: ${this.errorMsg} - `, cb.message);
+			db.run(ctx.sql, Object.values(request.body), function(this: { lastID: number}, err: any) {
+				if (err) {
+					console.error(`SQLite error: ${ctx.errorMsg} - `, err.message);
+					reply.status(500).send({ error: `Internal server error: ${ctx.errorMsg}` });
+				}
+				else
+					reply.send({ UID: this.lastID });
 			});
 		} catch (error) {
 			server.log.error(`DataBase: ${this.errorMsg} - :`, error);
 			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
 	}
-
 }
 
 export class getEndpoint extends Endpoint {

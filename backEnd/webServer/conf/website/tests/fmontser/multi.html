@@ -86,8 +86,10 @@
 				rivalUID = data.rivalUID;
 				gameUID = data.gameUID;
 				drawAnnounce();
-				ws.close();
-				setupPongWS();
+				if (data.status == 'ongoing') {
+					ws.close();
+					setupPongWS();
+				}
 			}
 
 
