@@ -1,4 +1,3 @@
-
 export abstract class Endpoint {
 
 	protected static list: Set<Endpoint> = new Set();
@@ -20,22 +19,22 @@ export abstract class Endpoint {
 			endpoint.add(server, db);
 	}
 
-	protected async pull(server: any, db: any, reply: any) {
+	protected async pull(server: any, db: any, reply: any, params: any[] = []) {
 		try {
 			const rows = await new Promise<any[]>((resolve, reject) => {
-				db.all(this.sql, [], (cb: any, rows: any) => {
-					if (cb)
-						reject(cb);
-					else
-						resolve(rows);
-				});
+			db.all(this.sql, params, (err: any, rows: any) => {
+				if (err)
+				reject(err);
+				else
+				resolve(rows);
+			});
 			});
 			reply.send(rows);
 		} catch (error) {
 			server.log.error(`DataBase: ${this.errorMsg} - `, error);
 			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
-	}
+		}
 
 
 	protected async push(server: any, db: any, request: any, reply: any) {
@@ -52,7 +51,6 @@ export abstract class Endpoint {
 			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
 	}
-
 }
 
 export class getEndpoint extends Endpoint {
@@ -63,30 +61,15 @@ export class getEndpoint extends Endpoint {
 	}
 }
 
-export class getByNameEndpoint extends Endpoint {
+export class getWithParamsEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			if (!request.query.user) {
-				reply.status(400).send({ error: 'User Name is required' });
+			if (!request.query || Object.keys(request.query).length === 0) {
+				reply.status(400).send({ error: 'Query parameters are required' });
 				return;
 			}
-			const sqlWithParam = this.sql; // keep `:user` in the SQL string
-
-			try {
-			const rows = await new Promise<any[]>((resolve, reject) => {
-				db.all(sqlWithParam, { ':user': request.query.user }, (err: any, rows: any) => {
-				if (err)
-					reject(err);
-				else
-					resolve(rows);
-				});
-			});
-			reply.send(rows);
-			} catch (error) {
-			server.log.error(`DataBase: ${this.errorMsg} - `, error);
-			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-			}
-
+			const params = Object.values(request.query);
+			return await this.pull(server, db, reply, params);
 		});
 	}
 }

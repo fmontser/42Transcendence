@@ -1,6 +1,9 @@
 import * as EndPoints from './endpoint'
 import FormBodyPlugin from '@fastify/formbody';
 import Fastify from 'fastify';
+import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
+
 // import bcrypt from 'bcrypt';
 
 const server = Fastify({
@@ -8,13 +11,14 @@ const server = Fastify({
 });
 
 function setEndPoints(): void {
-	new EndPoints.HelloEndpoint(
-		"/usermanagement/front/say/hello",
-		"Failed to say hello"
-	);
 
 	new EndPoints.SeeAllUsersEndpoint(
 		"/usermanagement/front/get/users",
+		"Failed to retrieve users"
+	);
+
+	new EndPoints.SeeAllProfilesEndpoint(
+		"/usermanagement/front/get/profiles",
 		"Failed to retrieve users"
 	);
 
@@ -28,15 +32,43 @@ function setEndPoints(): void {
 		"Failed to create user"
 	);
 
+	new EndPoints.LogInEndpoint(
+		"/usermanagement/front/post/login",
+		"Failed to log in user"
+	);
+
+	new EndPoints.ProfileEndpoint(
+		"/usermanagement/front/get/profile_session",
+		"Failed to retrieve user profile"
+	);
+
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
 async function start() {
 
-	setEndPoints();
-
 	try {
 		server.register(FormBodyPlugin);
+		server.register(fastifyCookie);
+		server.register(fastifyJwt, {
+			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // à stocker dans un fichier .env
+			cookie: {
+				cookieName: 'token',
+				signed: false
+			}
+		});
+		server.decorate("authenticate", async (request:any, reply:any) => {
+			try {
+				await request.jwtVerify();
+				console.log("User authenticated");
+			} catch (err) {
+				console.log(request.cookies.token);
+				reply.status(401).send({ error: 'Unauthorized' });
+			}
+		});
+
+		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {
 		server.log.error(err);

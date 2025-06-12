@@ -18,6 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/formbody": "latest",
+    "@fastify/jwt": "latest",
+    "@fastify/cookie": "latest",
     "fastify": "latest"
   },
   "devDependencies": {

@@ -21,6 +21,9 @@ RUN apt-get update && \
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps
+RUN npm install @fastify/jwt @fastify/cookie
+
+
 COPY --from=builder /usr/src/app/dist ./dist/
 
 CMD ["node", "dist/usermanagement.js"]

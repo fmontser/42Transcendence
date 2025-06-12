@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Connexion</title>
+</head>
+<body>
+  <h1>Se connecter</h1>
+  <form id="loginForm">
+    <label for="name">Nom d'utilisateur:</label>
+    <input type="text" id="name" required><br><br>
+
+    <label for="pass">Mot de passe:</label>
+    <input type="password" id="pass" required><br><br>
+
+    <button type="submit">Se connecter</button>
+  </form>
+
+  <p id="error" style="color: red;"></p>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const pass = document.getElementById('pass').value;
+
+      const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/post/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // IMPORTANT pour envoyer/recevoir les cookies
+        body: JSON.stringify({ name, pass })
+      });
+
+      if (response.ok) {
+        window.location.href = '/tests/mafranco/profile.html';
+      } else {
+        const data = await response.json();
+        document.getElementById('error').textContent = data.error || 'Échec de la connexion';
+      }
+    });
+  </script>
+</body>
+</html>

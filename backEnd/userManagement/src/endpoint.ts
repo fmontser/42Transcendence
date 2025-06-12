@@ -20,19 +20,6 @@ export abstract class Endpoint {
 	}
 }
 
-export class HelloEndpoint extends Endpoint {
-	add(server: any): void {
-		server.get(this.path, async (request: any, reply: any) => {
-			try {
-				reply.send({ message: 'Hello, World!' });
-			} catch (error) {
-				server.log.error(`HelloEndpoint: ${this.errorMsg} - `, error);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-			}
-		});
-	}
-}
-
 export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
@@ -49,15 +36,31 @@ export class SeeAllUsersEndpoint extends Endpoint {
 	}
 }
 
+export class SeeAllProfilesEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			const response = await fetch('http://dataBase:3000/database/front/get/profiles', {
+				method: 'GET'});
+			if (!response.ok) {
+				server.log.error(`SeeAllUsersEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			reply.send(data);
+		});
+	}
+}
+
 export class SeeProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			const userId = request.query.user;
-			if (!userId) {
+			const name = request.query.user;
+			if (!name) {
 				reply.status(400).send({ error: 'User ID is required' });
 				return;
 			}
-			const response = await fetch(`http://dataBase:3000/database/front/get/profile?user=${userId}`, {
+			const response = await fetch(`http://dataBase:3000/database/front/get/profile?user=${name}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -74,6 +77,60 @@ export class SeeProfileEndpoint extends Endpoint {
 	}
 }
 
+export class LogInEndpoint extends Endpoint {
+	add(server: any): void {
+		server.post(this.path, async (request:any, reply:any) => {
+			const name = request.body.name;
+			const pass = request.body.pass;
+
+			const response = await fetch(`http://dataBase:3000/database/front/get/user?user=${name}`, {
+				method: 'GET'});
+			if (!response.ok) {
+				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+
+			console.log(request.body);
+
+			console.log(data);
+			if (data.length === 0) {
+				reply.status(404).send({ error: 'User not found' });
+				return;
+			}
+
+			console.log(data[0].pass, pass);
+
+			if (pass === data[0].pass) { // Remplace par une vraie vérification de mot de passe
+				const token = server.jwt.sign({ name });
+
+				reply.setCookie('token', token, {
+					httpOnly: true,
+					secure: true,      // à mettre sur true en production (HTTPS)
+					sameSite: 'lax',
+					path: '/',
+					maxAge: 3600       // 1h
+				})
+				.send({ success: true });
+			} else {
+				reply.status(401).send({ error: 'Invalid credentials' });
+			}
+		});
+	}
+}
+
+export class ProfileEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request:any, reply:any) => {
+			// const name = request.user.name;
+			console.log('Cookies reçus:', request.cookies);
+  			console.log('Utilisateur JWT:', request.user);
+			reply.send("test");
+		});
+	}
+}
+
 export class CreateUserEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
@@ -83,7 +140,8 @@ export class CreateUserEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'Name and password are required' });
 				return;
 			}
-			const response = await fetch(`http://dataBase:3000/database/front/get/profile?user=${name}`, {
+
+			const response = await fetch(`http://dataBase:3000/database/front/get/user_id?name=${name}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -92,20 +150,48 @@ export class CreateUserEndpoint extends Endpoint {
 			}
 			const data = await response.json();
 			if (data.length > 0) {
-				reply.status(400).send({ error: 'User already exists' });
+				reply.status(404).send({ error: "User already exist" });
 				return;
 			}
-			// const hashedPass = await bcrypt.hash(pass, 10);
-			const postResponse = await fetch('http://dataBase:3000/database/front/post/user', {
+
+
+			const postUserResponse = await fetch('http://dataBase:3000/database/front/post/user', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name, pass })
 			});
-			if (!postResponse.ok) {
-				server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postResponse.statusText);
+			if (!postUserResponse.ok) {
+				server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postUserResponse.statusText);
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
+
+			const idResponse = await fetch(`http://dataBase:3000/database/front/get/user_id?user=${name}`, {
+				method: 'GET'});
+			if (!idResponse.ok) {
+				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, idResponse.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const idData = await idResponse.json();
+			const id = idData[0]?.id || null;
+			if (!id) {
+				reply.status(404).send({ error: 'User not found' });
+				return;
+			}
+
+			const postProfileResponse = await fetch('http://dataBase:3000/database/front/post/profile', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+			});
+			if (!postProfileResponse.ok) {
+				server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postProfileResponse.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+
+
 			reply.send({ message: 'User created successfully'});
 		});
 	}

@@ -37,6 +37,35 @@ Este directorio contiene el código fuente y la configuración para el servicio 
         *   Ejemplos de peticiones.
         *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
         *   Ejemplos de respuestas.
+        
+        El Endpoint :
+        ```typescript
+        new EndPoints.SeeAllUsersEndpoint(
+            "/usermanagement/front/get/users",
+            "Failed to retrieve users"
+	    );
+        ```
+        Executa la query 
+        ```sql
+        SELECT user FROM users;
+        ```
+        Devuelve la lista de los usuarios
+
+        El Endpoint :
+        ```typescript
+        new EndPoints.SeeProfileEndpoint(
+            "/usermanagement/front/get/profile",
+            "Failed to retrieve user profile"
+	    );
+        ```
+        Executa la query 
+        ```sql
+        SELECT profiles.*
+        FROM profiles
+        JOIN users ON profiles.user_id = users.id
+        WHERE users.name = ?;
+        ```
+        Para tener todas las informaciones de la table "profiles" del usuario
 ---
 
 *   **Dependencias:** Descripcion de dependencias inter-servicios.
