@@ -34,6 +34,24 @@ function setTables(): void {
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT UNIQUE NOT NULL,
 			pass TEXT NOT NULL
+		)`,
+		`CREATE TABLE IF NOT EXISTS profiles (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			experience INTEGER DEFAULT 0,
+			avatar TEXT DEFAULT 'default_avatar.png',
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)`,
+		`CREATE TABLE IF NOT EXISTS friends (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			friend_id INTEGER NOT NULL,
+			status TEXT DEFAULT 'pending', -- pending, accepted, blocked
+			request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(user_id, friend_id)
 		)`
 
 		//Add tables here, comma separated.
@@ -51,23 +69,50 @@ function setEndPoints(): void {
 	//Add endpoints here
 
 	//GET Sample
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/user",
+		"SELECT * FROM users WHERE name = ?",
+		"Failed to get users"
+	);
+
 	new EndPoints.getEndpoint(
 		"/database/front/get/users",
 		"SELECT * FROM users",
 		"Failed to get users"
 	);
+	new EndPoints.getEndpoint(
+		"/database/front/get/profiles",
+		"SELECT * FROM profiles",
+		"Failed to get profiles"
+	);
 
-	//GET Sample with query
-	new EndPoints.getByNameEndpoint(
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/user_id",
+		`SELECT id from users WHERE name = ?`,
+		"Failed to get users"
+	);
+
+
+	new EndPoints.getWithParamsEndpoint(
 		"/database/front/get/profile",
-		"SELECT * FROM users WHERE name = :user",
-		"Failed to get user profile"
+		`SELECT profiles.*
+		FROM profiles
+		JOIN users ON profiles.user_id = users.id
+		WHERE users.name = ?;`,
+		"Failed to get user"
 	);
 
 	//POST Sample
 	new EndPoints.postEndpoint(
 		"/database/front/post/user",
 		"INSERT INTO users (name, pass) VALUES (?, ?)",
+		"Data insertion error"
+	);
+
+	new EndPoints.postEndpoint(
+		"/database/front/post/profile",
+		"INSERT INTO profiles (user_id) VALUES (?)",
 		"Data insertion error"
 	);
 
@@ -110,16 +155,3 @@ async function start() {
 }
 
 start();
-
-	//TODO borrar curl endpoint tests
-	/* 
-		curl -X GET https://localhost:8443/database/front/get/users --insecure
-
-		curl -X POST https://localhost:8443/database/front/post/user   -H "Content-Type: application/json"   -d '{"name":"Fran","pass":"1234"}' --insecure
-
-		curl -X PUT https://localhost:8443/database/front/put/user   -H "Content-Type: application/json"   -d '{"name":"boom","pass":"5678","id":"1"}' --insecure
-
-		curl -X PATCH https://localhost:8443/database/front/patch/user   -H "Content-Type: application/json"   -d '{,"name":"Lemming","id":"1"}' --insecure
-	
-		curl -X DELETE https://localhost:8443/database/front/delete/user   -H "Content-Type: application/json"   -d '{"id":"1"}' --insecure
-	*/
