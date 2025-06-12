@@ -63,6 +63,34 @@ export class getEndpoint extends Endpoint {
 	}
 }
 
+export class getByNameEndpoint extends Endpoint {
+	add(server: any, db: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			if (!request.query.user) {
+				reply.status(400).send({ error: 'User Name is required' });
+				return;
+			}
+			const sqlWithParam = this.sql; // keep `:user` in the SQL string
+
+			try {
+			const rows = await new Promise<any[]>((resolve, reject) => {
+				db.all(sqlWithParam, { ':user': request.query.user }, (err: any, rows: any) => {
+				if (err)
+					reject(err);
+				else
+					resolve(rows);
+				});
+			});
+			reply.send(rows);
+			} catch (error) {
+			server.log.error(`DataBase: ${this.errorMsg} - `, error);
+			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+			}
+
+		});
+	}
+}
+
 export class postEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.post(this.path, async (request: any, reply: any) => {

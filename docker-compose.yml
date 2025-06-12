@@ -61,3 +61,16 @@ services:
             - backend-network
         depends_on:
             - webServer
+
+    userManagement:
+        build: ${USER_MANAGEMENT_BUILD_PATH}
+        init: true
+        image: usermanager-img
+        restart: unless-stopped
+        container_name: userManagement
+        networks:
+            - proxy-network #TODO proxy solo para pruebas con el host
+            - backend-network
+        depends_on:
+            - dataBase
+            - webServer

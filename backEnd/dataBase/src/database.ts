@@ -57,6 +57,13 @@ function setEndPoints(): void {
 		"Failed to get users"
 	);
 
+	//GET Sample with query
+	new EndPoints.getByNameEndpoint(
+		"/database/front/get/profile",
+		"SELECT * FROM users WHERE name = :user",
+		"Failed to get user profile"
+	);
+
 	//POST Sample
 	new EndPoints.postEndpoint(
 		"/database/front/post/user",

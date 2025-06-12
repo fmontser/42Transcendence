@@ -1,0 +1,28 @@
+{
+  "name": "usermanagement",
+  "version": "1.0.0",
+  "description": "Servicio Usermanagement para el proyecto Trascendence",
+  "main": "dist/usermanagement.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/usermanagement.js",
+    "dev": "tsc -w & nodemon dist/usermanagement.js"
+  },
+  "keywords": [
+    "fastify",
+    "nodejs",
+    "typescript",
+    "usermanagement"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/formbody": "latest",
+    "fastify": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "nodemon": "latest",
+    "typescript": "latest"
+  }
+}
