@@ -77,6 +77,75 @@ export class SeeProfileEndpoint extends Endpoint {
 	}
 }
 
+export class ModifyBioEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			const user = request.user;
+			const bio = request.body.bio;
+			if (!bio) {
+				reply.status(400).send({ error: 'Bio is required' });
+				return;
+			}
+			const response = await fetch('http://dataBase:3000/database/front/patch/bio', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ bio, user: user.name })
+
+			});
+			if (!response.ok) {
+				server.log.error(`ModifyBioEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			reply.send({ message: 'Bio updated successfully' });
+		});
+	}
+}
+
+export class ModifyPseudoEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			const user = request.user;
+			const pseudo = request.body.pseudo;
+			if (!pseudo) {
+				reply.status(400).send({ error: 'Pseudo is required' });
+				return;
+			}
+			const response = await fetch('http://dataBase:3000/database/front/patch/pseudo', {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ pseudo, user: user.name })
+
+			});
+			if (!response.ok) {
+				server.log.error(`ModifyPseudoEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			reply.send({ message: 'Pseudo updated successfully' });
+		});
+	}
+}
+
+export class DeleteUserEndpoint extends Endpoint {
+	add(server: any): void {
+		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			const user = request.user;
+			const response = await fetch(`http://dataBase:3000/database/front/delete/user`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ name: user.name })
+			});
+			if (!response.ok) {
+				server.log.error(`DeleteUserEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			reply.send({ message: 'User deleted successfully' });
+		});
+	}
+}
+
 export class LogInEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, async (request:any, reply:any) => {

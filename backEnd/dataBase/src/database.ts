@@ -38,6 +38,8 @@ function setTables(): void {
 		`CREATE TABLE IF NOT EXISTS profiles (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
+			pseudo TEXT UNIQUE DEFAULT NULL,
+			bio TEXT DEFAULT '',
 			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			experience INTEGER DEFAULT 0,
 			avatar TEXT DEFAULT 'default_avatar.png',
@@ -130,10 +132,30 @@ function setEndPoints(): void {
 		"Data update error"
 	);
 
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/bio",
+		`UPDATE profiles
+		SET bio = ?
+		WHERE user_id = (
+		SELECT id FROM users WHERE name = ?
+		);`,
+		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/pseudo",
+		`UPDATE profiles
+		SET pseudo = ?
+		WHERE user_id = (
+		SELECT id FROM users WHERE name = ?
+		);`,
+		"Data update error"
+	);
+
 	//DELETE SAMPLE
 	new EndPoints.deleteEndpoint(
 		"/database/front/delete/user",
-		"DELETE FROM users WHERE id = ?",
+		"DELETE FROM users WHERE name = ?",
 		"Data removal error"
 	);
 	EndPoints.Endpoint.enableAll(server, db);

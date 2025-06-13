@@ -93,6 +93,7 @@ export class putEndpoint extends Endpoint {
 export class patchEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.patch(this.path, async (request: any, reply: any) => {
+			console.log({request});
 			this.push(server, db, request, reply);
 		});
 	}

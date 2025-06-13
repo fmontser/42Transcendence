@@ -1,3 +1,157 @@
+<!-- <!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Profil</title>
+</head>
+<body>
+  <h1>Bienvenue, <span id="username">...</span> !</h1>
+  
+  <form id="profileForm">
+    <label for="userid">ID :</label>
+    <input type="number" id="userid" name="userid" disabled><br><br>
+
+    <label for="creationDate">Date de création :</label>
+    <span id="creationDate">...</span><br><br>
+
+    <label for="experience">Expérience :</label>
+    <input type="number" id="experience" name="experience" disabled><br><br>
+
+    <button type="button" id="editBtn">Modifier</button>
+    <button type="submit" id="saveBtn" style="display: none;">Enregistrer</button>
+  </form>
+
+  <p id="message" style="color: green;"></p>
+
+  <script>
+    let username = '';
+
+    async function loadProfile() {
+      const sessionResponse = await fetch('https://transcend.42.fr:8443/usermanagement/front/get/profile_session', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!sessionResponse.ok) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const sessionData = await sessionResponse.json();
+      username = sessionData.name;
+      document.getElementById('username').textContent = username;
+
+      const profileResponse = await fetch(`https://transcend.42.fr:8443/usermanagement/front/get/profile?user=${username}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (profileResponse.ok) {
+        const profile = (await profileResponse.json())[0];
+        document.getElementById('userid').value = profile.user_id || '';
+        document.getElementById('creationDate').textContent = profile.date_creation || 'Inconnue';
+        document.getElementById('experience').value = profile.experience || 0;
+      } else {
+        console.error('Erreur lors du chargement du profil');
+      }
+    }
+
+    // Bouton Modifier → active les champs
+    document.getElementById('editBtn').addEventListener('click', () => {
+      document.getElementById('userid').disabled = false;
+      document.getElementById('experience').disabled = false;
+
+      document.getElementById('editBtn').style.display = 'none';
+      document.getElementById('saveBtn').style.display = 'inline';
+    });
+
+    // Enregistrer → POST vers le serveur
+    document.getElementById('profileForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const user_id = document.getElementById('userid').value;
+      const experience = document.getElementById('experience').value;
+
+      const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/post/update_profile', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: username, user_id, experience })
+      });
+
+      if (response.ok) {
+        document.getElementById('message').textContent = '✅ Modifications enregistrées.';
+
+        // Re-bloque les champs
+        document.getElementById('userid').disabled = true;
+        document.getElementById('experience').disabled = true;
+
+        document.getElementById('editBtn').style.display = 'inline';
+        document.getElementById('saveBtn').style.display = 'none';
+      } else {
+        document.getElementById('message').textContent = '❌ Échec de la mise à jour.';
+      }
+    });
+
+    loadProfile();
+  </script>
+</body>
+</html> -->
+
+
+<!-- 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Profil</title>
+</head>
+<body>
+  <h1>Bienvenue, <span id="username">...</span> !</h1>
+  <p>Votre pseudo : <span id="pseudo">...</span></p>
+  <p>Bio: <span id="bio">...</span></p>
+  <p>Date de création : <span id="creationDate">...</span></p>
+  <p>Expérience : <span id="experience">...</span></p>
+
+  <script>
+    async function loadProfile() {
+      const sessionResponse = await fetch('https://transcend.42.fr:8443/usermanagement/front/get/profile_session', {
+        method: 'GET',
+        credentials: 'include' // envoie le cookie JWT
+      });
+
+      if (!sessionResponse.ok) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const sessionData = await sessionResponse.json();
+      const username = sessionData.name;
+      document.getElementById('username').textContent = username || 'Utilisateur';
+
+      const profileResponse = await fetch(`https://transcend.42.fr:8443/usermanagement/front/get/profile?user=${username}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (profileResponse.ok) {
+        const profile = (await profileResponse.json())[0];
+        // document.getElementById('content').textContent = profile.text || 'Inconnu';
+        document.getElementById('pseudo').textContent = profile.pseudo || 'Inconnu';
+        document.getElementById('bio').textContent = profile.bio || 'Inconnu';
+        document.getElementById('creationDate').textContent = profile.date_creation || 'Inconnue';
+        document.getElementById('experience').textContent = profile.experience || '0';
+        // document.getElementById('avatar').src = `/avatars/${profile.avatar || 'default_avatar.png'}`;
+      } else {
+        console.error('Erreur lors du chargement du profil');
+      }
+    }
+
+    loadProfile();
+  </script>
+</body>
+</html> -->
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -7,20 +161,142 @@
 <body>
   <h1>Bienvenue, <span id="username">...</span> !</h1>
 
+  <p>
+    Votre pseudo :
+    <span id="pseudo">...</span>
+    <input type="text" id="pseudoInput" style="display:none;">
+    <button id="editPseudoBtn">Modifier le pseudo</button>
+    <button id="savePseudoBtn" style="display:none;">Enregistrer</button>
+  </p>
+
+  <p>
+    Bio :
+    <span id="bio">...</span>
+    <textarea id="bioInput" style="display:none;"></textarea>
+    <button id="editBioBtn">Modifier la bio</button>
+    <button id="saveBioBtn" style="display:none;">Enregistrer</button>
+  </p>
+
+  <p>Date de création : <span id="creationDate">...</span></p>
+  <p>Expérience : <span id="experience">...</span></p>
+  <button onclick="deleteAccount()">Supprimer mon compte</button>
   <script>
+    async function deleteAccount() {
+      if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+        const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/delete/user', {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          alert('Votre compte a été supprimé avec succès.');
+          window.location.href = 'login.html';
+        } else {
+          alert('Erreur lors de la suppression du compte.');
+        }
+      }
+    }
+  </script>
+
+  <p id="message" style="color: green;"></p>
+
+  <script>
+    let username = '';
+
     async function loadProfile() {
-      const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/get/profile_session', {
+      const sessionResponse = await fetch('https://transcend.42.fr:8443/usermanagement/front/get/profile_session', {
         method: 'GET',
-        credentials: 'include' // envoie le cookie JWT
+        credentials: 'include'
+      });
+
+      if (!sessionResponse.ok) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const sessionData = await sessionResponse.json();
+      username = sessionData.name;
+      document.getElementById('username').textContent = username;
+
+      const profileResponse = await fetch(`https://transcend.42.fr:8443/usermanagement/front/get/profile?user=${username}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (profileResponse.ok) {
+        const profile = (await profileResponse.json())[0];
+        document.getElementById('pseudo').textContent = profile.pseudo || 'Inconnu';
+        document.getElementById('pseudoInput').value = profile.pseudo || '';
+        document.getElementById('bio').textContent = profile.bio || 'Inconnu';
+        document.getElementById('bioInput').value = profile.bio || '';
+        document.getElementById('creationDate').textContent = profile.date_creation || 'Inconnue';
+        document.getElementById('experience').textContent = profile.experience || '0';
+      } else {
+        console.error('Erreur lors du chargement du profil');
+      }
+    }
+
+    // Modifier bio
+    document.getElementById('editBioBtn').addEventListener('click', () => {
+      document.getElementById('bio').style.display = 'none';
+      document.getElementById('bioInput').style.display = 'inline';
+      document.getElementById('editBioBtn').style.display = 'none';
+      document.getElementById('saveBioBtn').style.display = 'inline';
+    });
+
+    document.getElementById('saveBioBtn').addEventListener('click', async () => {
+      const newBio = document.getElementById('bioInput').value;
+
+      const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/put/modify_bio', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bio: newBio })
       });
 
       if (response.ok) {
-        const data = await response.json();
-        document.getElementById('username').textContent = data.name || 'Utilisateur';
+        document.getElementById('bio').textContent = newBio;
+        document.getElementById('message').textContent = 'Bio mise à jour.';
       } else {
-        window.location.href = 'login.html'; // redirige si non connecté
+        document.getElementById('message').textContent = 'Erreur lors de la mise à jour de la bio.';
       }
-    }
+
+      document.getElementById('bio').style.display = 'inline';
+      document.getElementById('bioInput').style.display = 'none';
+      document.getElementById('editBioBtn').style.display = 'inline';
+      document.getElementById('saveBioBtn').style.display = 'none';
+    });
+
+    // Modifier pseudo
+    document.getElementById('editPseudoBtn').addEventListener('click', () => {
+      document.getElementById('pseudo').style.display = 'none';
+      document.getElementById('pseudoInput').style.display = 'inline';
+      document.getElementById('editPseudoBtn').style.display = 'none';
+      document.getElementById('savePseudoBtn').style.display = 'inline';
+    });
+
+    document.getElementById('savePseudoBtn').addEventListener('click', async () => {
+      const newPseudo = document.getElementById('pseudoInput').value;
+
+      const response = await fetch('https://transcend.42.fr:8443/usermanagement/front/put/modify_pseudo', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pseudo: newPseudo })
+      });
+
+      if (response.ok) {
+        document.getElementById('pseudo').textContent = newPseudo;
+        document.getElementById('message').textContent = 'Pseudo mis à jour.';
+      } else {
+        document.getElementById('message').textContent = 'Erreur lors de la mise à jour du pseudo.';
+      }
+
+      document.getElementById('pseudo').style.display = 'inline';
+      document.getElementById('pseudoInput').style.display = 'none';
+      document.getElementById('editPseudoBtn').style.display = 'inline';
+      document.getElementById('savePseudoBtn').style.display = 'none';
+    });
 
     loadProfile();
   </script>
