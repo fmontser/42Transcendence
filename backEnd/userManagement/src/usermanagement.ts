@@ -3,6 +3,7 @@ import FormBodyPlugin from '@fastify/formbody';
 import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import cors from '@fastify/cors';
 
 // import bcrypt from 'bcrypt';
 
@@ -49,9 +50,13 @@ function setEndPoints(): void {
 async function start() {
 
 	try {
-		server.register(FormBodyPlugin);
-		server.register(fastifyCookie);
-		server.register(fastifyJwt, {
+		await server.register(FormBodyPlugin);
+		await server.register(cors, {
+			origin: 'https://transcend.42.fr', // ✅ adapte à ton domaine
+			credentials: true                 // ✅ important pour les cookies
+		});
+		await server.register(fastifyCookie);
+		await server.register(fastifyJwt, {
 			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // à stocker dans un fichier .env
 			cookie: {
 				cookieName: 'token',

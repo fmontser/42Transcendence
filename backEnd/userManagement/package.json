@@ -20,6 +20,7 @@
     "@fastify/formbody": "latest",
     "@fastify/jwt": "latest",
     "@fastify/cookie": "latest",
+    "@fastify/cors": "latest",
     "fastify": "latest"
   },
   "devDependencies": {
