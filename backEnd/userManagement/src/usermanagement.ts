@@ -43,6 +43,21 @@ function setEndPoints(): void {
 		"Failed to retrieve user profile"
 	);
 
+	new EndPoints.ModifyBioEndpoint(
+		"/usermanagement/front/put/modify_bio",
+		"Failed to modify user bio"
+	);
+
+	new EndPoints.ModifyPseudoEndpoint(
+		"/usermanagement/front/put/modify_pseudo",
+		"Failed to modify user pseudo"
+	);
+
+
+	new EndPoints.DeleteUserEndpoint(
+		"/usermanagement/front/delete/user",
+		"Failed to delete user"
+	);
 
 	EndPoints.Endpoint.enableAll(server);
 }
@@ -52,8 +67,8 @@ async function start() {
 	try {
 		await server.register(FormBodyPlugin);
 		await server.register(cors, {
-			origin: 'https://transcend.42.fr', // ✅ adapte à ton domaine
-			credentials: true                 // ✅ important pour les cookies
+			origin: 'https://transcend.42.fr',
+			credentials: true
 		});
 		await server.register(fastifyCookie);
 		await server.register(fastifyJwt, {
