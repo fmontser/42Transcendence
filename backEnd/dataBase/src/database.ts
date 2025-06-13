@@ -87,6 +87,17 @@ function setEndPoints(): void {
 		"SELECT * FROM profiles",
 		"Failed to get profiles"
 	);
+	new EndPoints.getEndpoint(
+		"/database/front/get/friends",
+		"SELECT * FROM friends",
+		"Failed to get friends"
+	);
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/pseudos",
+		"SELECT pseudo FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
+		"Failed to get users"
+	);
 
 
 	new EndPoints.getWithParamsEndpoint(
@@ -95,13 +106,16 @@ function setEndPoints(): void {
 		"Failed to get users"
 	);
 
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/user_id_from_pseudo",
+		`SELECT user_id from profiles WHERE pseudo = ?`,
+		"Failed to get users"
+	);
+
 
 	new EndPoints.getWithParamsEndpoint(
 		"/database/front/get/profile",
-		`SELECT profiles.*
-		FROM profiles
-		JOIN users ON profiles.user_id = users.id
-		WHERE users.name = ?;`,
+		`SELECT * FROM profiles WHERE user_id = ?`,
 		"Failed to get user"
 	);
 
@@ -117,6 +131,13 @@ function setEndPoints(): void {
 		"INSERT INTO profiles (user_id) VALUES (?)",
 		"Data insertion error"
 	);
+
+	new EndPoints.postEndpoint(
+		"/database/front/post/friendship",
+		`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`,
+		"Failed to create friendship"
+	);
+
 
 	//PUT SAMPLE
 	new EndPoints.putEndpoint(
@@ -134,30 +155,41 @@ function setEndPoints(): void {
 
 	new EndPoints.patchEndpoint(
 		"/database/front/patch/bio",
-		`UPDATE profiles
-		SET bio = ?
-		WHERE user_id = (
-		SELECT id FROM users WHERE name = ?
-		);`,
+		`UPDATE profiles SET bio = ? WHERE user_id = ?`,
 		"Data update error"
 	);
 
 	new EndPoints.patchEndpoint(
 		"/database/front/patch/pseudo",
-		`UPDATE profiles
-		SET pseudo = ?
-		WHERE user_id = (
-		SELECT id FROM users WHERE name = ?
-		);`,
+		`UPDATE profiles SET pseudo = ? WHERE user_id = ?`,
+		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/avatar",
+		`UPDATE profiles SET avatar = ? WHERE user_id = ?`,
 		"Data update error"
 	);
 
 	//DELETE SAMPLE
 	new EndPoints.deleteEndpoint(
 		"/database/front/delete/user",
-		"DELETE FROM users WHERE name = ?",
+		"DELETE FROM users WHERE id = ?",
 		"Data removal error"
 	);
+
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/profile",
+		"DELETE FROM profiles WHERE id = ?",
+		"Data removal error"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/friendships",
+		"DELETE FROM friends WHERE user_id = ? or friend_id = ?",
+		"Data removal error"
+	);
+
 	EndPoints.Endpoint.enableAll(server, db);
 }
 
