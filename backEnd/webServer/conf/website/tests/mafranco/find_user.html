@@ -12,6 +12,9 @@
   <button onclick="getProfiles()">Get All Profiles</button>
   <p id="profiles">Profiles will appear in the console...</p>
 
+  <button onclick="getFriendships()">Get All Friendships</button>
+  <p id="friendships">Profiles will appear in the console...</p>
+
   <input type="text" id="username" placeholder="Enter username" />
   <button onclick="getProfile()">Get Profile</button>
 
@@ -41,6 +44,20 @@
         document.getElementById('profiles').textContent = text;
       } catch (error) {
         document.getElementById('profiles').textContent = `Error: ${error.message}`;
+      }
+    }
+  </script>
+
+  <script>
+      async function getFriendships() {
+        try {
+          const response = await fetch('/usermanagement/front/get/friendships');
+          if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+          
+          const text = await response.text(); // use .json() if API returns JSON
+        document.getElementById('friendships').textContent = text;
+      } catch (error) {
+        document.getElementById('friendships').textContent = `Error: ${error.message}`;
       }
     }
   </script>

@@ -23,14 +23,29 @@ function setEndPoints(): void {
 		"Failed to retrieve users"
 	);
 
+	new EndPoints.SeeAllFriendsEndpoint(
+		"/usermanagement/front/get/friendships",
+		"Failed to retrieve users"
+	);
+
 	new EndPoints.SeeProfileEndpoint(
 		"/usermanagement/front/get/profile",
 		"Failed to retrieve user profile"
+	);
+	
+	new EndPoints.SeePseudosEndpoint(
+		"/usermanagement/front/get/pseudos",
+		"Failed to retrieve pseudos"
 	);
 
 	new EndPoints.CreateUserEndpoint(
 		"/usermanagement/front/post/create",
 		"Failed to create user"
+	);
+
+	new EndPoints.CreateFriendshipEndpoint(
+		"/usermanagement/front/post/friendship",
+		"Failed to create friendship"
 	);
 
 	new EndPoints.LogInEndpoint(

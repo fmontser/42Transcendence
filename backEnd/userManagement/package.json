@@ -21,6 +21,7 @@
     "@fastify/jwt": "latest",
     "@fastify/cookie": "latest",
     "@fastify/cors": "latest",
+    "@fastify/multipart": "latest",
     "fastify": "latest"
   },
   "devDependencies": {
