@@ -126,7 +126,8 @@ export class ProfileEndpoint extends Endpoint {
 			// const name = request.user.name;
 			console.log('Cookies reçus:', request.cookies);
   			console.log('Utilisateur JWT:', request.user);
-			reply.send("test");
+			const user = request.user;
+			reply.send({ name: user.name });
 		});
 	}
 }
