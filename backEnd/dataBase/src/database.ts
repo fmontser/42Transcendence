@@ -83,6 +83,12 @@ function setTables(): void {
 function setEndPoints(): void {
 	//Add endpoints here
 
+
+	new EndPoints.getEndpoint(
+		"/get/user",
+		"SELECT * FROM users WHERE name = ?",
+		"Failed to get user name"
+	);
   
 	new EndPoints.getEndpoint(
 		"/get/username",
@@ -98,6 +104,11 @@ function setEndPoints(): void {
 		"/get/friends",
 		"SELECT * FROM friends",
 		"Failed to get friends"
+	);
+	new EndPoints.getEndpoint(
+		"/get/users",
+		"SELECT * FROM users",
+		"Failed to get users"
 	);
 
 	new EndPoints.getEndpoint(
@@ -138,6 +149,13 @@ function setEndPoints(): void {
 		"INSERT INTO profiles (user_id) VALUES (?)",
 		"Data insertion error"
 	);
+
+	new EndPoints.postEndpoint(
+		"/post/user",
+		"INSERT INTO users (name, pass) VALUES (?, ?)",
+		"Data insertion error"
+	);
+
 
 	new EndPoints.postEndpoint(
 		"/post/friendship",
