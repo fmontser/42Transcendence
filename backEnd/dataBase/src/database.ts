@@ -28,28 +28,48 @@ function connect(): void {
 function setTables(): void {
 
 	let tables: string[] = [
-		
-		// TODO borrar user test table
 		`
 		CREATE TABLE IF NOT EXISTS users (
-			userUID INTEGER PRIMARY KEY AUTOINCREMENT,
-			userName TEXT UNIQUE NOT NULL,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT UNIQUE NOT NULL,
 			pass TEXT NOT NULL
 		)`,
 
-		// Matches table
-		`
-		CREATE TABLE IF NOT EXISTS matches (
-			matchUID INTEGER PRIMARY KEY AUTOINCREMENT,
-			player0UID INTEGER,
-			player0Score INTEGER,
-			player1UID INTEGER,
-			player1Score INTEGER,
-			winnerUID INTEGER
-		)`
+    
+		`CREATE TABLE IF NOT EXISTS profiles (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			pseudo TEXT UNIQUE DEFAULT NULL,
+			bio TEXT DEFAULT '',
+			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			experience INTEGER DEFAULT 0,
+			avatar TEXT DEFAULT 'default_avatar.png',
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+		)`,
+    
+		`CREATE TABLE IF NOT EXISTS friends (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			friend_id INTEGER NOT NULL,
+			status TEXT DEFAULT 'pending', -- pending, accepted, blocked
+			request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(user_id, friend_id)
+     )`,
+    
+		`CREATE TABLE IF NOT EXISTS matches (
+			match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+			player0_id INTEGER,
+			player0_score INTEGER,
+			player1_id INTEGER,
+			player1_score INTEGER,
+			winner_id INTEGER
+      )`
 
-
+	
 		//Add tables here, comma separated.
+    
 	];
 
 	tables.forEach(table => {
@@ -63,16 +83,109 @@ function setTables(): void {
 function setEndPoints(): void {
 	//Add endpoints here
 
+// TODO cahnge database endpoints url -/database/front/
+  
 	new EndPoints.getEndpoint(
 		"/get/username",
-		"SELECT userName FROM users WHERE userUID = ?",
+		"SELECT name FROM users WHERE id = ?",
 		"Failed to get user name"
+	);
+	new EndPoints.getEndpoint(
+		"/database/front/get/profiles",
+		"SELECT * FROM profiles",
+		"Failed to get profiles"
+	);
+	new EndPoints.getEndpoint(
+		"/database/front/get/friends",
+		"SELECT * FROM friends",
+		"Failed to get friends"
+	);
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/pseudos",
+		"SELECT pseudo FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
+		"Failed to get users"
+	);
+
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/user_id",
+		`SELECT id from users WHERE name = ?`,
+		"Failed to get users"
+	);
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/user_id_from_pseudo",
+		`SELECT user_id from profiles WHERE pseudo = ?`,
+		"Failed to get users"
+	);
+
+
+	new EndPoints.getWithParamsEndpoint(
+		"/database/front/get/profile",
+		`SELECT * FROM profiles WHERE user_id = ?`,
+		"Failed to get user"
 	);
 
 	new EndPoints.postEndpoint(
 		"/post/match",
 		"INSERT INTO matches (player0UID, player0Score, player1UID, player1Score, winnerUID) VALUES (?, 0, ?, 0, -1)",
 		"Data insertion error"
+	);
+
+
+	new EndPoints.postEndpoint(
+		"/database/front/post/profile",
+		"INSERT INTO profiles (user_id) VALUES (?)",
+		"Data insertion error"
+	);
+
+	new EndPoints.postEndpoint(
+		"/database/front/post/friendship",
+		`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`,
+		"Failed to create friendship"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/user",
+		"UPDATE users SET name = ? WHERE id = ?",
+		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/bio",
+		`UPDATE profiles SET bio = ? WHERE user_id = ?`,
+		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/pseudo",
+		`UPDATE profiles SET pseudo = ? WHERE user_id = ?`,
+		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/database/front/patch/avatar",
+		`UPDATE profiles SET avatar = ? WHERE user_id = ?`,
+		"Data update error"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/user",
+		"DELETE FROM users WHERE id = ?",
+		"Data removal error"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/profile",
+		"DELETE FROM profiles WHERE id = ?",
+		"Data removal error"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/database/front/delete/friendships",
+		"DELETE FROM friends WHERE user_id = ? or friend_id = ?",
+		"Data removal error"
 	);
 
 	EndPoints.Endpoint.enableAll(server, db);
@@ -94,16 +207,3 @@ async function start() {
 }
 
 start();
-
-	//TODO borrar curl endpoint tests
-	/* 
-		curl -X GET https://localhost:8443/database/front/get/users --insecure
-
-		curl -X POST https://localhost:8443/database/front/post/user   -H "Content-Type: application/json"   -d '{"name":"Fran","pass":"1234"}' --insecure
-
-		curl -X PUT https://localhost:8443/database/front/put/user   -H "Content-Type: application/json"   -d '{"name":"boom","pass":"5678","id":"1"}' --insecure
-
-		curl -X PATCH https://localhost:8443/database/front/patch/user   -H "Content-Type: application/json"   -d '{,"name":"Lemming","id":"1"}' --insecure
-	
-		curl -X DELETE https://localhost:8443/database/front/delete/user   -H "Content-Type: application/json"   -d '{"id":"1"}' --insecure
-	*/

@@ -1,4 +1,3 @@
-
 export abstract class Endpoint {
 
 	protected static list: Set<Endpoint> = new Set();
@@ -36,7 +35,7 @@ export abstract class Endpoint {
 			server.log.error(`DataBase: ${this.errorMsg} - `, error);
 			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
-	}
+		}
 
 	//TODO documentar la respuesta lastID!!!
 	protected async push(server: any, db: any, request: any, reply: any) {
@@ -64,6 +63,19 @@ export class getEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
 			return await this.pull(server, db, request, reply);
+		});
+	}
+}
+
+export class getWithParamsEndpoint extends Endpoint {
+	add(server: any, db: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			if (!request.query || Object.keys(request.query).length === 0) {
+				reply.status(400).send({ error: 'Query parameters are required' });
+				return;
+			}
+			const params = Object.values(request.query);
+			return await this.pull(server, db, reply, params);
 		});
 	}
 }
