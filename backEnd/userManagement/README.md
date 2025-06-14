@@ -38,34 +38,68 @@ Este directorio contiene el código fuente y la configuración para el servicio 
         *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
         *   Ejemplos de respuestas.
         
-        El Endpoint :
-        ```typescript
-        new EndPoints.SeeAllUsersEndpoint(
-            "/usermanagement/front/get/users",
-            "Failed to retrieve users"
-	    );
-        ```
-        Executa la query 
-        ```sql
-        SELECT user FROM users;
-        ```
-        Devuelve la lista de los usuarios
+        **EndPoints para tener las tables** (tests)
+        PATH:   "/usermanagement/front/get/users"
+        METHOD: GET
+        ARG:    sin argumentos
+        RETURN: table 'users'
 
-        El Endpoint :
-        ```typescript
-        new EndPoints.SeeProfileEndpoint(
-            "/usermanagement/front/get/profile",
-            "Failed to retrieve user profile"
-	    );
-        ```
-        Executa la query 
-        ```sql
-        SELECT profiles.*
-        FROM profiles
-        JOIN users ON profiles.user_id = users.id
-        WHERE users.name = ?;
-        ```
-        Para tener todas las informaciones de la table "profiles" del usuario
+        PATH:   "/usermanagement/front/get/profiles"
+        METHOD: GET
+        ARG:    sin argumentos
+        RETURN: table 'profiles'
+
+        PATH:   "/usermanagement/front/get/friends"
+        METHOD: GET
+        ARG:    sin argumentos
+        RETURN: table 'friends'
+
+        **EndPoint para mirar el perfile de un usuario**
+        PATH:   "/usermanagement/front/get/profile"
+        METHOD: GET
+        ARG:    'id' in query string
+        RETURN: linea de la table "profiles" del user_id 'id'
+
+        **EndPoint para mirar los nametags (para tener amigos pro ejemplo)**
+        PATH:   "/usermanagement/front/get/pseudos"
+        METHOD: GET
+        ARG:    sin argumentos pero necesita estar connectado
+        RETURN: Array de nametags
+
+        **EndPoint para crear un user**
+        PATH:   "/usermanagement/front/post/create"
+        METHOD: POST
+        ARG:    'name' and 'pass' in body
+        RETURN: Nada
+
+        **EndPoint para log in**
+        PATH:   "/usermanagement/front/post/login"
+        METHOD: POST
+        ARG:    'name' and 'pass' in body
+        RETURN: Nada
+
+        **EndPoint para connectar al perfile de uno**
+        PATH:   "/usermanagement/front/get/profile_session"
+        METHOD: GET
+        ARG:    'user'
+        RETURN: 'id' del user
+
+        **EndPoints para modifiar information del usuario**
+        PATH:   "/usermanagement/front/put/modify_bio"
+        METHOD: PATCH
+        ARG:    'bio' in body + necessita estar connectado
+        RETURN: Nada
+
+        PATH:   "/usermanagement/front/put/modify_pseudo"
+        METHOD: PATCH
+        ARG:    'pseudo' in body + necessita estar connectado
+        RETURN: Nada
+
+        **EndPoint para borar el usuario**
+        PATH:   "/usermanagement/front/delete/user"
+        METHOD: DELETE
+        ARG:    nada pero neccessita estar connectado
+        RETURN: Nada
 ---
 
 *   **Dependencias:** Descripcion de dependencias inter-servicios.
