@@ -47,7 +47,7 @@ services:
         volumes:
             - dataBase-volume:/usr/src/app/data
         networks:
-            - proxy-network #TODO proxy solo para pruebas con el host
+            - proxy-network
             - backend-network
 
     serverPong:
@@ -57,7 +57,19 @@ services:
         restart: unless-stopped
         container_name: serverPong
         networks:
-            - proxy-network #TODO proxy solo para pruebas con el host
+            - proxy-network 
+            - backend-network
+        depends_on:
+            - webServer
+
+    matchMaker:
+        build: ${MMAKER_BUILD_PATH}
+        init: true
+        image: maatchmaker-img
+        restart: unless-stopped
+        container_name: matchMaker
+        networks:
+            - proxy-network
             - backend-network
         depends_on:
             - webServer

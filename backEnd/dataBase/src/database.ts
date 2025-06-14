@@ -18,23 +18,24 @@ function connect(): void {
 	else
 		dbPath = "./data/backendDatabase.db";
 
-	//TODO check 42 PC docker-bind-volumes!! (rootless)
-
-	db = new SQLite3.Database(dbPath, (cb) => {
-		if (cb)
-			console.error("SQLite error: Database file error - ", cb.message);
+	db = new SQLite3.Database(dbPath, (err) => {
+		if (err)
+			console.error("SQLite error: Database file error - ", err.message);
 	});
 	console.log("Connected to 'backendDatabase'");
 }
 
 function setTables(): void {
 
-	let tables: string[] = [`
+	let tables: string[] = [
+		`
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT UNIQUE NOT NULL,
 			pass TEXT NOT NULL
 		)`,
+
+    
 		`CREATE TABLE IF NOT EXISTS profiles (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -45,6 +46,7 @@ function setTables(): void {
 			avatar TEXT DEFAULT 'default_avatar.png',
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
+    
 		`CREATE TABLE IF NOT EXISTS friends (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -54,15 +56,26 @@ function setTables(): void {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(user_id, friend_id)
-		)`
+     )`,
+    
+		`CREATE TABLE IF NOT EXISTS matches (
+			match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+			player0_id INTEGER,
+			player0_score INTEGER,
+			player1_id INTEGER,
+			player1_score INTEGER,
+			winner_id INTEGER
+      )`
 
+	
 		//Add tables here, comma separated.
+    
 	];
 
 	tables.forEach(table => {
-		db.run(table, (cb) => {
-		if (cb)
-			console.error("SQLite error: Table creation error - ", cb.message);
+		db.run(table, (err) => {
+		if (err)
+			console.error("SQLite error: Table creation error - ", err.message);
 		});
 	}); 
 }
@@ -70,17 +83,12 @@ function setTables(): void {
 function setEndPoints(): void {
 	//Add endpoints here
 
-	//GET Sample
-	new EndPoints.getWithParamsEndpoint(
-		"/database/front/get/user",
-		"SELECT * FROM users WHERE name = ?",
-		"Failed to get users"
-	);
-
+// TODO cahnge database endpoints url -/database/front/
+  
 	new EndPoints.getEndpoint(
-		"/database/front/get/users",
-		"SELECT * FROM users",
-		"Failed to get users"
+		"/get/username",
+		"SELECT name FROM users WHERE id = ?",
+		"Failed to get user name"
 	);
 	new EndPoints.getEndpoint(
 		"/database/front/get/profiles",
@@ -119,12 +127,12 @@ function setEndPoints(): void {
 		"Failed to get user"
 	);
 
-	//POST Sample
 	new EndPoints.postEndpoint(
-		"/database/front/post/user",
-		"INSERT INTO users (name, pass) VALUES (?, ?)",
+		"/post/match",
+		"INSERT INTO matches (player0UID, player0Score, player1UID, player1Score, winnerUID) VALUES (?, 0, ?, 0, -1)",
 		"Data insertion error"
 	);
+
 
 	new EndPoints.postEndpoint(
 		"/database/front/post/profile",
@@ -138,15 +146,6 @@ function setEndPoints(): void {
 		"Failed to create friendship"
 	);
 
-
-	//PUT SAMPLE
-	new EndPoints.putEndpoint(
-		"/database/front/put/user",
-		"UPDATE users SET name = ?, pass = ? WHERE id = ?",
-		"Data update error"
-	);
-
-	//PATCH SAMPLE
 	new EndPoints.patchEndpoint(
 		"/database/front/patch/user",
 		"UPDATE users SET name = ? WHERE id = ?",
@@ -171,7 +170,6 @@ function setEndPoints(): void {
 		"Data update error"
 	);
 
-	//DELETE SAMPLE
 	new EndPoints.deleteEndpoint(
 		"/database/front/delete/user",
 		"DELETE FROM users WHERE id = ?",

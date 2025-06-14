@@ -1,7 +1,6 @@
 import { PlayField } from './playField';
 import { Ball } from './ball';
 import { Paddle } from './paddle';
-import { multiGameManager } from './serverpong';
 
 import { P1, P2, TICK_INTERVAL,
 		 PLAYFIELD_POS, PLAYFIELD_SIZE,
@@ -224,7 +223,6 @@ export class MultiGame extends Game {
 		}));
 	}
 
-	//TODO refactor a multiplayer
 	public async gameStart(): Promise<void> {
 
 		await this.waitPlayers();

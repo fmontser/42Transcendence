@@ -5,7 +5,7 @@ export abstract class Endpoint {
 	protected sql: string;
 	protected errorMsg: string;
 
-	constructor(path: string, sql: string, errorMsg: string	) {
+	constructor(path: string, sql: string, errorMsg: string) {
 		this.path = path;
 		this.sql = sql;
 		this.errorMsg = errorMsg;
@@ -19,15 +19,16 @@ export abstract class Endpoint {
 			endpoint.add(server, db);
 	}
 
-	protected async pull(server: any, db: any, reply: any, params: any[] = []) {
+	protected async pull(server: any, db: any, request:any, reply: any) {
 		try {
+			const values = Object.values(request.query);
 			const rows = await new Promise<any[]>((resolve, reject) => {
-			db.all(this.sql, params, (err: any, rows: any) => {
-				if (err)
-				reject(err);
-				else
-				resolve(rows);
-			});
+				db.all(this.sql, values, (err: any, rows: any) => {
+					if (err)
+						reject(err);
+					else
+						resolve(rows);
+				});
 			});
 			reply.send(rows);
 		} catch (error) {
@@ -36,15 +37,20 @@ export abstract class Endpoint {
 		}
 		}
 
-
+	//TODO documentar la respuesta lastID!!!
 	protected async push(server: any, db: any, request: any, reply: any) {
+		const ctx = this;
 		try {
 			if (!request.body || typeof request.body !== 'object')
 				throw new Error("Endpoint request is malformed!");
 
-			db.run(this.sql, Object.values(request.body), (cb: any) => {
-				if (cb)
-					console.error(`SQLite error: ${this.errorMsg} - `, cb.message);
+			db.run(ctx.sql, Object.values(request.body), function(this: { lastID: number}, err: any) {
+				if (err) {
+					console.error(`SQLite error: ${ctx.errorMsg} - `, err.message);
+					reply.status(500).send({ error: `Internal server error: ${ctx.errorMsg}` });
+				}
+				else
+					reply.send({ UID: this.lastID });
 			});
 		} catch (error) {
 			server.log.error(`DataBase: ${this.errorMsg} - :`, error);
@@ -56,7 +62,7 @@ export abstract class Endpoint {
 export class getEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			return await this.pull(server, db, reply);
+			return await this.pull(server, db, request, reply);
 		});
 	}
 }
