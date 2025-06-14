@@ -83,7 +83,6 @@ function setTables(): void {
 function setEndPoints(): void {
 	//Add endpoints here
 
-// TODO cahnge database endpoints url -/database/front/
   
 	new EndPoints.getEndpoint(
 		"/get/username",
@@ -91,38 +90,38 @@ function setEndPoints(): void {
 		"Failed to get user name"
 	);
 	new EndPoints.getEndpoint(
-		"/database/front/get/profiles",
+		"/get/profiles",
 		"SELECT * FROM profiles",
 		"Failed to get profiles"
 	);
 	new EndPoints.getEndpoint(
-		"/database/front/get/friends",
+		"/get/friends",
 		"SELECT * FROM friends",
 		"Failed to get friends"
 	);
 
-	new EndPoints.getWithParamsEndpoint(
-		"/database/front/get/pseudos",
+	new EndPoints.getEndpoint(
+		"/get/pseudos",
 		"SELECT pseudo FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
 		"Failed to get users"
 	);
 
 
-	new EndPoints.getWithParamsEndpoint(
-		"/database/front/get/user_id",
+	new EndPoints.getEndpoint(
+		"/get/user_id",
 		`SELECT id from users WHERE name = ?`,
 		"Failed to get users"
 	);
 
-	new EndPoints.getWithParamsEndpoint(
-		"/database/front/get/user_id_from_pseudo",
+	new EndPoints.getEndpoint(
+		"/get/user_id_from_pseudo",
 		`SELECT user_id from profiles WHERE pseudo = ?`,
 		"Failed to get users"
 	);
 
 
-	new EndPoints.getWithParamsEndpoint(
-		"/database/front/get/profile",
+	new EndPoints.getEndpoint(
+		"/get/profile",
 		`SELECT * FROM profiles WHERE user_id = ?`,
 		"Failed to get user"
 	);
@@ -135,55 +134,55 @@ function setEndPoints(): void {
 
 
 	new EndPoints.postEndpoint(
-		"/database/front/post/profile",
+		"/post/profile",
 		"INSERT INTO profiles (user_id) VALUES (?)",
 		"Data insertion error"
 	);
 
 	new EndPoints.postEndpoint(
-		"/database/front/post/friendship",
+		"/post/friendship",
 		`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`,
 		"Failed to create friendship"
 	);
 
 	new EndPoints.patchEndpoint(
-		"/database/front/patch/user",
+		"/patch/user",
 		"UPDATE users SET name = ? WHERE id = ?",
 		"Data update error"
 	);
 
 	new EndPoints.patchEndpoint(
-		"/database/front/patch/bio",
+		"/patch/bio",
 		`UPDATE profiles SET bio = ? WHERE user_id = ?`,
 		"Data update error"
 	);
 
 	new EndPoints.patchEndpoint(
-		"/database/front/patch/pseudo",
+		"/patch/pseudo",
 		`UPDATE profiles SET pseudo = ? WHERE user_id = ?`,
 		"Data update error"
 	);
 
 	new EndPoints.patchEndpoint(
-		"/database/front/patch/avatar",
+		"/patch/avatar",
 		`UPDATE profiles SET avatar = ? WHERE user_id = ?`,
 		"Data update error"
 	);
 
 	new EndPoints.deleteEndpoint(
-		"/database/front/delete/user",
+		"/delete/user",
 		"DELETE FROM users WHERE id = ?",
 		"Data removal error"
 	);
 
 	new EndPoints.deleteEndpoint(
-		"/database/front/delete/profile",
+		"/delete/profile",
 		"DELETE FROM profiles WHERE id = ?",
 		"Data removal error"
 	);
 
 	new EndPoints.deleteEndpoint(
-		"/database/front/delete/friendships",
+		"/delete/friendships",
 		"DELETE FROM friends WHERE user_id = ? or friend_id = ?",
 		"Data removal error"
 	);

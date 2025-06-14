@@ -67,19 +67,6 @@ export class getEndpoint extends Endpoint {
 	}
 }
 
-export class getWithParamsEndpoint extends Endpoint {
-	add(server: any, db: any): void {
-		server.get(this.path, async (request: any, reply: any) => {
-			if (!request.query || Object.keys(request.query).length === 0) {
-				reply.status(400).send({ error: 'Query parameters are required' });
-				return;
-			}
-			const params = Object.values(request.query);
-			return await this.pull(server, db, reply, params);
-		});
-	}
-}
-
 export class postEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
