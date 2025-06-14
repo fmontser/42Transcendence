@@ -23,7 +23,7 @@ export abstract class Endpoint {
 export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			const response = await fetch('http://dataBase:3000/database/front/get/users', {
+			const response = await fetch('http://dataBase:3000/get/users', {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeAllUsersEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -39,7 +39,7 @@ export class SeeAllUsersEndpoint extends Endpoint {
 export class SeeAllProfilesEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			const response = await fetch('http://dataBase:3000/database/front/get/profiles', {
+			const response = await fetch('http://dataBase:3000/get/profiles', {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeAllProfilesEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -55,7 +55,7 @@ export class SeeAllProfilesEndpoint extends Endpoint {
 export class SeeAllFriendsEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			const response = await fetch('http://dataBase:3000/database/front/get/friends', {
+			const response = await fetch('http://dataBase:3000/get/friends', {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeAllFriendsEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -72,7 +72,7 @@ export class SeePseudosEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			const id = request.user.id;
-			const response = await fetch(`http://dataBase:3000/database/front/get/pseudos?id=${id}`, {
+			const response = await fetch(`http://dataBase:3000/get/pseudos?id=${id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeePseudosEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -98,7 +98,7 @@ export class SeeProfileEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'User ID is required' });
 				return;
 			}
-			const response = await fetch(`http://dataBase:3000/database/front/get/profile?user=${id}`, {
+			const response = await fetch(`http://dataBase:3000/get/profile?user=${id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -125,7 +125,7 @@ export class CreateFriendshipEndpoint extends Endpoint {
 				return;
 			}
 
-			const response = await fetch(`http://dataBase:3000/database/front/get/user_id_from_pseudo?user=${friendPseudo}`, {
+			const response = await fetch(`http://dataBase:3000/get/user_id_from_pseudo?user=${friendPseudo}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`CreateFriendshipEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -143,7 +143,7 @@ export class CreateFriendshipEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'You cannot befriend yourself' });
 				return;
 			}
-			const friendshipResponse = await fetch('http://dataBase:3000/database/front/post/friendship', {
+			const friendshipResponse = await fetch('http://dataBase:3000/post/friendship', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ userId: user.id, friendId })
@@ -167,7 +167,7 @@ export class ModifyBioEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'Bio is required' });
 				return;
 			}
-			const response = await fetch('http://dataBase:3000/database/front/patch/bio', {
+			const response = await fetch('http://dataBase:3000/patch/bio', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ bio, id: user.id })
@@ -192,7 +192,7 @@ export class ModifyPseudoEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'Pseudo is required' });
 				return;
 			}
-			const response = await fetch('http://dataBase:3000/database/front/patch/pseudo', {
+			const response = await fetch('http://dataBase:3000/patch/pseudo', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ pseudo, id: user.id })
@@ -212,7 +212,7 @@ export class DeleteUserEndpoint extends Endpoint {
 	add(server: any): void {
 		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			const user = request.user;
-			const response = await fetch(`http://dataBase:3000/database/front/delete/user`, {
+			const response = await fetch(`http://dataBase:3000/delete/user`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name: user.id })
@@ -222,7 +222,7 @@ export class DeleteUserEndpoint extends Endpoint {
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
-			const response2 = await fetch(`http://dataBase:3000/database/front/delete/profile`, {
+			const response2 = await fetch(`http://dataBase:3000/delete/profile`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name: user.id })
@@ -232,7 +232,7 @@ export class DeleteUserEndpoint extends Endpoint {
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
-			const response3 = await fetch(`http://dataBase:3000/database/front/delete/friendships`, {
+			const response3 = await fetch(`http://dataBase:3000/delete/friendships`, {
 				method: 'DELETE',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ userId: user.id, friendId: user.id})
@@ -258,7 +258,7 @@ export class LogInEndpoint extends Endpoint {
 			const name = request.body.name;
 			const pass = request.body.pass;
 
-			const response = await fetch(`http://dataBase:3000/database/front/get/user?user=${name}`, {
+			const response = await fetch(`http://dataBase:3000/get/user?user=${name}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -317,7 +317,7 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
-			const response = await fetch(`http://dataBase:3000/database/front/get/user_id?name=${name}`, {
+			const response = await fetch(`http://dataBase:3000/get/user_id?name=${name}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -331,7 +331,7 @@ export class CreateUserEndpoint extends Endpoint {
 			}
 
 
-			const postUserResponse = await fetch('http://dataBase:3000/database/front/post/user', {
+			const postUserResponse = await fetch('http://dataBase:3000/post/user', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ name, pass })
@@ -342,7 +342,7 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
-			const idResponse = await fetch(`http://dataBase:3000/database/front/get/user_id?user=${name}`, {
+			const idResponse = await fetch(`http://dataBase:3000/get/user_id?user=${name}`, {
 				method: 'GET'});
 			if (!idResponse.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, idResponse.statusText);
@@ -356,7 +356,7 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
-			const postProfileResponse = await fetch('http://dataBase:3000/database/front/post/profile', {
+			const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ id })
