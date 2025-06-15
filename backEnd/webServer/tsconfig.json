@@ -4,14 +4,14 @@
     "module": "commonjs",
     "sourceMap": true,
     "outDir": "./conf/website/dist",
-    "rootDir": "./conf/website/scripts",
+    "rootDir": "./conf/website/src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "conf/website/scripts/**/*.ts"
+    "conf/website/src/**/*.ts"
   ],
   "exclude": [
     "node_modules"

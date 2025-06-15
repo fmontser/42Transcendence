@@ -1,10 +1,10 @@
-SRC_DIR		:= src/
-DIST_DIR	:= dist/
+SRC_DIR		:= conf/website/src/
+DIST_DIR	:= conf/website/dist/
 NAME		:= webserver.js
 NODES_DIR	:= node_modules/
 TSC			:= $(NODES_DIR)/.bin/tsc
 
-all: run
+all: build
 
 build:
 	@echo "Instalando dependencias..."
@@ -12,13 +12,11 @@ build:
 	@echo "Compilando TypeScript..."
 	@$(TSC)
 
-run: build
-	@echo "Ejecutando servicio Fastify Webserver..."
-	@node $(DIST_DIR)$(NAME)
 
 clean:
 	@echo "Limpiando proyecto Webserver..."
-	@rm -rf $(DIST_DIR) $(NODES_DIR)
+	@rm -rf $(NODES_DIR)
+	#@rm -rf $(DIST_DIR) 
 
 re: clean build
 
