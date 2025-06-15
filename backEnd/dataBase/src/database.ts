@@ -53,13 +53,14 @@ function setTables(): void {
 			friend_id INTEGER NOT NULL,
 			status TEXT DEFAULT 'pending', -- pending, accepted, blocked
 			request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			sender_id INTEGER NOT NULL,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(user_id, friend_id)
      )`,
     
 		`CREATE TABLE IF NOT EXISTS matches (
-			match_id INTEGER PRIMARY KEY AUTOINCREMENT,
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			player0_id INTEGER,
 			player0_score INTEGER,
 			player1_id INTEGER,
@@ -117,6 +118,57 @@ function setEndPoints(): void {
 		"Failed to get users"
 	);
 
+	new EndPoints.getEndpoint(
+		"/get/friendships_pending",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'pending'
+		AND f.sender_id != ?
+		`,
+		"Failed to get pending friendships"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/friendships_accepted",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'accepted'
+		`,
+		"Failed to get accepted friendships"
+	);
+	
+	new EndPoints.getEndpoint(
+		"/get/friendships_blocked",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'blocked'
+		`,
+		"Failed to get blocked friendships"
+	);
 
 	new EndPoints.getEndpoint(
 		"/get/user_id",
@@ -159,7 +211,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/friendship",
-		`INSERT INTO friends (user_id, friend_id) VALUES (?, ?)`,
+		`INSERT INTO friends (user_id, friend_id, sender_id) VALUES (?, ?, ?)`,
 		"Failed to create friendship"
 	);
 
@@ -174,6 +226,21 @@ function setEndPoints(): void {
 		`UPDATE profiles SET bio = ? WHERE user_id = ?`,
 		"Data update error"
 	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/friendship",
+		`UPDATE friends SET status = 'accepted' WHERE id = ?`,
+		"Friendship update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/friendship_block",
+		`UPDATE friends SET status = 'blocked' WHERE id = ?`,
+		"Friendship update error"
+	);
+	
+
+	
 
 	new EndPoints.patchEndpoint(
 		"/patch/pseudo",
@@ -202,6 +269,12 @@ function setEndPoints(): void {
 	new EndPoints.deleteEndpoint(
 		"/delete/friendships",
 		"DELETE FROM friends WHERE user_id = ? or friend_id = ?",
+		"Data removal error"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/delete/friendship",
+		"DELETE FROM friends WHERE id = ?",
 		"Data removal error"
 	);
 

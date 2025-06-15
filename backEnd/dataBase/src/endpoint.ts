@@ -24,12 +24,14 @@ export abstract class Endpoint {
 			const values = Object.values(request.query);
 			const rows = await new Promise<any[]>((resolve, reject) => {
 				db.all(this.sql, values, (err: any, rows: any) => {
-					if (err)
+					if (err) {
+						console.error(`SQLite error: ${this.errorMsg} - `, err.message);
 						reject(err);
-					else
+					} else
 						resolve(rows);
 				});
 			});
+			console.log(`DataBase: ${this.path} - `, rows);
 			reply.send(rows);
 		} catch (error) {
 			server.log.error(`DataBase: ${this.errorMsg} - `, error);
