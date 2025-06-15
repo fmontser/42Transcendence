@@ -1,0 +1,27 @@
+{
+  "name": "webserver",
+  "version": "1.0.0",
+  "description": "Servicio Webserver para el proyecto Trascendence",
+  "main": "dist/webserver.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/webserver.js",
+    "dev": "tsc -w & nodemon dist/webserver.js"
+  },
+  "keywords": [
+    "fastify",
+    "nodejs",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "nodemon": "latest",
+    "tailwindcss": "^4.1.10",
+    "typescript": "latest"
+  }
+}

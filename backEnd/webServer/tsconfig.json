@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "sourceMap": true,
+    "outDir": "./conf/website/dist",
+    "rootDir": "./conf/website/scripts",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "conf/website/scripts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
