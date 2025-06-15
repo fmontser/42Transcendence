@@ -48,6 +48,37 @@ function setEndPoints(): void {
 		"Failed to create friendship"
 	);
 
+	new EndPoints.SeeFriendshihpsPendingEndpoint(
+		"/usermanagement/front/get/friendships_pending",
+		"Failed to retrieve pending friendships"
+	);
+
+	new EndPoints.AcceptFriendshipEndpoint(
+		"/usermanagement/front/patch/accept_friendship",
+		"Failed to accept friendship"
+	);
+
+	new EndPoints.SeeFriendshihpsAcceptedEndpoint(
+		"/usermanagement/front/get/friendships_accepted",
+		"Failed to retrieve accepted friendships"
+	);
+
+	new EndPoints.BlockFriendshipEndpoint(
+		"/usermanagement/front/patch/block_friendship",
+		"Failed to block friendship"
+	);
+
+	new EndPoints.SeeFriendshihpsBlockedEndpoint(
+		"/usermanagement/front/get/friendships_blocked",
+		"Failed to retrieve blocked friendships"
+	);
+
+	new EndPoints.DeleteFriendshipEndpoint(
+		"/usermanagement/front/delete/delete_friendship",
+		"Failed to delete friendship"
+	);
+	
+
 	new EndPoints.LogInEndpoint(
 		"/usermanagement/front/post/login",
 		"Failed to log in user"

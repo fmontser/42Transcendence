@@ -3,6 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <title>Profil</title>
+  <style>
+    .friend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 400px;
+      margin: 8px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
   <h1>Bienvenue</h1>
@@ -30,6 +42,15 @@
   <ul id="pseudoList" style="margin-top: 20px; list-style: none; padding: 0;"></ul>
 
   <p id="message" style="color: green;"></p>
+
+  <h1>Friends demands</h1>
+  <div id="friend-list"></div>
+
+  <h1>Friends</h1>
+  <div id="friend-list-accepted"></div>
+
+  <h1>Blocked Friends</h1>
+  <div id="friend-list-blocked"></div>
 
   <button onclick="deleteAccount()">Supprimer mon compte</button>
   <script>
@@ -215,10 +236,10 @@
 
             const message = document.getElementById('message');
             if (res.ok) {
-              message.textContent = `✅ Requête d'amitié envoyée à ${pseudo}`;
+              message.textContent = `Requête d'amitié envoyée à ${pseudo}`;
               message.style.color = 'green';
             } else {
-              message.textContent = `❌ Erreur lors de l'ajout de ${pseudo}`;
+              message.textContent = `Erreur lors de l'ajout de ${pseudo}`;
               message.style.color = 'red';
             }
           });
@@ -230,8 +251,183 @@
       } else {
         list.innerHTML = '<li>Aucun pseudo trouvé.</li>';
       }
+
     });
 
+    async function fetchPendingFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_pending`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Accept';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors de l\'acceptation');
+              }
+
+              // Retirer l’élément de la liste
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    async function fetchAcceptedFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_accepted`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list-accepted');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Block';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/block_friendship`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors du blocage');
+              }
+
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list-accepted').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    async function fetchBlockedFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_blocked`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list-blocked');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Delete';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors du delete');
+              }
+
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list-blocked').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    fetchBlockedFriends();
+
+    fetchAcceptedFriends();
+    // Charger la liste dès que la page est prête
+    fetchPendingFriends();
     loadProfile();
   </script>
 </body>

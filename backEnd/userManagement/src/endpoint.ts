@@ -23,6 +23,7 @@ export abstract class Endpoint {
 export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			console.log(`SeeAllUsersEndpoint: ${this.path} called`);
 			const response = await fetch('http://dataBase:3000/get/users', {
 				method: 'GET'});
 			if (!response.ok) {
@@ -31,6 +32,7 @@ export class SeeAllUsersEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
+			console.log('SeeAllUsersEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -39,6 +41,7 @@ export class SeeAllUsersEndpoint extends Endpoint {
 export class SeeAllProfilesEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			console.log(`SeeAllProfilesEndpoint: ${this.path} called`);
 			const response = await fetch('http://dataBase:3000/get/profiles', {
 				method: 'GET'});
 			if (!response.ok) {
@@ -47,6 +50,7 @@ export class SeeAllProfilesEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
+			console.log('SeeAllProfilesEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -55,6 +59,7 @@ export class SeeAllProfilesEndpoint extends Endpoint {
 export class SeeAllFriendsEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			console.log(`SeeAllFriendsEndpoint: ${this.path} called`);
 			const response = await fetch('http://dataBase:3000/get/friends', {
 				method: 'GET'});
 			if (!response.ok) {
@@ -63,6 +68,7 @@ export class SeeAllFriendsEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
+			console.log('SeeAllFriendsEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -71,6 +77,7 @@ export class SeeAllFriendsEndpoint extends Endpoint {
 export class SeePseudosEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeePseudosEndpoint: ${this.path} called`);
 			const id = request.user.id;
 			const response = await fetch(`http://dataBase:3000/get/pseudos?id=${id}`, {
 				method: 'GET'});
@@ -84,7 +91,7 @@ export class SeePseudosEndpoint extends Endpoint {
 				reply.status(404).send({ error: 'No pseudos found' });
 				return;
 			}
-			console.log(data);
+			console.log('SeePseudosEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}	
@@ -93,6 +100,7 @@ export class SeePseudosEndpoint extends Endpoint {
 export class SeeProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			console.log(`SeeProfileEndpoint: ${this.path} called`);
 			const id = request.query.id;
 			if (!id) {
 				reply.status(400).send({ error: 'User ID is required' });
@@ -110,6 +118,7 @@ export class SeeProfileEndpoint extends Endpoint {
 				reply.status(404).send({ error: 'User not found' });
 				return;
 			}
+			console.log('SeeProfileEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -118,6 +127,7 @@ export class SeeProfileEndpoint extends Endpoint {
 export class CreateFriendshipEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`CreateFriendshipEndpoint: ${this.path} called`);
 			const user = request.user;
 			const friendPseudo = request.body.targetPseudo;
 			if (!friendPseudo) {
@@ -140,27 +150,179 @@ export class CreateFriendshipEndpoint extends Endpoint {
 			const friendId = data[0].user_id;
 			console.log(`Creating friendship between user ${user.id} and friend ${friendId}`);
 			if (friendId === user.id) {
-				reply.status(400).send({ error: 'You cannot befriend yourself' });
+				reply.status(400).send({ error: 'You cannot be friend yourself' });
 				return;
 			}
+			let uid1 = Math.min(user.id, friendId);
+			let uid2 = Math.max(user.id, friendId);
 			const friendshipResponse = await fetch('http://dataBase:3000/post/friendship', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ userId: user.id, friendId })
+				body: JSON.stringify({ uid1, uid2 , sender: user.id})
 			});
 			if (!friendshipResponse.ok) {
 				server.log.error(`CreateFriendshipEndpoint: ${this.errorMsg} - `, friendshipResponse.statusText);
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
+			console.log(`Friendship created between user ${user.id} and friend ${friendId}`);
 			reply.send({ message: 'Friendship created successfully' });
 		});
 	}
 }
 
+export class SeeFriendshihpsPendingEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeFriendshihpsPendingEndpoint: ${this.path} called`);
+			const user = request.user;
+			const response = await fetch(`http://dataBase:3000/get/friendships_pending?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}`, {
+				method: 'GET'});
+			if (!response.ok) {
+				server.log.error(`SeeFriendshihpsPendingEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			console.log('SeeFriendshihpsPendingEndpoint: Data received:', data);
+
+			
+			reply.send(data);
+		});
+	}
+}
+
+export class AcceptFriendshipEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`AcceptFriendshipEndpoint: ${this.path} called`);
+			const user = request.user;
+			const id = request.body.id;
+			if (!id) {
+				reply.status(400).send({ error: 'Request Id is required' });
+				return;
+			}
+
+			const response = await fetch(`http://dataBase:3000/patch/friendship`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+				});
+			if (!response.ok) {
+				server.log.error(`AcceptFriendshipEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			
+			console.log(`Friendship request ${id} accepted for user ${user.id}`);
+			reply.send({ message: 'Friendship request accepted successfully' });
+		});
+	}
+}
+
+export class SeeFriendshihpsAcceptedEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeFriendshihpsAcceptedEndpoint: ${this.path} called`);
+			const user = request.user;
+			const response = await fetch(`http://dataBase:3000/get/friendships_accepted?id1=${user.id}&id2=${user.id}&id3=${user.id}`, {
+				method: 'GET'});
+			if (!response.ok) {
+				server.log.error(`SeeFriendshihpsAcceptedEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			console.log('SeeFriendshihpsAcceptedEndpoint: Data received:', data);
+
+			
+			reply.send(data);
+		});
+	}
+}
+
+export class BlockFriendshipEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`BlockFriendshipEndpoint: ${this.path} called`);
+			const user = request.user;
+			const id = request.body.id;
+			if (!id) {
+				reply.status(400).send({ error: 'Request Id is required' });
+				return;
+			}
+
+			const response = await fetch(`http://dataBase:3000/patch/friendship_block`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+				});
+			if (!response.ok) {
+				server.log.error(`BlockFriendshipEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			
+			console.log(`Friendship request ${id} blocked for user ${user.id}`);
+			reply.send({ message: 'Friendship request blocked successfully' });
+		});
+	}
+}
+
+export class SeeFriendshihpsBlockedEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeFriendshihpsBlockedEndpoint: ${this.path} called`);
+			const user = request.user;
+			const response = await fetch(`http://dataBase:3000/get/friendships_blocked?id1=${user.id}&id2=${user.id}&id3=${user.id}`, {
+				method: 'GET'});
+			if (!response.ok) {
+				server.log.error(`SeeFriendshihpsBlockedEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			console.log('SeeFriendshihpsBlockedEndpoint: Data received:', data);
+
+			
+			reply.send(data);
+		});
+	}
+}
+
+export class DeleteFriendshipEndpoint extends Endpoint {
+	add(server: any): void {
+		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`DeleteFriendshipEndpoint: ${this.path} called`);
+			const user = request.user;
+			const id = request.body.id;
+			if (!id) {
+				reply.status(400).send({ error: 'Request Id is required' });
+				return;
+			}
+
+			const response = await fetch(`http://dataBase:3000/delete/friendship`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id })
+				});
+			if (!response.ok) {
+				server.log.error(`DeleteFriendshipEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			
+			console.log(`Friendship request ${id} deleted for user ${user.id}`);
+			reply.send({ message: 'Friendship request deleted successfully' });
+		});
+	}
+}
+
+
 export class ModifyBioEndpoint extends Endpoint {
 	add(server: any): void {
 		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`ModifyBioEndpoint: ${this.path} called`);
 			const user = request.user;
 			const bio = request.body.bio;
 			if (!bio) {
@@ -178,6 +340,7 @@ export class ModifyBioEndpoint extends Endpoint {
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
+			console.log(`Bio updated for user ${user.id}`);
 			reply.send({ message: 'Bio updated successfully' });
 		});
 	}
@@ -186,6 +349,7 @@ export class ModifyBioEndpoint extends Endpoint {
 export class ModifyPseudoEndpoint extends Endpoint {
 	add(server: any): void {
 		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`ModifyPseudoEndpoint: ${this.path} called`);
 			const user = request.user;
 			const pseudo = request.body.pseudo;
 			if (!pseudo) {
@@ -203,6 +367,7 @@ export class ModifyPseudoEndpoint extends Endpoint {
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
+			console.log(`Pseudo updated for user ${user.id}`);
 			reply.send({ message: 'Pseudo updated successfully' });
 		});
 	}
@@ -211,6 +376,7 @@ export class ModifyPseudoEndpoint extends Endpoint {
 export class DeleteUserEndpoint extends Endpoint {
 	add(server: any): void {
 		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`DeleteUserEndpoint: ${this.path} called`);
 			const user = request.user;
 			const response = await fetch(`http://dataBase:3000/delete/user`, {
 				method: 'DELETE',
@@ -242,6 +408,7 @@ export class DeleteUserEndpoint extends Endpoint {
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
+			console.log(`User ${user.id} deleted successfully`);
 			reply.clearCookie('token', {
 				httpOnly: true,
 				secure: true,      // à mettre sur true en production (HTTPS)
@@ -255,13 +422,14 @@ export class DeleteUserEndpoint extends Endpoint {
 export class LogInEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, async (request:any, reply:any) => {
+			console.log(`LogInEndpoint: ${this.path} called`);
 			const name = request.body.name;
 			const pass = request.body.pass;
 
 			const response = await fetch(`http://dataBase:3000/get/user?user=${name}`, {
 				method: 'GET'});
 			if (!response.ok) {
-				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
+				server.log.error(`LogInEndpoint: ${this.errorMsg} - `, response.statusText);
 				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 				return;
 			}
@@ -280,6 +448,7 @@ export class LogInEndpoint extends Endpoint {
 			if (pass === data[0].pass) { // Remplace par une vraie vérification de mot de passe
 				const token = server.jwt.sign({ id });
 
+				console.log(`User ${name} logged in successfully, token: ${token}`);
 				reply.setCookie('token', token, {
 					httpOnly: true,
 					secure: true,      // à mettre sur true en production (HTTPS)
@@ -298,7 +467,7 @@ export class LogInEndpoint extends Endpoint {
 export class ProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request:any, reply:any) => {
-			// const name = request.user.name;
+			console.log(`ProfileEndpoint: ${this.path} called`);
 			console.log('Cookies reçus:', request.cookies);
   			console.log('Utilisateur JWT:', request.user);
 			const user = request.user;
@@ -310,6 +479,7 @@ export class ProfileEndpoint extends Endpoint {
 export class CreateUserEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
+			console.log(`CreateUserEndpoint: ${this.path} called`);
 			const name = request.body.name;
 			const pass = request.body.pass;
 			if (!name || !pass) {
@@ -367,7 +537,7 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
-
+			console.log(`User ${name} created successfully with ID ${id}`);
 			reply.send({ message: 'User created successfully'});
 		});
 	}
