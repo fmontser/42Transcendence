@@ -18,6 +18,7 @@ RUN apt-get update && \
 	apt-get install nodejs -y --no-install-recommends && \
 	rm -rf /var/lib/apt/lists/*
 
+
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps

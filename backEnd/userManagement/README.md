@@ -98,8 +98,51 @@ Este directorio contiene el código fuente y la configuración para el servicio 
         **EndPoint para borar el usuario**  
         * PATH:   "/usermanagement/front/delete/user"  
         METHOD: DELETE  
-        ARG:    nada pero neccessita estar connectado  
+        ARG:    nada pero necessita estar connectado  
         RETURN: Nada
+
+        **EndPoint para enviar una solicitud de amistad**  
+        * PATH: "/usermanagement/front/post/friendship"  
+        METHOD: POST  
+        ARG:    'pseudo' del amigo + necessita estar connectado  
+        RETURN: Nada  
+
+        **EndPoint para acceptar la amistad**  
+        * PATH: "/usermanagement/front/patch/accept_friendship"  
+        METHOD: PATCH  
+        ARG:    ID de la amistad  
+        RETURN: Nada  
+
+        **EndPoint para bloquear la amistad**  
+        * PATH: "/usermanagement/front/patch/block_friendship"  
+        METHOD: PATCH  
+        ARG:    ID de la amistad  
+        RETURN: Nada  
+
+        **EndPoint para eliminar la amistad**  
+        * PATH: "/usermanagement/front/delete/delete_friendship"  
+        METHOD: PATCH  
+        ARG:    ID de la amistad  
+        RETURN: Nada  
+
+        **EndPoint para ver las amistades esperando**  
+        * PATH: "/usermanagement/front/get/friendships_pending"  
+        METHOD: GET  
+        ARG:    solo necessitar estar connectado  
+        RETURN: id de la amistad + nickname del amigo
+
+        **EndPoint para ver las amistades acceptada**  
+        * PATH: "/usermanagement/front/get/friendships_accepted"  
+        METHOD: GET  
+        ARG:    solo necessitar estar connectado  
+        RETURN: id de la amistad + nickname del amigo
+
+        **EndPoint para ver las amistades bloqueada**  
+        * PATH: "/usermanagement/front/get/friendships_blocked"  
+        METHOD: GET  
+        ARG:    solo necessitar estar connectado  
+        RETURN: id de la amistad + nickname del amigo
+
 ---
 
 *   **Dependencias:** Descripcion de dependencias inter-servicios.
