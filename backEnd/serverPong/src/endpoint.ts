@@ -1,3 +1,4 @@
+import { json } from 'stream/consumers';
 import { LocalGame, MultiGame, Player } from './pongEngine'
 import { P1, P2, multiGameManager } from './serverpong';
 
@@ -21,14 +22,48 @@ export abstract class Endpoint {
 	}
 }
 
+export class PostNewMatch extends Endpoint {
+	//TODO reqeuest/reply no es necesario?
+	protected add(server: any): void {
+		server.post(this.path, { webSocket: true}, (connection: any, request: any, reply: any) => {
+			connection.on('message', (data: any) => {
+				try {
+					const jsonData = JSON.parse(DataTransfer.toString());
+					console.log("Received message:", jsonData);
+
+					switch (jsonData.type) {
+						case 'postMatchRequest':
+							console.log("Info: Match request recieved");
+							multiGameManager.createGame(jsonData.gameUID);
+							connection.send(JSON.stringify({
+								type: 'postMatchResponse'
+							}));
+							console.log("Info: post match confirmation sent");
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
+
+			connection.on('close', () => {
+				//TODO clean?
+				console.log("Info: MatchMaker disconnected!");
+			});
+		});
+	}
+}
+
+
 //TODO el UID debe venir del matchmaker?? no del cliente... para ambos modos??
 
 export class GetNewLocalGame extends Endpoint {
 	private currentGame!: LocalGame;
 
 	add(server: any): void {
+
+		//TODO reqeuest no es necesario?
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
-			
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
@@ -70,6 +105,7 @@ export class GetNewMultiGame extends Endpoint {
 	private currentGame!: MultiGame;
 	private player!: Player;
 
+	//TODO reqeuest no es necesario?
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			

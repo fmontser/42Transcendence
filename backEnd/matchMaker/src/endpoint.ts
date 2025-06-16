@@ -32,7 +32,7 @@ export class PostMatchRequest extends Endpoint {
 
 					switch (jsonData.type) {
 						case 'matchRequest':
-							matchManager.joinMatch(jsonData.playerUID);
+							matchManager.requestMatch(connection, jsonData.playerUID);
 							break;
 					}
 				} catch (error) {

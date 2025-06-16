@@ -9,7 +9,7 @@ export class MatchManager {
 		this.matchList = new Set<Match>();
 	}
 
-	public joinMatch(playerUID: number): void {
+	public requestMatch(connection: any ,playerUID: number): void {
 		let newMatch: Match | null = this.findPendingMatch();
 		if (newMatch == null) {
 			newMatch = new Match();
@@ -19,7 +19,7 @@ export class MatchManager {
 
 		if (this.checkPlayers(newMatch)){
 			this.postMatchEntry(newMatch);
-			this.requestNewPongInstance(newMatch.matchUID);
+			this.requestNewPongInstance(connection, newMatch);
 		}
 	}
 
@@ -52,29 +52,56 @@ export class MatchManager {
 				winner_id: -1
 			})
 		});
-		const data = await response.json();
 
-		//TODO borrar test
-		console.log("Debug: matchUID = " + data.id);
+		console.log("Info: New match entry request sent to database");
+		const data = await response.json();
+		console.log("Info: MatchUID recieved from database: " + data.id);
 		return (data.id);
 	}
 
 	//TODO no hay endpoint en la database!!
-	private async patchMatchEntry(match: Match): Promise<void> {
+	private async patchMatchEntry(matchUID: number, column: string, value: string): Promise<void> {
 		await fetch("http://dataBase:3000/patch/match", {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				//TODO Patch
+				matchUID: matchUID,
+				[column]: value
 			})
 		});
-	}
-
-	private async requestNewPongInstance(matchUID: number): Promise<void> {
-		//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ continuar aqui implementar!
+	};
 	
-	}
+	private async requestNewPongInstance(connection: any, match: Match): Promise<void> {
+		let ws = new WebSocket(`wss://serverpong:3000/post/match`);
 
+		ws.send(JSON.stringify({
+			type: 'postMatchRequest',
+			gameUID: match.matchUID
+		}));
+		console.log("Info: New game request sent to serverPong");
+
+
+		ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			switch(data.type) {
+				case 'postMatchResponse':
+					console.log("Info: post match confirmation recieved from serverPong");
+					connection.send(JSON.stringify({
+						type: 'matchResponse',
+						gameUID: match.matchUID
+					}))
+					console.log("Info: post match confirmation sent to client");
+					break;
+				case 'endGameSummary':
+					//TODO mensaje fin de juego!
+					break;
+			}
+		};
+
+		ws.onclose = () => {
+			//TODO limpiar??
+		}
+	}
 }
 
 export class Match {

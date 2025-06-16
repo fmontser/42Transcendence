@@ -30,6 +30,15 @@ export class MultiGameManager {
 		this.multiGameList = new Set<MultiGame>();
 	}
 
+	public createGame(gameUID: number): void {
+		let newGame: MultiGame | null = this.findGame(gameUID);
+		if (newGame == null) {
+			newGame = new MultiGame(gameUID);
+		}
+		this.multiGameList.add(newGame);
+	}
+
+	//TODO refactor
 	public joinGame(gameUID: number, player: Player): MultiGame {
 		let newGame: MultiGame | null = this.findGame(gameUID);
 		if (newGame == null) {
