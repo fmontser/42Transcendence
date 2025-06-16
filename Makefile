@@ -36,6 +36,9 @@ peek:
 %:
 	@:
 
+track:
+	@docker compose logs -f
+
 all: build
 
 build:

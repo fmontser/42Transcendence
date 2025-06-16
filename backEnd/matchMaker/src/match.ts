@@ -1,4 +1,6 @@
-enum Status {
+import WebSocket from 'ws';
+
+export enum Status {
 	PENDING, ONGOING, COMPLETED
 }
 
@@ -9,17 +11,17 @@ export class MatchManager {
 		this.matchList = new Set<Match>();
 	}
 
-	public requestMatch(connection: any ,playerUID: number): void {
+	public async requestMatch(connection: any ,playerUID: number): Promise<void> {
 		let newMatch: Match | null = this.findPendingMatch();
 		if (newMatch == null) {
 			newMatch = new Match();
 			this.matchList.add(newMatch);
 		}
-		newMatch.addPlayer(playerUID);
+		newMatch.addPlayer(connection, playerUID);
 
 		if (this.checkPlayers(newMatch)){
-			this.postMatchEntry(newMatch);
-			this.requestNewPongInstance(connection, newMatch);
+			await this.postMatchEntry(newMatch);
+			this.requestNewPongInstance(newMatch);
 		}
 	}
 
@@ -40,7 +42,7 @@ export class MatchManager {
 		return (false);
 	}
 
-	private async postMatchEntry(match: Match): Promise<number> {
+	private async postMatchEntry(match: Match): Promise<void> {
 		const response = await fetch("http://dataBase:3000/post/match", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -52,11 +54,10 @@ export class MatchManager {
 				winner_id: -1
 			})
 		});
-
 		console.log("Info: New match entry request sent to database");
 		const data = await response.json();
+		match.matchUID = data.id;
 		console.log("Info: MatchUID recieved from database: " + data.id);
-		return (data.id);
 	}
 
 	//TODO no hay endpoint en la database!!
@@ -71,36 +72,47 @@ export class MatchManager {
 		});
 	};
 	
-	private async requestNewPongInstance(connection: any, match: Match): Promise<void> {
-		let ws = new WebSocket(`wss://serverpong:3000/post/match`);
+	private async requestNewPongInstance(match: Match): Promise<void> {
+		const ws = new WebSocket('ws://serverpong:3000/post/match');
+		console.log("Info: Connection to serverPong");
 
-		ws.send(JSON.stringify({
-			type: 'postMatchRequest',
-			gameUID: match.matchUID
-		}));
-		console.log("Info: New game request sent to serverPong");
+		ws.on('open', () => {
+			ws.send(JSON.stringify({
+				type: 'postMatchRequest',
+				gameUID: match.matchUID
 
+			}));
+			console.log("Info: New game request sent to serverPong");
+		});
 
-		ws.onmessage = (event) => {
-			const data = JSON.parse(event.data);
-			switch(data.type) {
+		ws.on('message', (event) => {
+			const data = JSON.parse(event.toString());
+
+			switch (data.type) {
 				case 'postMatchResponse':
-					console.log("Info: post match confirmation recieved from serverPong");
-					connection.send(JSON.stringify({
-						type: 'matchResponse',
-						gameUID: match.matchUID
-					}))
-					console.log("Info: post match confirmation sent to client");
+					console.log("Info: post match confirmation received from serverPong");
+					for (const connection of [match.player0Conn, match.player1Conn]){
+						connection.send(JSON.stringify({
+							type: 'matchAnnounce',
+							gameUID: match.matchUID,
+							player0UID: match.player0UID,
+							player0Name: match.player0Name,
+							player1UID: match.player1UID,
+							player1Name: match.player1Name
+						}));
+						console.log("Info: match announce sent to client");
+					}
 					break;
+
 				case 'endGameSummary':
-					//TODO mensaje fin de juego!
+					//TODO final del juego
 					break;
 			}
-		};
+		});
 
-		ws.onclose = () => {
-			//TODO limpiar??
-		}
+		ws.on('close', () => {
+			// TODO limpiar
+		});
 	}
 }
 
@@ -109,21 +121,25 @@ export class Match {
 	matchUID!: number;
 	player0UID!: number;
 	player0Name!: string;
+	player0Conn!: any;
 	player1UID!: number;
 	player1Name!: string;
+	player1Conn!: any;
 	score: number[] = [0,0];
 
 	constructor (){
 		this.status = Status.PENDING;
 	}
 
-	public async addPlayer(playerUID: number) {
+	public async addPlayer(connection: any, playerUID: number) {
 		if (this.player0UID == undefined) {
 			this.player0UID = playerUID;
 			this.player0Name = await this.getPlayerName(this.player0UID);
+			this.player0Conn = connection;
 		} else if (this.player1UID == undefined) {
 			this.player1UID = playerUID;
 			this.player1Name = await this.getPlayerName(this.player1UID);
+			this.player1Conn = connection;
 		}
 	}
 

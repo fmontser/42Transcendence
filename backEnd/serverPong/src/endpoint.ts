@@ -1,5 +1,5 @@
-import { json } from 'stream/consumers';
-import { LocalGame, MultiGame, Player } from './pongEngine'
+import { MultiGame, Player } from './pongEngine'
+//import { LocalGame, MultiGame, Player } from './pongEngine'
 import { P1, P2, multiGameManager } from './serverpong';
 
 export abstract class Endpoint {
@@ -23,12 +23,12 @@ export abstract class Endpoint {
 }
 
 export class PostNewMatch extends Endpoint {
-	//TODO reqeuest/reply no es necesario?
-	protected add(server: any): void {
-		server.post(this.path, { webSocket: true}, (connection: any, request: any, reply: any) => {
+
+	add(server: any): void {
+		server.get(this.path, { websocket: true }, (connection: any, request: any) => {
 			connection.on('message', (data: any) => {
 				try {
-					const jsonData = JSON.parse(DataTransfer.toString());
+					const jsonData = JSON.parse(data.toString());
 					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
@@ -54,7 +54,7 @@ export class PostNewMatch extends Endpoint {
 	}
 }
 
-
+/*
 //TODO el UID debe venir del matchmaker?? no del cliente... para ambos modos??
 
 export class GetNewLocalGame extends Endpoint {
@@ -63,7 +63,7 @@ export class GetNewLocalGame extends Endpoint {
 	add(server: any): void {
 
 		//TODO reqeuest no es necesario?
-		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+	/* 	server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
@@ -100,6 +100,7 @@ export class GetNewLocalGame extends Endpoint {
 		});
 	}
 }
+*/
 
 export class GetNewMultiGame extends Endpoint {
 	private currentGame!: MultiGame;
@@ -116,17 +117,16 @@ export class GetNewMultiGame extends Endpoint {
 
 					switch (jsonData.type) {
 						case 'setupRequest':
-
-							console.log("DEBUG,  UID: " + jsonData.playerUID);
-
-							this.player = new Player(connection, jsonData.playerUID);
-							//TODO gameUID debe ser proporcionada por el matchmaker...ahora esta undefined
-							this.currentGame = multiGameManager.joinGame(jsonData.gameUID, this.player);
+							console.log("Info: Player " + jsonData.userUID + " is requesting setup data");
+							this.player = new Player(connection, jsonData.userUID, jsonData.userSlot);
+							this.currentGame = multiGameManager.joinGame(connection, jsonData.gameUID, this.player);
 							this.currentGame.gameSetup(connection, this.player);
+							console.log("Info: Sent setupResponse to user: " + this.player.playerUID);
 							break;
-						case 'newGame':
-							console.log("NewGame requested!");
+						case 'startRequest':
+							console.log("Info: Player " + this.player.playerUID + " is ready");
 							this.player.isReady = true;
+							this.currentGame.gameStart();
 							break;
 						case 'input':
 							console.log("Input recieved!");

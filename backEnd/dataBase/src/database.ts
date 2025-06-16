@@ -86,7 +86,7 @@ function setEndPoints(): void {
 	new EndPoints.getEndpoint(
 		"/get/user",
 		"SELECT * FROM users WHERE name = ?",
-		"Failed to get user name"
+		"Failed to get user id"
 	);
   
 	new EndPoints.getEndpoint(
@@ -234,6 +234,8 @@ async function start() {
 	connect();
 	setTables();
 	setEndPoints();
+
+	console.log("Enpoints registered:\n" + server.printRoutes());
 	
 	try {
 		server.register(FormBodyPlugin);

@@ -9,16 +9,20 @@ import { P1, P2, TICK_INTERVAL,
 		 MAX_SCORE } from './serverpong';
 import { clearInterval } from 'timers';
 
+enum Status {
+	PENDING, ONGOING, COMPLETED
+}
 
 export class Player {
 	connection: any;
-	playerSlot!: number;
+	playerSlot: number;
 	playerUID: number;
 	public isReady: boolean;
 
-	constructor(connection: any, playerUID: number) {
+	constructor(connection: any, playerUID: number, playerSlot: number) {
 		this.connection = connection;
 		this.playerUID = playerUID;
+		this.playerSlot = playerSlot;
 		this.isReady = false;
 	}
 }
@@ -31,31 +35,25 @@ export class MultiGameManager {
 	}
 
 	public createGame(gameUID: number): void {
-		let newGame: MultiGame | null = this.findGame(gameUID);
-		if (newGame == null) {
-			newGame = new MultiGame(gameUID);
-		}
+		let newGame: MultiGame = new MultiGame(gameUID);
 		this.multiGameList.add(newGame);
 	}
 
-	//TODO refactor
-	public joinGame(gameUID: number, player: Player): MultiGame {
-		let newGame: MultiGame | null = this.findGame(gameUID);
-		if (newGame == null) {
-			newGame = new MultiGame(gameUID);
-			newGame.gameStart();
-		}
-		newGame.addPlayer(player);
-		this.multiGameList.add(newGame);
+	public joinGame(connection: any, gameUID: number, player: Player): MultiGame {
+		let newGame: MultiGame  = this.findGame(gameUID);
+
+		newGame.addPlayer(connection, player);
 		return (newGame);
 	}
 
-	private findGame(gameUID: number): MultiGame | null {
+	private findGame(gameUID: number): MultiGame {
+		let found!: MultiGame;
+		
 		for(const game of this.multiGameList) {
 			if (game.getUID() == gameUID)
-				return (game);
+				found = game;
 		}
-		return (null);
+		return (found);
 	}
 
 	private deleteGame(game: MultiGame): void {
@@ -71,12 +69,14 @@ export abstract class Game {
 	protected maxScore: number;
 	public playField: PlayField;
 	protected gameLoop!: NodeJS.Timeout;
+	protected status!: Status;
 
 	constructor(gameUID: number) {
 		this.gameUID = gameUID;
 		this.score = [0,0];
 		this.maxScore = MAX_SCORE;
-		this.players = [new Player(null, 0), new Player(null, 0)];
+		this.players = [new Player(undefined, 0, 0), new Player(undefined, 0, 1)];
+		this.status = Status.PENDING;
 
 		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
 
@@ -101,15 +101,11 @@ export abstract class Game {
 		));
 	}
 
-	public addPlayer(newPlayer: Player): void {
-		for (let i = 0; i < 2; i++){
-			if (this.players[i].connection == null){
-				this.players[i] = newPlayer;
-				this.players[i].playerSlot = i;
-				console.log("Player slot is: " + this.players[i].playerSlot);
-				return;
-			}
-		}
+	public addPlayer(connection: any, player: Player): void {
+		if(this.players[0].connection == undefined) 
+			this.players[0] = new Player(connection, player.playerUID, P1);
+		else 
+			this.players[1] = new Player(connection, player.playerUID, P2);
 	}
 
 	public getUID(): number { return this.gameUID; }
@@ -118,7 +114,7 @@ export abstract class Game {
 	public abstract gameEnd(connection: any): void;
 }
 
-
+/* //TODO refactor local game
 export class LocalGame extends Game {
 
 	constructor(gameUID: number) {
@@ -186,7 +182,7 @@ export class LocalGame extends Game {
 
 		connection.close();
 	}
-}
+} */
 
 export class MultiGame extends Game {
 	
@@ -202,7 +198,7 @@ export class MultiGame extends Game {
 		return (true);
 	}
 
-	public async waitPlayers() {
+	public async waitPlayers(): Promise<void> {
 		console.log('Info: Waiting players...');
 		await new Promise(resolve => {
 			const interval = setInterval(() => {
@@ -215,8 +211,6 @@ export class MultiGame extends Game {
 	}
 	
 	public gameSetup(connection: any, player: Player): void {
-		console.log("Sent message: Game configuration");
-
 		connection.send(JSON.stringify({
 			type: 'setupResponse',
 			playerSlot: player.playerSlot,
@@ -234,7 +228,18 @@ export class MultiGame extends Game {
 
 	public async gameStart(): Promise<void> {
 
+
 		await this.waitPlayers();
+
+		//TODO check this...
+		if (this.status != Status.PENDING)
+			return;
+		else
+			this.status = Status.ONGOING;
+
+
+		console.log("Info: Game " + this.gameUID + " has started!");
+		
 		this.playField.ball.launchBall();
 
 		this.gameLoop = setInterval(() => {

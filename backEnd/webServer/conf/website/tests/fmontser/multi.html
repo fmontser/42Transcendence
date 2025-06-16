@@ -43,17 +43,15 @@
 			let PADDLE_HEIGHT = 256;
 			let BALL_RADIUS = 32;
 
-			//TODO esto debe obtenerlo del perfil.
-			let playerName;
-			let playerUID = 1;
-			//let playerUID = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
-			let playerSlot;
-			
-			let rivalName;
-			let rivalUID;
-			let rivalSlot;
-
 			let gameUID;
+			let userUID = 1; //TODO esto debe obtenerlo del perfil.
+			let userSlot;
+
+			let player0Name;
+			let player0UID;
+			let player1Name;
+			let player1UID;
+
 			let gameActive = false;
 			let gameStarted = false;
 
@@ -76,21 +74,30 @@
 			function sendMatchRequest() {
 				ws.send(JSON.stringify({
 					type: 'matchRequest',
-					playerUID: playerUID
+					userUID: userUID
 				}));
+				console.log("Info: Match request sent to matchMaker");
 			}
 
 			function handleAnnounceResponse(data) {
 
-				playerName = data.playerName;
-				rivalName = data.rivalName;
-				rivalUID = data.rivalUID;
 				gameUID = data.gameUID;
+				player0UID = data.player0UID;
+				player0Name = data.player0Name;
+				player1UID = data.player1UID;
+				player1Name = data.player1Name;
+
+				if (player0UID == userUID)
+					playerSlot = 0;
+				else
+					playerSlot = 1;
+
 				drawAnnounce();
-				if (data.status == 'ongoing') {
+				//Tres segundos de margen
+				setTimeout(() => {
 					ws.close();
 					setupPongWS();
-				}
+				}, 3000);
 			}
 
 
@@ -105,6 +112,7 @@
 					const data = JSON.parse(event.data);
 					switch(data.type) {
 						case 'matchAnnounce':
+							console.log("Info: Recieved match announce from matchMaker");
 							handleAnnounceResponse(data);
 							break;
 					}
@@ -119,11 +127,50 @@
 				};
 			}
 
-			//TODO FRONTEND presentar el anuncio del match
+			//TODO FRONTEND anuncio de juego!
 			function drawAnnounce() {
-				//TODO
-			}
+				let countdown = 3;
 
+				const drawCurrentAnnounceState = (currentCountdownValue) => {
+					ctx.fillStyle = '#1a1a1a';
+					ctx.fillRect(0, 0, playField.width, playField.height);
+
+					ctx.fillStyle = 'white';
+					ctx.font = '28px monospace';
+
+					ctx.textAlign = 'left';
+					const player0Display = `${player0Name || 'Player 0'} (UID: ${player0UID || 'N/A'})`;
+					ctx.fillText(player0Display, 70, playField.height / 2 - 30);
+
+					ctx.textAlign = 'right';
+					const player1Display = `${player1Name || 'Player 1'} (UID: ${player1UID || 'N/A'})`;
+					ctx.fillText(player1Display, playField.width - 70, playField.height / 2 - 30);
+
+					ctx.textAlign = 'center';
+					ctx.font = '36px monospace';
+					ctx.fillText(`Match ID: ${gameUID || 'LOADING...'}`, playField.width / 2, playField.height / 2 - 100);
+
+					if (currentCountdownValue > 0) {
+						ctx.font = '120px monospace';
+						ctx.fillStyle = 'yellow';
+						ctx.fillText(currentCountdownValue.toString(), playField.width / 2, playField.height / 2 + 70);
+					}
+				};
+
+				drawCurrentAnnounceState(countdown);
+
+				const countdownInterval = setInterval(() => {
+					countdown--;
+
+					if (countdown > 0) {
+						drawCurrentAnnounceState(countdown);
+					} else {
+						clearInterval(countdownInterval);
+						ctx.fillStyle = '#1a1a1a';
+						ctx.fillRect(0, 0, playField.width, playField.height);
+					}
+				}, 1000);
+			}
 
 
 
@@ -146,14 +193,16 @@
 			function sendSetupRequest() {
 				ws.send(JSON.stringify({
 					type: 'setupRequest',
-					playerUID: playerUID,
+					userUID: userUID,
+					userSlot: userSlot,
 					gameUID: gameUID
 				}));
 			}
 
 			function sendStartRequest() {
 				ws.send(JSON.stringify({
-					type: 'startRequest'
+					type: 'startRequest',
+					userUID: userUID
 				}));
 			}
 
@@ -165,9 +214,12 @@
 				gameState.ball = data.ballPos;
 				gameState.paddles = data.paddlesPos;
 				gameState.score = data.score;
-				playerSlot = data.playerSlot;
+				userSlot = data.playerSlot;
 
-				drawStartScreen();
+				sendStartRequest();
+				
+				//TODO eliminar...
+				//drawStartScreen();
 			}
 
 			function setupPongWS() {
@@ -175,7 +227,7 @@
 
 				ws.onopen = () => {
 					console.log('Conectado al servidor');
-					requestGameSetup();
+					sendSetupRequest();
 				};
 
 				ws.onmessage = (event) => {
@@ -209,8 +261,8 @@
 
 			function setupControls() {
 				document.addEventListener('keydown', (event) => {
-					let input = { type: 'input', playerSlot: playerSlot, direction: 'stop' };
-					if (playerSlot == 0) {
+					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
+					if (userSlot == 0) {
 						switch(event.key) {
 							case 'w':
 								input.direction = 'up';
@@ -221,7 +273,7 @@
 								ws.send(JSON.stringify(input));
 								break;
 						}
-					} else if (playerSlot == 1) {
+					} else if (userSlot == 1) {
 						switch(event.key) {
 							case 'ArrowUp':
 								input.direction = 'up';
@@ -236,16 +288,16 @@
 				});
 
 				document.addEventListener('keyup', (event) => {
-					let input = { type: 'input', playerSlot: playerSlot, direction: 'stop' };
+					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
 					
-					if (playerSlot == 0) {
+					if (userSlot == 0) {
 						switch(event.key) {
 							case 'w':
 							case 's':
 								ws.send(JSON.stringify(input));
 								break;
 						}
-					} else if (playerSlot == 1) {
+					} else if (userSlot == 1) {
 						switch(event.key) {
 							case 'ArrowUp':
 							case 'ArrowDown':
