@@ -34,15 +34,15 @@ export class MultiGameManager {
 		this.multiGameList = new Set<MultiGame>();
 	}
 
-	public createGame(gameUID: number): void {
+	public createGame(gameUID: number): MultiGame {
 		let newGame: MultiGame = new MultiGame(gameUID);
 		this.multiGameList.add(newGame);
+		return (newGame);
 	}
 
-	public joinGame(connection: any, gameUID: number, player: Player): MultiGame {
+	public joinGame(gameUID: number, player: Player): MultiGame {
 		let newGame: MultiGame  = this.findGame(gameUID);
-
-		newGame.addPlayer(connection, player);
+		newGame.addPlayer(player);
 		return (newGame);
 	}
 
@@ -70,13 +70,16 @@ export abstract class Game {
 	public playField: PlayField;
 	protected gameLoop!: NodeJS.Timeout;
 	protected status!: Status;
+	protected winnerUID!: number;
+	protected endType!: string;
 
 	constructor(gameUID: number) {
 		this.gameUID = gameUID;
 		this.score = [0,0];
+		this.players = [];
 		this.maxScore = MAX_SCORE;
-		this.players = [new Player(undefined, 0, 0), new Player(undefined, 0, 1)];
 		this.status = Status.PENDING;
+		
 
 		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
 
@@ -101,11 +104,8 @@ export abstract class Game {
 		));
 	}
 
-	public addPlayer(connection: any, player: Player): void {
-		if(this.players[0].connection == undefined) 
-			this.players[0] = new Player(connection, player.playerUID, P1);
-		else 
-			this.players[1] = new Player(connection, player.playerUID, P2);
+	public addPlayer(player: Player): void {
+		this.players.push(player);
 	}
 
 	public getUID(): number { return this.gameUID; }
@@ -206,14 +206,13 @@ export class MultiGame extends Game {
 					clearInterval(interval);
 					resolve(true);
 				}
-			}, 1000);
+			}, 500);
 		});
 	}
 	
 	public gameSetup(connection: any, player: Player): void {
 		connection.send(JSON.stringify({
 			type: 'setupResponse',
-			playerSlot: player.playerSlot,
 			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
 			ballRadius: this.playField.ball.radius,
 			paddlesPos: [
@@ -268,33 +267,60 @@ export class MultiGame extends Game {
 		}, TICK_INTERVAL);
 	}
 
-	//TODO documentar player disconected api
+	public async launchEndDaemon(connection: any): Promise<void> {
+
+		console.log('Info: Setup game end daemon...');
+		await new Promise(resolve => {
+			const interval = setInterval(() => {
+				if (this.status == Status.COMPLETED) {
+					clearInterval(interval);
+					resolve(true);
+				}
+			}, 300);
+		});
+		connection.send(JSON.stringify({
+			type: this.endType,
+			gameUID: this.gameUID,
+			player1UID: this.players[P1].playerUID,
+			player2UID: this.players[P2].playerUID,
+			winnerUID: this.winnerUID,
+			score: this.score
+		}))
+
+	}
+
+	//TODO documentar
+	//TODO refactor TEMA players[] esta mal!! hazlo por slot!
 	public gameEnd(disconnectedPlayer: Player | null): void {
-		let winnerUID: number;
-		let type: string;
 
 		if (disconnectedPlayer != null) {
-			winnerUID = this.players[P1].playerUID != disconnectedPlayer.playerUID ? this.players[P1].playerUID : this.players[P2].playerUID;
-			type = 'playerDisconnected';
+			this.winnerUID = this.players[P1].playerUID != disconnectedPlayer.playerUID ? this.players[P1].playerUID : this.players[P2].playerUID;
+			this.endType = 'playerDisconnected';
 		} else {
-			winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
-			type = 'endGame';
+			this.winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+			this.endType = 'endGame';
 		}
 
 		console.log("Sent message: End game summary");
 
 		this.broadcastSend(JSON.stringify({
-			type: type,
+			type: this.endType,
 			gameUID: this.gameUID,
 			player1UID: this.players[P1].playerUID,
 			player2UID: this.players[P2].playerUID,
-			winnerUID: winnerUID,
+			winnerUID: this.winnerUID,
 			score: this.score
 		}));
 
-		//TODO @@@@@@@@@@@@@@@@ continuar aqui...
+		this.status = Status.COMPLETED;
+
+		//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ continuar aqui...
+
+		//TODO probar los ultimos cambios!!!!!
 		//TODO elminar el juego? cerrar conexion??
 		//TODO this.broadcastClose();
+		
+		//TODO cerrar la conexion con matcmaker???
 	}
 
 	private broadcastSend(json: string): void {

@@ -88,9 +88,9 @@
 				player1Name = data.player1Name;
 
 				if (player0UID == userUID)
-					playerSlot = 0;
+					userSlot = 0;
 				else
-					playerSlot = 1;
+					userSlot = 1;
 
 				drawAnnounce();
 				//Tres segundos de margen
@@ -214,7 +214,6 @@
 				gameState.ball = data.ballPos;
 				gameState.paddles = data.paddlesPos;
 				gameState.score = data.score;
-				userSlot = data.playerSlot;
 
 				sendStartRequest();
 				
@@ -228,6 +227,7 @@
 				ws.onopen = () => {
 					console.log('Conectado al servidor');
 					sendSetupRequest();
+					setupControls();
 				};
 
 				ws.onmessage = (event) => {
@@ -260,6 +260,8 @@
 			}
 
 			function setupControls() {
+
+				console.log("Intentando añadir event listeners para controles. userSlot actual:", userSlot);
 				document.addEventListener('keydown', (event) => {
 					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
 					if (userSlot == 0) {
@@ -334,30 +336,7 @@
 				scoreElement.textContent = `${gameState.score[0]} - ${gameState.score[1]}`;
 			}
 
-			//TODO FRONTEND dibujar la pantalla de inicio
-			function drawStartScreen() {
-				// Fondo
-				ctx.fillStyle = '#1a1a1a';
-				ctx.fillRect(0, 0, playField.width, playField.height);
 
-				// Título
-				ctx.fillStyle = 'white';
-				ctx.font = '48px monospace';
-				ctx.textAlign = 'center';
-				ctx.fillText('PONG', playField.width/2, playField.height/3);
-
-				// Botón de inicio
-				const buttonY = playField.height/2 + 50;
-				ctx.fillStyle = '#4CAF50';
-				ctx.fillRect(playField.width/2 - 100, buttonY, 200, 50);
-				
-				ctx.fillStyle = 'white';
-				ctx.font = '24px monospace';
-				ctx.fillText('Start Game', playField.width/2, buttonY + 32);
-
-				// Listener para el botón
-				playField.addEventListener('click', handleStartClick);
-			}
 
 			//TODO FRONTEND dibujar pantalla de fin de juego
 			function drawEndGameScreen(endGameData) {
@@ -381,51 +360,9 @@
 				// Ganador
 				ctx.fillText(`Winner: Player ${endGameData.winnerUID}`, 
 					playField.width/2, playField.height/2 + 50);
-
-				// Botón de nueva partida
-				const buttonY = playField.height/2 + 120;
-				ctx.fillStyle = '#4CAF50';
-				ctx.fillRect(playField.width/2 - 100, buttonY, 200, 50);
-				
-				ctx.fillStyle = 'white';
-				ctx.font = '24px monospace';
-				ctx.fillText('New Game', playField.width/2, buttonY + 32);
-
-				// Añadir listener para el click en el botón
-				playField.addEventListener('click', handleNewGameClick);
 			}
 
-			//TODO FRONTEND local event handlers, botones etc...
-			function handleStartClick(event) {
-				const rect = playField.getBoundingClientRect();
-				const x = event.clientX - rect.left;
-				const y = event.clientY - rect.top;
-				
-				const buttonY = playField.height/2 + 50;
-				if (x >= playField.width/2 - 100 && x <= playField.width/2 + 100 &&
-					y >= buttonY && y <= buttonY + 50) {
-					
-					playField.removeEventListener('click', handleStartClick);
-					gameStarted = true;
-				}
-			}
 
-			//TODO FRONTEND local event handlers, botones etc...
-			function handleNewGameClick(event) {
-				const rect = playField.getBoundingClientRect();
-				const x = event.clientX - rect.left;
-				const y = event.clientY - rect.top;
-				
-				// Comprobar si el click fue en el botón
-				if (x >= playField.width/2 - 100 && x <= playField.width/2 + 100 &&
-					y >= playField.height/2 + 120 && y <= playField.height/2 + 170) {
-					
-					// Remover el listener para evitar múltiples clicks
-					playField.removeEventListener('click', handleNewGameClick);
-					ws.close();
-					setupMatchMakerWS();
-				}
-			}
 		</script>
 	</body>
 </html>

@@ -23,8 +23,9 @@ export abstract class Endpoint {
 }
 
 export class PostNewMatch extends Endpoint {
-
 	add(server: any): void {
+		let actualGame!: MultiGame;
+
 		server.get(this.path, { websocket: true }, (connection: any, request: any) => {
 			connection.on('message', (data: any) => {
 				try {
@@ -34,11 +35,12 @@ export class PostNewMatch extends Endpoint {
 					switch (jsonData.type) {
 						case 'postMatchRequest':
 							console.log("Info: Match request recieved");
-							multiGameManager.createGame(jsonData.gameUID);
+							actualGame = multiGameManager.createGame(jsonData.gameUID);
 							connection.send(JSON.stringify({
 								type: 'postMatchResponse'
 							}));
 							console.log("Info: post match confirmation sent");
+							actualGame.launchEndDaemon(connection);
 							break;
 					}
 				} catch (error) {
@@ -119,7 +121,7 @@ export class GetNewMultiGame extends Endpoint {
 						case 'setupRequest':
 							console.log("Info: Player " + jsonData.userUID + " is requesting setup data");
 							this.player = new Player(connection, jsonData.userUID, jsonData.userSlot);
-							this.currentGame = multiGameManager.joinGame(connection, jsonData.gameUID, this.player);
+							this.currentGame = multiGameManager.joinGame(jsonData.gameUID, this.player);
 							this.currentGame.gameSetup(connection, this.player);
 							console.log("Info: Sent setupResponse to user: " + this.player.playerUID);
 							break;
