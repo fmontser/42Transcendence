@@ -20,6 +20,9 @@ clean:
 	@echo "Cleaning dataBase..."
 	@rm -rf $(DIST_DIR) $(NODES_DIR)
 
+install:
+	@npm install
+
 re: clean build
 
 .PHONY: all build run clean re
