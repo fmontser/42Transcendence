@@ -299,7 +299,6 @@ export class MultiGame extends Game {
 			this.status = Status.COMPLETED;
 		}
 
-		//TODOAnte desconexion el cliente debe abortar...y mostrar resultados
 		this.broadcastSend(JSON.stringify({
 			type: this.endType,
 			gameUID: this.gameUID,

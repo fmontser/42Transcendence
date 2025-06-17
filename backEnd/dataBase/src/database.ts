@@ -9,7 +9,7 @@ const server = Fastify({
 });
 
 function connect(): void {
-	let dbPath: string = "../../volumes/dataBase-volume/backendDatabase.db";
+	let dbPath: string = "./data/backendDatabase.db"
 
 	db = new SQLite3.Database(dbPath, (err) => {
 		if (err)

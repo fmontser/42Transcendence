@@ -216,9 +216,6 @@
 				gameState.score = data.score;
 
 				sendStartRequest();
-				
-				//TODO eliminar...
-				//drawStartScreen();
 			}
 
 			function setupPongWS() {
@@ -242,10 +239,12 @@
 							drawFrame();
 							break;
 						case 'endGame':
+						case 'playerDisconnected':
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
 							break;
+
 						//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'
 					}
 				};
@@ -337,7 +336,6 @@
 			}
 
 
-
 			//TODO FRONTEND dibujar pantalla de fin de juego
 			function drawEndGameScreen(endGameData) {
 				// Limpiar canvas
@@ -350,8 +348,11 @@
 				ctx.textAlign = 'center';
 				
 				// Título
-				ctx.fillText('Game Over!', playField.width/2, playField.height/3);
-				
+				if (endGameData.type == 'playerDisconnected')
+					ctx.fillText('RAGE QUIT!', playField.width/2, playField.height/3);
+				else
+					ctx.fillText('Game Over!', playField.width/2, playField.height/3);
+			
 				// Puntuación final
 				ctx.font = '36px monospace';
 				ctx.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
