@@ -1,9 +1,8 @@
 import { MultiGame, Player } from './pongEngine'
-//import { LocalGame, MultiGame, Player } from './pongEngine'
+//TODO import { LocalGame, MultiGame, Player } from './pongEngine'
 import { P1, P2, multiGameManager } from './serverpong';
 
 export abstract class Endpoint {
-
 	protected static list: Set<Endpoint> = new Set();
 	protected path: string;
 	protected errorMsg: string;
@@ -40,7 +39,7 @@ export class PostNewMatch extends Endpoint {
 								type: 'postMatchResponse'
 							}));
 							console.log("Info: post match confirmation sent");
-							actualGame.launchEndDaemon(connection);
+							actualGame.activateMatchDaemon(connection);
 							break;
 					}
 				} catch (error) {
@@ -49,7 +48,6 @@ export class PostNewMatch extends Endpoint {
 			});
 
 			connection.on('close', () => {
-				//TODO clean?
 				console.log("Info: MatchMaker disconnected!");
 			});
 		});
@@ -105,12 +103,11 @@ export class GetNewLocalGame extends Endpoint {
 */
 
 export class GetNewMultiGame extends Endpoint {
-	private currentGame!: MultiGame;
-	private player!: Player;
-
-	//TODO reqeuest no es necesario?
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+
+			let currentGame!: MultiGame;
+			let player!: Player;
 			
 			connection.on('message', async (data: any) => {
 				try {
@@ -120,22 +117,22 @@ export class GetNewMultiGame extends Endpoint {
 					switch (jsonData.type) {
 						case 'setupRequest':
 							console.log("Info: Player " + jsonData.userUID + " is requesting setup data");
-							this.player = new Player(connection, jsonData.userUID, jsonData.userSlot);
-							this.currentGame = multiGameManager.joinGame(jsonData.gameUID, this.player);
-							this.currentGame.gameSetup(connection, this.player);
-							console.log("Info: Sent setupResponse to user: " + this.player.playerUID);
+							player = new Player(connection, jsonData.userUID, jsonData.userSlot);
+							currentGame = multiGameManager.joinGame(jsonData.gameUID, player);
+							currentGame.gameSetup(connection, player);
+							console.log("Info: Sent setupResponse to user: " + player.playerUID);
 							break;
 						case 'startRequest':
-							console.log("Info: Player " + this.player.playerUID + " is ready");
-							this.player.isReady = true;
-							this.currentGame.gameStart();
+							console.log("Info: Player " + player.playerUID + " is ready");
+							player.isReady = true;
+							currentGame.gameStart();
 							break;
 						case 'input':
 							console.log("Input recieved!");
 							if (jsonData.playerSlot == P1)
-								this.currentGame.playField.paddle0.updateVector(jsonData.direction);
+								currentGame.playField.paddle0.updateVector(jsonData.direction);
 							else if (jsonData.playerSlot == P2)
-								this.currentGame.playField.paddle1.updateVector(jsonData.direction);
+								currentGame.playField.paddle1.updateVector(jsonData.direction);
 							break;
 					}
 				} catch (error) {
@@ -144,8 +141,8 @@ export class GetNewMultiGame extends Endpoint {
 			});
 
 			connection.on('close', () => {
-				console.log("Client disconnected!");
-				this.currentGame.gameEnd(this.player);
+				console.log(`Info: PlayerUID: ${player.playerUID} disconnected!`);
+				currentGame.gameEnd(player);
 			});
 		});
 	}

@@ -39,6 +39,13 @@ peek:
 track:
 	@docker compose logs -f
 
+bash:
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: Use like: make bash service container"; \
+		exit 1; \
+	fi
+	@docker exec -it $(word 2, $(MAKECMDGOALS)) bash
+
 all: build
 
 build:

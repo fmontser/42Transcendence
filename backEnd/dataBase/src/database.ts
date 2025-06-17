@@ -3,20 +3,13 @@ import FormBodyPlugin from '@fastify/formbody';
 import * as SQLite3 from 'sqlite3'; 
 import * as EndPoints from './endpoint'
 
-const debugMode: boolean = false;
-
 let db: SQLite3.Database;
 const server = Fastify({
 	logger: true 
 });
 
 function connect(): void {
-	let dbPath: string;
-
-	if (debugMode)
-		dbPath = "../../volumes/dataBase-volume/backendDatabase.db";
-	else
-		dbPath = "./data/backendDatabase.db";
+	let dbPath: string = "../../volumes/dataBase-volume/backendDatabase.db";
 
 	db = new SQLite3.Database(dbPath, (err) => {
 		if (err)
@@ -64,7 +57,8 @@ function setTables(): void {
 			player0_score INTEGER,
 			player1_id INTEGER,
 			player1_score INTEGER,
-			winner_id INTEGER
+			winner_id INTEGER,
+			disconnected BOOLEAN
 		)`
 
 	
@@ -140,7 +134,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/match",
-		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?)",
 		"Data insertion error"
 	);
 
@@ -161,6 +155,12 @@ function setEndPoints(): void {
 		"/post/friendship",
 		`INSERT INTO friends (user_id, friend_id, sender_id) VALUES (?, ?, ?)`,
 		"Failed to create friendship"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/match",
+		"UPDATE matches SET player0_score = ?, player1_score = ?, winner_id = ?, disconnected = ? WHERE id = ?",
+		"Data insertion error"
 	);
 
 	new EndPoints.patchEndpoint(

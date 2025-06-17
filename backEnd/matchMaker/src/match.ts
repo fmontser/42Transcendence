@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 
 export enum Status {
-	PENDING, ONGOING, COMPLETED
+	PENDING, ONGOING, COMPLETED, DISCONNECTED
 }
 
 export class MatchManager {
@@ -51,7 +51,8 @@ export class MatchManager {
 				player0_score: 0,
 				player1_id: match.player1UID,
 				player1_score: 0,
-				winner_id: -1
+				winner_id: 0,
+				disconnected: false
 			})
 		});
 		console.log("Info: New match entry request sent to database");
@@ -60,16 +61,21 @@ export class MatchManager {
 		console.log("Info: MatchUID recieved from database: " + data.id);
 	}
 
-	//TODO no hay endpoint en la database!!
-	private async patchMatchEntry(matchUID: number, column: string, value: string): Promise<void> {
-		await fetch("http://dataBase:3000/patch/match", {
+	private async patchMatchEntry(match: Match): Promise<void> {
+		const response = await fetch("http://dataBase:3000/patch/match", {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				matchUID: matchUID,
-				[column]: value
+				player0_score: match.score[0],
+				player1_score: match.score[1],
+				winner_id: match.winnerUID,
+				disconnected: match.status == Status.DISCONNECTED ? true:false,
+				matchUID: match.matchUID
 			})
 		});
+		console.log("Info: patch request sent to database");
+		await response.json();
+		console.log("Info: Succesfully patched MatchUID: " + match.matchUID);
 	};
 	
 	private async requestNewPongInstance(match: Match): Promise<void> {
@@ -80,7 +86,6 @@ export class MatchManager {
 			ws.send(JSON.stringify({
 				type: 'postMatchRequest',
 				gameUID: match.matchUID
-
 			}));
 			console.log("Info: New game request sent to serverPong");
 		});
@@ -103,16 +108,28 @@ export class MatchManager {
 						console.log("Info: match announce sent to client");
 					}
 					break;
-
-				case 'endGameSummary':
-					//TODO final del juego
+				case 'endGame':
+					match.status = Status.COMPLETED;
+					recordDatabase(match, data, this);
+					break;
+				case 'playerDisconnected':
+					match.status = Status.DISCONNECTED;
+					recordDatabase(match, data, this);
 					break;
 			}
 		});
 
 		ws.on('close', () => {
-			// TODO limpiar
+			console.log("Info: connection to serverPong for match " + match.matchUID + " ended");
 		});
+
+		function recordDatabase(match: Match, data: any, ctx: any): void {
+			console.log(`Info: ${Status[match.status]} summary recieved from serverPong for matchUID: ` + data.gameUID);
+			match.winnerUID = data.winnerUID;
+			match.score = [data.score[0], data.score[1]];
+			console.log("Info: matchUID: "  + data.gameUID + " winnerUID: " + data.winnerUID + " score: " + data.score[0] + " - " + data.score[1]);
+			ctx.patchMatchEntry(match);
+		}
 	}
 }
 
@@ -126,6 +143,7 @@ export class Match {
 	player1Name!: string;
 	player1Conn!: any;
 	score: number[] = [0,0];
+	winnerUID!: number;
 
 	constructor (){
 		this.status = Status.PENDING;
