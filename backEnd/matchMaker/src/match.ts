@@ -17,10 +17,8 @@ export class MatchManager {
 		}
 		newMatch.addPlayer(playerUID);
 
-		//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ continuar aqui faltaria el segundo player!!
-
 		if (this.checkPlayers(newMatch)){
-			this.postMatchDB(newMatch);
+			this.postMatchEntry(newMatch);
 			this.requestNewPongInstance(newMatch.matchUID);
 		}
 	}
@@ -36,35 +34,48 @@ export class MatchManager {
 	}
 
 	private checkPlayers(match: Match): boolean {
-		if (match.player0UID != undefined && match.player1UID != undefined)
+		if (match.player0UID != undefined && match.player1UID != undefined) {
 			return (true);
+		}
 		return (false);
 	}
 
-	private postMatchDB(match: Match): void {
-		try {
-			match.postMatchEntry().then(ret => match.matchUID = ret);
-		} catch (error) {
-			//TODO se espera un status 500?
-			//TODO comunicar al cliente? para que muestre error?
-		}
+	private async postMatchEntry(match: Match): Promise<number> {
+		const response = await fetch("http://dataBase:3000/post/match", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				player0_id: match.player0UID,
+				player0_score: 0,
+				player1_id: match.player1UID,
+				player1_score: 0,
+				winner_id: -1
+			})
+		});
+		const data = await response.json();
+
+		//TODO borrar test
+		console.log("Debug: matchUID = " + data.id);
+		return (data.id);
 	}
 
-	//TODO
-	private requestNewPongInstance(matchUID: number): void {
-/* 		try {
-			
-		} catch (error) {
-			//TODO comunicar al cliente? para que muestre error?
-		} */
+	//TODO no hay endpoint en la database!!
+	private async patchMatchEntry(match: Match): Promise<void> {
+		await fetch("http://dataBase:3000/patch/match", {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				//TODO Patch
+			})
+		});
 	}
 
-	//TODO usar resultado del serverPong y hacer update en la DB antes de limpiar
-	private patchMatchDB(match: Match): void {
-		match.patchMatchEntry();
+	private async requestNewPongInstance(matchUID: number): Promise<void> {
+		//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ continuar aqui implementar!
+	
 	}
+
 }
-
 
 export class Match {
 	status: Status;
@@ -85,39 +96,13 @@ export class Match {
 			this.player0Name = await this.getPlayerName(this.player0UID);
 		} else if (this.player1UID == undefined) {
 			this.player1UID = playerUID;
-			this.player0Name = await this.getPlayerName(this.player0UID);
+			this.player1Name = await this.getPlayerName(this.player1UID);
 		}
 	}
 
 	private async getPlayerName(playerUID: number): Promise<string> {
-		const response = await fetch(`http://dataBase:3000/get/username?userUID=${playerUID}`);
+		const response = await fetch(`http://dataBase:3000/get/username?id=${playerUID}`);
 		const data = await response.json();
-		return (data[0].userName);
-	}
-
-	public async postMatchEntry(): Promise<number> {
-		const response = await fetch("http://dataBase:3000/post/match", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				player0UID: this.player0UID,
-				player1UID: this.player1UID,
-			})
-		});
-		const data = await response.json();
-
-		//TODO borrar test
-		console.log("Debug: matchUID = " + data.matchUID);
-		return (data.matchUID); //TODO lastId AS??
-	}
-
-	public async patchMatchEntry(): Promise<void> {
-		await fetch("http://dataBase:3000/patch/match", {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				//TODO Patch
-			})
-		});
+		return (data[0].name);
 	}
 }

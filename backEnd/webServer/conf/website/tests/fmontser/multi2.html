@@ -45,7 +45,7 @@
 
 			//TODO esto debe obtenerlo del perfil.
 			let playerName;
-			let playerUID = 1;
+			let playerUID = 
 			//let playerUID = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER);
 			let playerSlot;
 			
@@ -76,7 +76,7 @@
 			function sendMatchRequest() {
 				ws.send(JSON.stringify({
 					type: 'matchRequest',
-					playerUID: playerUID
+					playerUID: 1
 				}));
 			}
 

@@ -2,6 +2,8 @@ MAKEFLAGS 		+= --silent
 
 VOLUMES_DIR		:= volumes/
 DB_DIR			:= backEnd/dataBase/
+MM_DIR			:= backEnd/matchMaker/
+SP_DIR			:= backEnd/serverPong/
 
 COMPOSE_FILE	:= docker-compose.yml
 
@@ -52,12 +54,15 @@ down:
 clean:
 	@echo "Cleaning docker..."
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
-
+	@make -C $(DB_DIR) clean
+	@make -C $(MM_DIR) clean
+	@make -C $(SP_DIR) clean
+	
 fclean: clean
 	@echo "Force cleaning whole project..."
 	@docker system prune -a -f
 	@rm -rf volumes
-	@make -C $(DB_DIR) clean
+
 
 re: fclean build up
 
