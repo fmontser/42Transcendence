@@ -17,8 +17,9 @@ function setEndPoints(): void {
 async function start() {
 
 	await server.register(require('@fastify/websocket'));
-
 	setEndPoints();
+
+	console.log("Enpoints registered:\n" + server.printRoutes());
 
 	try {
 		await server.listen({ port: 3000, host: '0.0.0.0' });

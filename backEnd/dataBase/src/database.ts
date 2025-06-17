@@ -3,20 +3,13 @@ import FormBodyPlugin from '@fastify/formbody';
 import * as SQLite3 from 'sqlite3'; 
 import * as EndPoints from './endpoint'
 
-const debugMode: boolean = false;
-
 let db: SQLite3.Database;
 const server = Fastify({
 	logger: true 
 });
 
 function connect(): void {
-	let dbPath: string;
-
-	if (debugMode)
-		dbPath = "../../volumes/dataBase-volume/backendDatabase.db";
-	else
-		dbPath = "./data/backendDatabase.db";
+	let dbPath: string = "./data/backendDatabase.db"
 
 	db = new SQLite3.Database(dbPath, (err) => {
 		if (err)
@@ -35,7 +28,6 @@ function setTables(): void {
 			pass TEXT NOT NULL
 		)`,
 
-    
 		`CREATE TABLE IF NOT EXISTS profiles (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -46,7 +38,7 @@ function setTables(): void {
 			avatar TEXT DEFAULT 'default_avatar.png',
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
-    
+	
 		`CREATE TABLE IF NOT EXISTS friends (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -57,20 +49,21 @@ function setTables(): void {
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE,
 			UNIQUE(user_id, friend_id)
-     )`,
-    
+		)`,
+	
 		`CREATE TABLE IF NOT EXISTS matches (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			player0_id INTEGER,
 			player0_score INTEGER,
 			player1_id INTEGER,
 			player1_score INTEGER,
-			winner_id INTEGER
-      )`
+			winner_id INTEGER,
+			disconnected BOOLEAN
+		)`
 
 	
 		//Add tables here, comma separated.
-    
+	
 	];
 
 	tables.forEach(table => {
@@ -84,11 +77,10 @@ function setTables(): void {
 function setEndPoints(): void {
 	//Add endpoints here
 
-
 	new EndPoints.getEndpoint(
 		"/get/user",
 		"SELECT * FROM users WHERE name = ?",
-		"Failed to get user name"
+		"Failed to get user id"
 	);
   
 	new EndPoints.getEndpoint(
@@ -96,16 +88,19 @@ function setEndPoints(): void {
 		"SELECT name FROM users WHERE id = ?",
 		"Failed to get user name"
 	);
+
 	new EndPoints.getEndpoint(
 		"/get/profiles",
 		"SELECT * FROM profiles",
 		"Failed to get profiles"
 	);
+
 	new EndPoints.getEndpoint(
 		"/get/friends",
 		"SELECT * FROM friends",
 		"Failed to get friends"
 	);
+
 	new EndPoints.getEndpoint(
 		"/get/users",
 		"SELECT * FROM users",
@@ -116,58 +111,6 @@ function setEndPoints(): void {
 		"/get/pseudos",
 		"SELECT pseudo FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
 		"Failed to get users"
-	);
-
-	new EndPoints.getEndpoint(
-		"/get/friendships_pending",
-		`SELECT 
-		f.id AS id,
-		CASE 	
-			WHEN f.user_id = ? THEN p2.pseudo
-			ELSE p1.pseudo
-		END AS pseudo
-		FROM friends f
-		JOIN profiles p1 ON p1.user_id = f.user_id
-		JOIN profiles p2 ON p2.user_id = f.friend_id
-		WHERE (f.user_id = ? OR f.friend_id = ?)
-  		AND f.status = 'pending'
-		AND f.sender_id != ?
-		`,
-		"Failed to get pending friendships"
-	);
-
-	new EndPoints.getEndpoint(
-		"/get/friendships_accepted",
-		`SELECT 
-		f.id AS id,
-		CASE 	
-			WHEN f.user_id = ? THEN p2.pseudo
-			ELSE p1.pseudo
-		END AS pseudo
-		FROM friends f
-		JOIN profiles p1 ON p1.user_id = f.user_id
-		JOIN profiles p2 ON p2.user_id = f.friend_id
-		WHERE (f.user_id = ? OR f.friend_id = ?)
-  		AND f.status = 'accepted'
-		`,
-		"Failed to get accepted friendships"
-	);
-	
-	new EndPoints.getEndpoint(
-		"/get/friendships_blocked",
-		`SELECT 
-		f.id AS id,
-		CASE 	
-			WHEN f.user_id = ? THEN p2.pseudo
-			ELSE p1.pseudo
-		END AS pseudo
-		FROM friends f
-		JOIN profiles p1 ON p1.user_id = f.user_id
-		JOIN profiles p2 ON p2.user_id = f.friend_id
-		WHERE (f.user_id = ? OR f.friend_id = ?)
-  		AND f.status = 'blocked'
-		`,
-		"Failed to get blocked friendships"
 	);
 
 	new EndPoints.getEndpoint(
@@ -191,10 +134,9 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/match",
-		"INSERT INTO matches (player0UID, player0Score, player1UID, player1Score, winnerUID) VALUES (?, 0, ?, 0, -1)",
+		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?)",
 		"Data insertion error"
 	);
-
 
 	new EndPoints.postEndpoint(
 		"/post/profile",
@@ -213,6 +155,12 @@ function setEndPoints(): void {
 		"/post/friendship",
 		`INSERT INTO friends (user_id, friend_id, sender_id) VALUES (?, ?, ?)`,
 		"Failed to create friendship"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/match",
+		"UPDATE matches SET player0_score = ?, player1_score = ?, winner_id = ?, disconnected = ? WHERE id = ?",
+		"Data insertion error"
 	);
 
 	new EndPoints.patchEndpoint(
@@ -286,6 +234,8 @@ async function start() {
 	connect();
 	setTables();
 	setEndPoints();
+
+	console.log("Enpoints registered:\n" + server.printRoutes());
 	
 	try {
 		server.register(FormBodyPlugin);

@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { WebSocket } from 'http';
 import * as EndPoints from './endpoint'
 import { MultiGameManager } from './pongEngine';
 
@@ -23,9 +24,14 @@ const server = Fastify({
 export let multiGameManager: MultiGameManager;
 
 function setEndPoints(): void {
-	new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error al obtener el endpoint de pong');
 
-	new EndPoints.GetNewMultiGame('/serverpong/front/get/multi', 'Error al obtener el endpoint de multi');
+	//TODO uncomment
+	//new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error obtaining local pong endpoint');
+
+	new EndPoints.GetNewMultiGame('/serverpong/front/get/multi', 'Error obtaining online pong endpoint');
+
+	//TODO documentar endpoint
+	new EndPoints.PostNewMatch('/post/match', 'Error obtaining match endpoint');
 
 	EndPoints.Endpoint.enableAll(server);
 }
@@ -33,8 +39,11 @@ function setEndPoints(): void {
 async function start() {
 
 	await server.register(require('@fastify/websocket'));
+
 	multiGameManager = new MultiGameManager();
 	setEndPoints();
+
+	console.log("Enpoints registered:\n" + server.printRoutes());
 
 	try {
 		await server.listen({ port: 3000, host: '0.0.0.0' });

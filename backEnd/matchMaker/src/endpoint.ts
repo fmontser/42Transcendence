@@ -32,7 +32,7 @@ export class PostMatchRequest extends Endpoint {
 
 					switch (jsonData.type) {
 						case 'matchRequest':
-							matchManager.joinMatch(jsonData.playerUID);
+							matchManager.requestMatch(connection, jsonData.userUID);
 							break;
 					}
 				} catch (error) {
@@ -41,7 +41,7 @@ export class PostMatchRequest extends Endpoint {
 			});
 
 			connection.on('close', () => {
-				console.log("Client disconnected!");
+				console.log("Client left the matchMaker");
 			});
 		});
 	}

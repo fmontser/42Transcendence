@@ -81,7 +81,7 @@ services:
         restart: unless-stopped
         container_name: userManagement
         networks:
-            - proxy-network #TODO proxy solo para pruebas con el host
+            - proxy-network
             - backend-network
         depends_on:
             - dataBase

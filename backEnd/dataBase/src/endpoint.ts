@@ -37,7 +37,7 @@ export abstract class Endpoint {
 			server.log.error(`DataBase: ${this.errorMsg} - `, error);
 			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
-		}
+	}
 
 	//TODO documentar la respuesta lastID!!!
 	protected async push(server: any, db: any, request: any, reply: any) {
@@ -45,18 +45,22 @@ export abstract class Endpoint {
 		try {
 			if (!request.body || typeof request.body !== 'object')
 				throw new Error("Endpoint request is malformed!");
-
-			db.run(ctx.sql, Object.values(request.body), function(this: { lastID: number}, err: any) {
-				if (err) {
-					console.error(`SQLite error: ${ctx.errorMsg} - `, err.message);
-					reply.status(500).send({ error: `Internal server error: ${ctx.errorMsg}` });
-				}
-				else
-					reply.send({ UID: this.lastID });
+			
+			const lastID = await new Promise<number>((resolve, reject) => {
+				db.run(ctx.sql, Object.values(request.body), function(this: { lastID: number},err: any) {
+					if (err) {
+						reject(err);
+					} else {
+						resolve(this.lastID);
+					}
+				});
 			});
+
+		return reply.send({ id: lastID });
+
 		} catch (error) {
 			server.log.error(`DataBase: ${this.errorMsg} - :`, error);
-			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+			return reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
 		}
 	}
 }
@@ -72,7 +76,7 @@ export class getEndpoint extends Endpoint {
 export class postEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
-			this.push(server, db, request, reply);
+			await this.push(server, db, request, reply);
 		});
 	}
 }
@@ -80,7 +84,7 @@ export class postEndpoint extends Endpoint {
 export class putEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.put(this.path, async (request: any, reply: any) => {
-			this.push(server, db, request, reply);
+			await this.push(server, db, request, reply);
 		});
 	}
 }
@@ -88,7 +92,7 @@ export class putEndpoint extends Endpoint {
 export class patchEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.patch(this.path, async (request: any, reply: any) => {
-			this.push(server, db, request, reply);
+			await this.push(server, db, request, reply);
 		});
 	}
 }
@@ -96,7 +100,7 @@ export class patchEndpoint extends Endpoint {
 export class deleteEndpoint extends Endpoint {
 	add(server: any, db: any): void {
 		server.delete(this.path, async (request: any, reply: any) => {
-			this.push(server, db, request, reply);
+			await this.push(server, db, request, reply);
 		});
 	}
 }

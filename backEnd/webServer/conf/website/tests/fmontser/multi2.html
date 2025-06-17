@@ -44,7 +44,7 @@
 			let BALL_RADIUS = 32;
 
 			let gameUID;
-			let userUID = 1; //TODO esto debe obtenerlo del perfil.
+			let userUID = 2; //TODO esto debe obtenerlo del perfil.
 			let userSlot;
 
 			let player0Name;
@@ -352,7 +352,7 @@
 					ctx.fillText('RAGE QUIT!', playField.width/2, playField.height/3);
 				else
 					ctx.fillText('Game Over!', playField.width/2, playField.height/3);
-			
+
 				// Puntuación final
 				ctx.font = '36px monospace';
 				ctx.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 

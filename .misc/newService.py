@@ -194,6 +194,9 @@ clean:
 	@echo "Limpiando proyecto {service_title_name}..."
 	@rm -rf $(DIST_DIR) $(NODES_DIR)
 
+install:
+	@npm install
+
 re: clean build
 
 .PHONY: all build run clean re

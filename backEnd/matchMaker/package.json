@@ -18,10 +18,12 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/websocket": "^11.1.0",
-    "fastify": "latest"
+    "fastify": "latest",
+    "ws": "^8.18.2"
   },
   "devDependencies": {
     "@types/node": "latest",
+    "@types/ws": "^8.18.1",
     "nodemon": "latest",
     "typescript": "latest"
   }

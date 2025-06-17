@@ -2,6 +2,9 @@ MAKEFLAGS 		+= --silent
 
 VOLUMES_DIR		:= volumes/
 DB_DIR			:= backEnd/dataBase/
+MM_DIR			:= backEnd/matchMaker/
+SP_DIR			:= backEnd/serverPong/
+UM_DIR			:= backEnd/userManagement/
 
 COMPOSE_FILE	:= docker-compose.yml
 
@@ -34,11 +37,25 @@ peek:
 %:
 	@:
 
+track:
+	@docker compose logs -f
+
+bash:
+	@if [ -z "$(word 2, $(MAKECMDGOALS))" ]; then \
+		echo "Error: Use like: make bash service container"; \
+		exit 1; \
+	fi
+	@docker exec -it $(word 2, $(MAKECMDGOALS)) bash
+
 all: build
 
 build:
 	@echo "Building docker images..."
 	@mkdir -p volumes/dataBase-volume/
+	@make -C $(DB_DIR) install
+	@make -C $(MM_DIR) install
+	@make -C $(SP_DIR) install
+	@make -C $(UM_DIR) install
 	@docker compose -f $(COMPOSE_FILE) build
 
 up: down build
@@ -52,12 +69,16 @@ down:
 clean:
 	@echo "Cleaning docker..."
 	@docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
-
+	@make -C $(DB_DIR) clean
+	@make -C $(MM_DIR) clean
+	@make -C $(SP_DIR) clean
+	@make -C $(UM_DIR) clean
+	
 fclean: clean
 	@echo "Force cleaning whole project..."
 	@docker system prune -a -f
 	@rm -rf volumes
-	@make -C $(DB_DIR) clean
+
 
 re: fclean build up
 
