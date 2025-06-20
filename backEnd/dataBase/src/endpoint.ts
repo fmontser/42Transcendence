@@ -39,7 +39,6 @@ export abstract class Endpoint {
 		}
 	}
 
-	//TODO documentar la respuesta lastID!!!
 	protected async push(server: any, db: any, request: any, reply: any) {
 		const ctx = this;
 		try {
