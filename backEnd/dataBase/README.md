@@ -53,7 +53,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	*   **path:** Ruta del endpoint. ej: `/database/front/get/users`
 	*   **sql:** Predicado SQL.
 	*   **errorMsg:** Mensaje de error en caso de fallo. Este mensaje se pasara por la **consola del container** y tambien en la respuesta del endpoint junto a un estado `500 Internal server error` en todos los casos.
-
+	*   **Respuesta POST:** Al usar un enpoint tipo POST, recibiremos el ID de la nueva fila en la respuesta.
 
 	```typescript
 	function setEndPoints(): void {

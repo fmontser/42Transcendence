@@ -1,5 +1,4 @@
-import { MultiGame, Player } from './pongEngine'
-//TODO import { LocalGame, MultiGame, Player } from './pongEngine'
+import { LocalGame, MultiGame, Player } from './pongEngine'
 import { P1, P2, multiGameManager } from './serverpong';
 
 export abstract class Endpoint {
@@ -54,34 +53,25 @@ export class PostNewMatch extends Endpoint {
 	}
 }
 
-/*
-//TODO el UID debe venir del matchmaker?? no del cliente... para ambos modos??
-
 export class GetNewLocalGame extends Endpoint {
 	private currentGame!: LocalGame;
 
 	add(server: any): void {
-
-		//TODO reqeuest no es necesario?
-	/* 	server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
-
 					switch (jsonData.type) {
 						case 'setupRequest':
 							this.currentGame = new LocalGame(jsonData.gameUID);
 							this.currentGame.gameSetup(connection);
 							break;
 						case 'newGame':
-							console.log("NewGame requested!");
-							this.currentGame.addPlayer(new Player(connection, jsonData.player1UID));
-							this.currentGame.addPlayer(new Player(connection, jsonData.player2UID));
+							console.log("New local game requested!");
+							this.currentGame.addLocalPlayers(connection);
 							this.currentGame.gameStart(connection);
 							break;
-						case 'input': //TODO sacar a funcion?? esta compartida...
-							console.log("Input recieved!");
+						case 'input':
 							if (jsonData.playerSlot == P1)
 								this.currentGame.playField.paddle0.updateVector(jsonData.direction);
 							else if (jsonData.playerSlot == P2)
@@ -94,13 +84,12 @@ export class GetNewLocalGame extends Endpoint {
 			});
 
 			connection.on('close', () => {
-				console.log("Client disconnected!");
+				console.log("Client (local) disconnected!");
 				this.currentGame.gameEnd(connection);
 			});
 		});
 	}
 }
-*/
 
 export class GetNewMultiGame extends Endpoint {
 	add(server: any): void {
@@ -112,8 +101,6 @@ export class GetNewMultiGame extends Endpoint {
 			connection.on('message', async (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
-
 					switch (jsonData.type) {
 						case 'setupRequest':
 							console.log("Info: Player " + jsonData.userUID + " is requesting setup data");
@@ -128,7 +115,6 @@ export class GetNewMultiGame extends Endpoint {
 							currentGame.gameStart();
 							break;
 						case 'input':
-							console.log("Input recieved!");
 							if (jsonData.playerSlot == P1)
 								currentGame.playField.paddle0.updateVector(jsonData.direction);
 							else if (jsonData.playerSlot == P2)

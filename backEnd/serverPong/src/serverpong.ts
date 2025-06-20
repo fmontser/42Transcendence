@@ -25,12 +25,10 @@ export let multiGameManager: MultiGameManager;
 
 function setEndPoints(): void {
 
-	//TODO uncomment
-	//new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error obtaining local pong endpoint');
+	new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error obtaining local pong endpoint');
 
 	new EndPoints.GetNewMultiGame('/serverpong/front/get/multi', 'Error obtaining online pong endpoint');
 
-	//TODO documentar endpoint
 	new EndPoints.PostNewMatch('/post/match', 'Error obtaining match endpoint');
 
 	EndPoints.Endpoint.enableAll(server);

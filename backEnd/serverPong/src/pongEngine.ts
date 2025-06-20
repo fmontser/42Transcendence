@@ -43,7 +43,7 @@ export class MultiGameManager {
 
 	public joinGame(gameUID: number, player: Player): MultiGame {
 		let newGame: MultiGame  = this.findGame(gameUID);
-		newGame.addPlayer(player);
+		newGame.addOnlinePlayer(player);
 		return (newGame);
 	}
 
@@ -105,22 +105,22 @@ export abstract class Game {
 		));
 	}
 
-	public addPlayer(player: Player): void {
-		this.players.push(player);
-		this.players.sort((a, b) => a.playerSlot - b.playerSlot);
-	}
-
 	public getUID(): number { return this.gameUID; }
 
 	public abstract gameStart(connection: any): void;
 	public abstract gameEnd(playerDisconected:  Player | null): void;
 }
 
-/* //TODO refactor local game
 export class LocalGame extends Game {
 
 	constructor(gameUID: number) {
 		super(gameUID);
+	}
+
+	public addLocalPlayers(connection: any): void {
+		this.players.push(new Player(null, -1, P1));
+		this.players.push(new Player(null, -2, P2));
+		this.players.sort((a, b) => a.playerSlot - b.playerSlot);
 	}
 
 	public gameSetup(connection: any): void {
@@ -184,12 +184,17 @@ export class LocalGame extends Game {
 
 		connection.close();
 	}
-} */
+}
 
 export class MultiGame extends Game {
 	
 	constructor(gameUID: number) {
 		super(gameUID);
+	}
+
+	public addOnlinePlayer(player: Player): void {
+		this.players.push(player);
+		this.players.sort((a, b) => a.playerSlot - b.playerSlot);
 	}
 
 	private playersReady(): boolean {
