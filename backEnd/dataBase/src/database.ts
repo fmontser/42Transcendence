@@ -53,6 +53,7 @@ function setTables(): void {
 	
 		`CREATE TABLE IF NOT EXISTS matches (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			tournament_id INTEGER,
 			player0_id INTEGER,
 			player0_score INTEGER,
 			player1_id INTEGER,
@@ -143,7 +144,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/match",
-		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?)",
+		"INSERT INTO matches (tournament_id, player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?, ?)",
 		"Match data insertion error"
 	);
 
@@ -165,7 +166,6 @@ function setEndPoints(): void {
 		"Data insertion error"
 	);
 
-
 	new EndPoints.postEndpoint(
 		"/post/friendship",
 		`INSERT INTO friends (user_id, friend_id, sender_id) VALUES (?, ?, ?)`,
@@ -175,7 +175,13 @@ function setEndPoints(): void {
 	new EndPoints.patchEndpoint(
 		"/patch/match",
 		"UPDATE matches SET player0_score = ?, player1_score = ?, winner_id = ?, disconnected = ? WHERE id = ?",
-		"Data insertion error"
+		"Match data patching error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/tournament",
+		"UPDATE tournaments SET ranking_1 = ?, ranking_2 = ?, ranking_3 = ?, ranking_4 = ?, status = ? WHERE id = ?",
+		"Tournament data patching error"
 	);
 
 	new EndPoints.patchEndpoint(
@@ -202,9 +208,6 @@ function setEndPoints(): void {
 		"Friendship update error"
 	);
 	
-
-	
-
 	new EndPoints.patchEndpoint(
 		"/patch/pseudo",
 		`UPDATE profiles SET pseudo = ? WHERE user_id = ?`,

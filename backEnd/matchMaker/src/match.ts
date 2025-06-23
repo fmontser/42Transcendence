@@ -3,6 +3,7 @@ import { Status } from "./matchManager";
 export class Match {
 	status: Status;
 	matchUID!: number;
+	tournamentUID: number;
 	player0UID!: number;
 	player0Name!: string;
 	player0Conn!: any;
@@ -14,6 +15,7 @@ export class Match {
 
 	constructor (){
 		this.status = Status.PENDING;
+		this.tournamentUID = 0;
 	}
 
 	public async addPlayer(connection: any, playerUID: number) {

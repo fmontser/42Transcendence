@@ -8,7 +8,7 @@ export class Tournament {
 	tournamentUID: number;
 	private maxPlayers: number;
 	private players: Map<number, any>;
-	private matches: Map<Phase, Match>;
+	matches: Map<Phase, Match>;
 	private phase: Phase;
 	ranking: Map<number, number>;
 
@@ -37,16 +37,19 @@ export class Tournament {
 
 		this.players.set(playerUID, connection);
 		if (this.players.size >= this.maxPlayers)
-			this.setupSemifinals();
+			this.phase = Phase.SEMIFINALS;
 		return (true);
 	}
 
-	private setupSemifinals(): void {
+	public drawSemifinals(): void {
 		this.players = new Map([...this.players].sort(() => Math.random() - 0.5));
 
 		let semiA: Match = new Match();
 		let semiB: Match = new Match();
 		let i: number = 0;
+
+		semiA.tournamentUID = this.tournamentUID;
+		semiB.tournamentUID = this.tournamentUID;
 
 		for (const p of this.players){
 			if (i % 2 == 0)
@@ -58,10 +61,9 @@ export class Tournament {
 
 		this.matches.set(Phase.SEMIFINALS, semiA);
 		this.matches.set(Phase.SEMIFINALS, semiB);
-		this.phase = Phase.SEMIFINALS;
 	}
 
-	private setupFinals(): void {
+	private drawFinals(): void {
 		//TODO implementar
 	}
 

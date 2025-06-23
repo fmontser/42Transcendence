@@ -44,7 +44,14 @@ export class MatchManager {
 		console.log(`Info: PlayerUID: ${playerUID} has joined a tournament`)
 		if (newTournament.getPhase() == Phase.SEMIFINALS){
 			await this.postTournamentEntry(newTournament);
-			//TODO pedir al torneo los matches para registrarlos.
+			newTournament.drawSemifinals();
+
+			for(const m of newTournament.matches){
+				await this.postMatchEntry(m[1]);
+				this.requestNewPongInstance(m[1]);
+				//TODO await y vamos a finales??
+			}
+			//TODO y ahora que? como esperar los resultados y pasar a las finales...
 		}
 	}
 
@@ -90,6 +97,7 @@ export class MatchManager {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
+				tournament_id: match.tournamentUID,
 				player0_id: match.player0UID,
 				player0_score: 0,
 				player1_id: match.player1UID,
@@ -144,6 +152,7 @@ export class MatchManager {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
+				id: tournament.tournamentUID,
 				ranking_1: tournament.ranking.get(1),
 				ranking_2: tournament.ranking.get(2),
 				ranking_3: tournament.ranking.get(3),
