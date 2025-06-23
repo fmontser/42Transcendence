@@ -218,6 +218,13 @@
 				sendStartRequest();
 			}
 
+			function reportTournament(data) {
+				matchMakerWS.send(JSON.stringify({
+					type: 'tournamentPhaseEnd',
+					tournamentUID: data.id
+				}));
+			}
+
 			function setupPongWS() {
 				serverPongWS = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
 
@@ -243,6 +250,7 @@
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
+							reportTournament();
 							break;
 
 						//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'

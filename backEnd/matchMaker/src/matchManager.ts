@@ -68,11 +68,25 @@ export class MatchManager {
 			console.log(`Info: Player ${playerUID} has been rejected (full or duplicated)`);
 	}
 
-	private findPendingMatch(): Match | null {
-		for(const match of this.matchList) {
-			if (match.status == Status.PENDING) {
-				match.status = Status.ONGOING;
-				return (match); 
+	public async phaseTournament(tournamentUID: number): Promise<void> {
+		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
+		if (currentTournament != null){
+			if (currentTournament.getPhase() == Phase.SEMIFINALS){
+				currentTournament.drawFinals();
+				for(const match of currentTournament.matches){
+					await this.postMatchEntry(match);
+					this.requestNewPongInstance(match);
+				}
+			}
+			else if (currentTournament.getPhase() == Phase.FINALS)
+				currentTournament.endTournament();
+		}
+	}
+	
+	private findTournamentID(tournamentUID: number): Tournament | null {
+		for(const tournament of this.tournamentList) {
+			if (tournament.tournamentUID == tournamentUID) {
+				return (tournament); 
 			}
 		}
 		return (null);
@@ -86,6 +100,16 @@ export class MatchManager {
 		}
 		return (null);
 	}
+	
+	private findPendingMatch(): Match | null {
+		for(const match of this.matchList) {
+			if (match.status == Status.PENDING) {
+				match.status = Status.ONGOING;
+				return (match); 
+			}
+		}
+		return (null);
+	}
 
 	private checkPlayers(match: Match): boolean {
 		if (match.player0UID != undefined && match.player1UID != undefined) {
@@ -93,7 +117,7 @@ export class MatchManager {
 		}
 		return (false);
 	}
-
+	
 	private async postMatchEntry(match: Match): Promise<void> {
 		const response = await fetch("http://dataBase:3000/post/match", {
 			method: "POST",

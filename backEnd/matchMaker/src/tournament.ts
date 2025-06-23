@@ -17,7 +17,7 @@ export class Tournament {
 		this.maxPlayers = 4;
 		this.players = new Map<number, any>();
 		this.matches = new Set<Match>();
-		this.ranking = new Map<number, number>([[1,0],[2,0],[3,0],[4,0]]);
+		this.ranking = new Map<number, number>();
 		this.phase = Phase.DRAW;
 
 	}
@@ -61,10 +61,37 @@ export class Tournament {
 
 		this.matches.add(semiA);
 		this.matches.add(semiB);
+		console.log(`Info: Tournament ${this.tournamentUID} semifinals phase has been drawn`);
 	}
 
-	private drawFinals(): void {
+	public drawFinals(): void {
+		let finalsWinners: Match = new Match();
+		let finalsLosers: Match = new Match();
+
+		for (const m of this.matches) {
+			if (m.player0UID == m.winnerUID) {
+				finalsWinners.addPlayer(this.players.get(m.player0UID)[1], this.players.get(m.player0UID)[0]);
+				finalsLosers.addPlayer(this.players.get(m.player1UID)[1], this.players.get(m.player1UID)[0]);
+			}
+			else {
+				finalsWinners.addPlayer(this.players.get(m.player1UID)[1], this.players.get(m.player1UID)[0]);
+				finalsLosers.addPlayer(this.players.get(m.player0UID)[1], this.players.get(m.player0UID)[0]);
+			}
+		}
+
+		this.matches.clear();
+		//TODO continuar aqui @@@@@@@@@@@@@@@@@@@@
+		//this.matches.add
+
+
+
+
+		console.log(`Info: Tournament ${this.tournamentUID} finals phase has been drawn`);
+	}
+
+	public endTournament(): void {
 		//TODO implementar
+		console.log(`Info: Tournament ${this.tournamentUID} has been completed`);
 	}
 
 	public getPhase(): any {

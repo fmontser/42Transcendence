@@ -61,6 +61,9 @@ export class PostTournamentRequest extends Endpoint {
 						case 'tournamentRequest':
 							matchManager.requestTournament(connection, jsonData.userUID);
 							break;
+						case 'tournamentPhaseEnd':
+							matchManager.phaseTournament(jsonData.tournamentUID);
+							break;
 					}
 				} catch (error) {
 					console.error("Error processing message:", error);
