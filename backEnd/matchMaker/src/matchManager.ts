@@ -36,7 +36,9 @@ export class MatchManager {
 		if (newTournament == null) {
 			newTournament = new Tournament();
 			this.tournamentList.add(newTournament);
+			console.log(`Info: New tournament is preparing...`);
 		}
+		console.log(`Info: Player ${playerUID} is attemping to join...`);
 		if (!newTournament.join(playerUID, connection)) {
 			this.rejectPlayerTournament(playerUID, connection);
 			return; //TODO esta bien no retornar la promesa?? resolve?
@@ -46,11 +48,11 @@ export class MatchManager {
 			await this.postTournamentEntry(newTournament);
 			newTournament.drawSemifinals();
 
-			for(const m of newTournament.matches){
-				await this.postMatchEntry(m[1]);
-				this.requestNewPongInstance(m[1]);
-				//TODO await y vamos a finales??
+			for(const match of newTournament.matches){
+				await this.postMatchEntry(match);
+				this.requestNewPongInstance(match);
 			}
+
 			//TODO y ahora que? como esperar los resultados y pasar a las finales...
 		}
 	}
@@ -121,7 +123,7 @@ export class MatchManager {
 				player1_score: match.score[1],
 				winner_id: match.winnerUID,
 				disconnected: match.status == Status.DISCONNECTED ? true:false,
-				matchUID: match.matchUID
+				id: match.matchUID
 			})
 		});
 		console.log("Info: match patch request sent to database");
@@ -134,11 +136,11 @@ export class MatchManager {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				ranking_1: tournament.ranking.get(1),
-				ranking_2: tournament.ranking.get(2),
-				ranking_3: tournament.ranking.get(3),
-				ranking_4: tournament.ranking.get(4),
-				status: tournament.getPhase()
+				ranking_1: 0,
+				ranking_2: 0,
+				ranking_3: 0,
+				ranking_4: 0,
+				status: Phase.DRAW
 			})
 		});
 		console.log("Info: New tournament entry request sent to database");
@@ -152,12 +154,13 @@ export class MatchManager {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-				id: tournament.tournamentUID,
+
 				ranking_1: tournament.ranking.get(1),
 				ranking_2: tournament.ranking.get(2),
 				ranking_3: tournament.ranking.get(3),
 				ranking_4: tournament.ranking.get(4),
-				status: tournament.getPhase()
+				status: tournament.getPhase(),
+				id: tournament.tournamentUID,
 			})
 		});
 		console.log("Info: tournament patch request sent to database");

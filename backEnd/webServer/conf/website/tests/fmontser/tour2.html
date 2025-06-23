@@ -34,7 +34,8 @@
 		</div>
 
 		<script>
-			let ws;
+			let matchMakerWS;
+			let serverPongWS;
 			const playField = document.getElementById('playField');
 			const ctx = playField.getContext('2d');
 			const scoreElement = document.getElementById('score');
@@ -72,7 +73,7 @@
 			//MATCH MAKER SECTION
 
 			function sendTournamentRequest() {
-				ws.send(JSON.stringify({
+				matchMakerWS.send(JSON.stringify({
 					type: 'tournamentRequest',
 					userUID: userUID
 				}));
@@ -95,20 +96,19 @@
 				drawAnnounce();
 				//Tres segundos de margen
 				setTimeout(() => {
-					ws.close();
 					setupPongWS();
 				}, 3000);
 			}
 
 
 			function setupMatchMakerWS() {
-				ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/match`);
+				matchMakerWS = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/tournament`);
 
-				ws.onopen = () => {
+				matchMakerWS.onopen = () => {
 					sendTournamentRequest();
 				};
 
-				ws.onmessage = (event) => {
+				matchMakerWS.onmessage = (event) => {
 					const data = JSON.parse(event.data);
 					switch(data.type) {
 						case 'matchAnnounce':
@@ -118,11 +118,11 @@
 					}
 				};
 
-				ws.onclose = () => {
+				matchMakerWS.onclose = () => {
 					console.log('Disconected from match maker.');
 				};
 
-				ws.onerror = (error) => {
+				matchMakerWS.onerror = (error) => {
 					console.error('WebSocket error:', error);
 				};
 			}
@@ -191,7 +191,7 @@
 			//SERVER PONG SECTION
 
 			function sendSetupRequest() {
-				ws.send(JSON.stringify({
+				serverPongWS.send(JSON.stringify({
 					type: 'setupRequest',
 					userUID: userUID,
 					userSlot: userSlot,
@@ -200,7 +200,7 @@
 			}
 
 			function sendStartRequest() {
-				ws.send(JSON.stringify({
+				serverPongWS.send(JSON.stringify({
 					type: 'startRequest',
 					userUID: userUID
 				}));
@@ -219,15 +219,15 @@
 			}
 
 			function setupPongWS() {
-				ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+				serverPongWS = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
 
-				ws.onopen = () => {
+				serverPongWS.onopen = () => {
 					console.log('Conectado al servidor');
 					sendSetupRequest();
 					setupControls();
 				};
 
-				ws.onmessage = (event) => {
+				serverPongWS.onmessage = (event) => {
 					const data = JSON.parse(event.data);
 					switch(data.type) {
 						case 'setupResponse':
@@ -249,11 +249,11 @@
 					}
 				};
 
-				ws.onclose = () => {
+				serverPongWS.onclose = () => {
 					console.log('Disconected from pong server.');
 				};
 
-				ws.onerror = (error) => {
+				serverPongWS.onerror = (error) => {
 					console.error('WebSocket error:', error);
 				};
 			}
@@ -267,22 +267,22 @@
 						switch(event.key) {
 							case 'w':
 								input.direction = 'up';
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 							case 's':
 								input.direction = 'down';
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 						}
 					} else if (userSlot == 1) {
 						switch(event.key) {
 							case 'ArrowUp':
 								input.direction = 'up';
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 							case 'ArrowDown':
 								input.direction = 'down';
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 						}
 					}
@@ -295,14 +295,14 @@
 						switch(event.key) {
 							case 'w':
 							case 's':
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 						}
 					} else if (userSlot == 1) {
 						switch(event.key) {
 							case 'ArrowUp':
 							case 'ArrowDown':
-								ws.send(JSON.stringify(input));
+								serverPongWS.send(JSON.stringify(input));
 								break;
 						}
 					}

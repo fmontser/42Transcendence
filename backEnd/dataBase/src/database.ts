@@ -135,7 +135,6 @@ function setEndPoints(): void {
 		"Failed to get users"
 	);
 
-
 	new EndPoints.getEndpoint(
 		"/get/profile",
 		`SELECT * FROM profiles WHERE user_id = ?`,
@@ -150,7 +149,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/tournament",
-		"INSERT INTO matches (ranking_1, ranking_2, ranking_3, ranking_4, status) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO tournaments (ranking_1, ranking_2, ranking_3, ranking_4, status) VALUES (?, ?, ?, ?, ?)",
 		"Tournament data insertion error"
 	);
 

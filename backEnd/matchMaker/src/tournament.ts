@@ -8,7 +8,7 @@ export class Tournament {
 	tournamentUID: number;
 	private maxPlayers: number;
 	private players: Map<number, any>;
-	matches: Map<Phase, Match>;
+	matches:Set<Match>;
 	private phase: Phase;
 	ranking: Map<number, number>;
 
@@ -16,7 +16,7 @@ export class Tournament {
 		this.tournamentUID = 0;
 		this.maxPlayers = 4;
 		this.players = new Map<number, any>();
-		this.matches = new Map<Phase, Match>();
+		this.matches = new Set<Match>();
 		this.ranking = new Map<number, number>([[1,0],[2,0],[3,0],[4,0]]);
 		this.phase = Phase.DRAW;
 
@@ -59,8 +59,8 @@ export class Tournament {
 			i++;
 		}
 
-		this.matches.set(Phase.SEMIFINALS, semiA);
-		this.matches.set(Phase.SEMIFINALS, semiB);
+		this.matches.add(semiA);
+		this.matches.add(semiB);
 	}
 
 	private drawFinals(): void {
