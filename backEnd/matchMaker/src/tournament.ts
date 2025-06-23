@@ -5,12 +5,13 @@ export enum Phase {
 }
 
 export class Tournament {
-	tournamentUID: number;
 	private maxPlayers: number;
 	private players: Map<number, any>;
-	matches:Set<Match>;
 	private phase: Phase;
+	matches:Set<Match>;
+	tournamentUID: number;
 	ranking: Map<number, number>;
+	playersReady = 0;
 
 	constructor() {
 		this.tournamentUID = 0;
@@ -68,28 +69,28 @@ export class Tournament {
 		let finalsWinners: Match = new Match();
 		let finalsLosers: Match = new Match();
 
+		finalsWinners.tournamentUID = this.tournamentUID;
+		finalsLosers.tournamentUID = this.tournamentUID;
+
 		for (const m of this.matches) {
-			if (m.player0UID == m.winnerUID) {
-				finalsWinners.addPlayer(this.players.get(m.player0UID)[1], this.players.get(m.player0UID)[0]);
-				finalsLosers.addPlayer(this.players.get(m.player1UID)[1], this.players.get(m.player1UID)[0]);
+ 			if (m.player0UID == m.winnerUID) {
+				finalsWinners.addPlayer(m.player0Conn, m.player0UID);
+				finalsLosers.addPlayer(m.player1Conn, m.player1UID);
 			}
 			else {
-				finalsWinners.addPlayer(this.players.get(m.player1UID)[1], this.players.get(m.player1UID)[0]);
-				finalsLosers.addPlayer(this.players.get(m.player0UID)[1], this.players.get(m.player0UID)[0]);
+				finalsWinners.addPlayer(m.player1Conn, m.player1UID);
+				finalsLosers.addPlayer(m.player0Conn, m.player0UID);
 			}
 		}
-
+		
 		this.matches.clear();
-		//TODO continuar aqui @@@@@@@@@@@@@@@@@@@@
-		//this.matches.add
-
-
-
-
+		this.matches.add(finalsWinners);
+		this.matches.add(finalsLosers);
 		console.log(`Info: Tournament ${this.tournamentUID} finals phase has been drawn`);
 	}
 
 	public endTournament(): void {
+		//TODO @@@@@@@@@@@@@@@@@@@@ implemetntar la fase final, desde el HTML hasta aqui!!!!!
 		//TODO implementar
 		console.log(`Info: Tournament ${this.tournamentUID} has been completed`);
 	}
@@ -98,8 +99,6 @@ export class Tournament {
 		return (this.phase);
 	}
 }
-
-
 
 export class HotSeatTournament extends Tournament {
 	//TODO implementar

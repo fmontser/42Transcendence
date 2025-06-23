@@ -41,7 +41,7 @@ export class MatchManager {
 		console.log(`Info: Player ${playerUID} is attemping to join...`);
 		if (!newTournament.join(playerUID, connection)) {
 			this.rejectPlayerTournament(playerUID, connection);
-			return; //TODO esta bien no retornar la promesa?? resolve?
+			return;
 		}
 		console.log(`Info: PlayerUID: ${playerUID} has joined a tournament`)
 		if (newTournament.getPhase() == Phase.SEMIFINALS){
@@ -52,8 +52,6 @@ export class MatchManager {
 				await this.postMatchEntry(match);
 				this.requestNewPongInstance(match);
 			}
-
-			//TODO y ahora que? como esperar los resultados y pasar a las finales...
 		}
 	}
 
@@ -68,10 +66,16 @@ export class MatchManager {
 			console.log(`Info: Player ${playerUID} has been rejected (full or duplicated)`);
 	}
 
-	public async phaseTournament(tournamentUID: number): Promise<void> {
+	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
 		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
 		if (currentTournament != null){
+			currentTournament.playersReady++;
+			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
+
+			if (currentTournament.playersReady < 4)
+				return;
 			if (currentTournament.getPhase() == Phase.SEMIFINALS){
+				console.log(`DEBUG: about to enter drawFinals: playerUID ${playerUID}`)
 				currentTournament.drawFinals();
 				for(const match of currentTournament.matches){
 					await this.postMatchEntry(match);
@@ -178,7 +182,6 @@ export class MatchManager {
 			method: "PATCH",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
-
 				ranking_1: tournament.ranking.get(1),
 				ranking_2: tournament.ranking.get(2),
 				ranking_3: tournament.ranking.get(3),
@@ -214,6 +217,7 @@ export class MatchManager {
 						connection.send(JSON.stringify({
 							type: 'matchAnnounce',
 							gameUID: match.matchUID,
+							tournamentUID: match.tournamentUID,
 							player0UID: match.player0UID,
 							player0Name: match.player0Name,
 							player1UID: match.player1UID,

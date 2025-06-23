@@ -45,6 +45,7 @@
 			let BALL_RADIUS = 32;
 
 			let gameUID;
+			let tournamentUID;
 			let userUID = 1; //TODO esto debe obtenerlo del perfil.
 			let userSlot;
 
@@ -83,6 +84,7 @@
 			function handleAnnounceResponse(data) {
 
 				gameUID = data.gameUID;
+				tournamentUID = data.tournamentUID;
 				player0UID = data.player0UID;
 				player0Name = data.player0Name;
 				player1UID = data.player1UID;
@@ -218,10 +220,12 @@
 				sendStartRequest();
 			}
 
-			function reportTournament(data) {
+			function reportTournament() {
+				console.log("Info: Tournament phase request sent to matchMaker");
 				matchMakerWS.send(JSON.stringify({
 					type: 'tournamentPhaseEnd',
-					tournamentUID: data.id
+					tournamentUID: tournamentUID,
+					playerUID: userUID
 				}));
 			}
 
@@ -250,7 +254,9 @@
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
-							reportTournament();
+							setTimeout(() => {
+								reportTournament();
+							}, 3000);
 							break;
 
 						//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'

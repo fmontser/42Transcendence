@@ -55,14 +55,15 @@ export class PostTournamentRequest extends Endpoint {
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
 						case 'tournamentRequest':
+							console.log("Info: Tournament request recieved");
 							matchManager.requestTournament(connection, jsonData.userUID);
 							break;
 						case 'tournamentPhaseEnd':
-							matchManager.phaseTournament(jsonData.tournamentUID);
+							console.log("Info: Tournament phase request recieved");
+							matchManager.phaseTournament(jsonData.tournamentUID, jsonData.playerUID);
 							break;
 					}
 				} catch (error) {
