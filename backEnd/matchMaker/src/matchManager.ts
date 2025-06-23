@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import { Match } from "./match";
 import { Tournament, Phase } from "./tournament";
 import WebSocket from 'ws';
@@ -48,7 +47,6 @@ export class MatchManager {
 			//TODO pedir al torneo los matches para registrarlos.
 		}
 	}
-
 
 	public async requestHotSeatTournament(connection: any ,playerUID: number): Promise<void> {
 		//TODO implementar

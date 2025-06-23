@@ -59,6 +59,15 @@ function setTables(): void {
 			player1_score INTEGER,
 			winner_id INTEGER,
 			disconnected BOOLEAN
+		)`,
+
+		`CREATE TABLE IF NOT EXISTS tournaments (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			ranking_1 INTEGER,
+			ranking_2 INTEGER,
+			ranking_3 INTEGER,
+			ranking_4 INTEGER,
+			status INTEGER
 		)`
 
 	
@@ -135,7 +144,13 @@ function setEndPoints(): void {
 	new EndPoints.postEndpoint(
 		"/post/match",
 		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?)",
-		"Data insertion error"
+		"Match data insertion error"
+	);
+
+	new EndPoints.postEndpoint(
+		"/post/tournament",
+		"INSERT INTO matches (ranking_1, ranking_2, ranking_3, ranking_4, status) VALUES (?, ?, ?, ?, ?)",
+		"Tournament data insertion error"
 	);
 
 	new EndPoints.postEndpoint(
