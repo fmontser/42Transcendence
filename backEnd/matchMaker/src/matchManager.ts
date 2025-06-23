@@ -1,5 +1,6 @@
+import { resolve } from "path";
 import { Match } from "./match";
-import { Tournament } from "./tournament";
+import { Tournament, Phase } from "./tournament";
 import WebSocket from 'ws';
 
 export enum Status {
@@ -17,6 +18,7 @@ export class MatchManager {
 
 	public async requestMatch(connection: any ,playerUID: number): Promise<void> {
 		let newMatch: Match | null = this.findPendingMatch();
+
 		if (newMatch == null) {
 			newMatch = new Match();
 			this.matchList.add(newMatch);
@@ -30,7 +32,21 @@ export class MatchManager {
 	}
 
 	public async requestTournament(connection: any ,playerUID: number): Promise<void> {
-		//TODO implementar
+		let newTournament: Tournament | null =  this.findPendingTournament();
+
+		if (newTournament == null) {
+			newTournament = new Tournament();
+			this.tournamentList.add(newTournament);
+		}
+		if (!newTournament.join(playerUID, connection)) {
+			this.rejectPlayerTournament(playerUID, connection);
+			return; //TODO esta bien no retornar la promesa?? resolve?
+		}
+		console.log(`Info: PlayerUID: ${playerUID} has joined a tournament`)
+		if (newTournament.getPhase() == Phase.SEMIFINALS){
+			await this.postTournamentEntry(newTournament);
+			//TODO pedir al torneo los matches para registrarlos.
+		}
 	}
 
 
@@ -38,11 +54,27 @@ export class MatchManager {
 		//TODO implementar
 	}
 
+	private rejectPlayerTournament(playerUID: number, connection: any): void {
+			connection.send(JSON.stringify({
+				type: 'postTournamentReject'
+			}));
+			console.log(`Info: Player ${playerUID} has been rejected (full or duplicated)`);
+	}
+
 	private findPendingMatch(): Match | null {
 		for(const match of this.matchList) {
 			if (match.status == Status.PENDING) {
 				match.status = Status.ONGOING;
 				return (match); 
+			}
+		}
+		return (null);
+	}
+
+	private findPendingTournament(): Tournament | null {
+		for(const tournament of this.tournamentList) {
+			if (tournament.getPhase() == Phase.DRAW) {
+				return (tournament); 
 			}
 		}
 		return (null);
@@ -86,11 +118,46 @@ export class MatchManager {
 				matchUID: match.matchUID
 			})
 		});
-		console.log("Info: patch request sent to database");
+		console.log("Info: match patch request sent to database");
 		await response.json();
 		console.log("Info: Succesfully patched MatchUID: " + match.matchUID);
 	};
 	
+	private async postTournamentEntry(tournament: Tournament): Promise<void> {
+		const response = await fetch("http://dataBase:3000/post/tournament", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				ranking_1: tournament.ranking.get(1),
+				ranking_2: tournament.ranking.get(2),
+				ranking_3: tournament.ranking.get(3),
+				ranking_4: tournament.ranking.get(4),
+				status: tournament.getPhase()
+			})
+		});
+		console.log("Info: New tournament entry request sent to database");
+		const data = await response.json();
+		tournament.tournamentUID = data.id;
+		console.log("Info: tournamentUID recieved from database: " + data.id);
+	}
+
+	private async patchTournamentEntry(tournament: Tournament): Promise<void> {
+			const response = await fetch("http://dataBase:3000/patch/tournament", {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				ranking_1: tournament.ranking.get(1),
+				ranking_2: tournament.ranking.get(2),
+				ranking_3: tournament.ranking.get(3),
+				ranking_4: tournament.ranking.get(4),
+				status: tournament.getPhase()
+			})
+		});
+		console.log("Info: tournament patch request sent to database");
+		await response.json();
+		console.log("Info: Succesfully patched TournamentUID: " + tournament.tournamentUID);
+	};
+
 	private async requestNewPongInstance(match: Match): Promise<void> {
 		const ws = new WebSocket('ws://serverpong:3000/post/match');
 		console.log("Info: Connection to serverPong");
