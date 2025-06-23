@@ -46,3 +46,57 @@ export class PostMatchRequest extends Endpoint {
 		});
 	}
 }
+
+export class PostTournamentRequest extends Endpoint {
+
+	add(server: any): void {
+		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+			
+			connection.on('message', (data: any) => {
+				try {
+					const jsonData = JSON.parse(data.toString());
+					console.log("Received message:", jsonData);
+
+					switch (jsonData.type) {
+						case 'matchRequest':
+							matchManager.requestTournament(connection, jsonData.userUID);
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
+
+			connection.on('close', () => {
+				console.log("Client left the matchMaker");
+			});
+		});
+	}
+}
+
+export class PostHotSeatTournamentRequest extends Endpoint {
+
+	add(server: any): void {
+		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+			
+			connection.on('message', (data: any) => {
+				try {
+					const jsonData = JSON.parse(data.toString());
+					console.log("Received message:", jsonData);
+
+					switch (jsonData.type) {
+						case 'matchRequest':
+							matchManager.requestHotSeatTournament(connection, jsonData.userUID);
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
+
+			connection.on('close', () => {
+				console.log("Client left the matchMaker");
+			});
+		});
+	}
+}
