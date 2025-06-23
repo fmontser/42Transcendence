@@ -1,4 +1,5 @@
 import { Match } from "./match";
+import { Tournament } from "./tournament";
 import WebSocket from 'ws';
 
 export enum Status {
@@ -7,9 +8,11 @@ export enum Status {
 
 export class MatchManager {
 	matchList: Set<Match>;
+	tournamentList: Set<Tournament>;
 
 	constructor() {
 		this.matchList = new Set<Match>();
+		this.tournamentList = new Set<Tournament>();
 	}
 
 	public async requestMatch(connection: any ,playerUID: number): Promise<void> {
