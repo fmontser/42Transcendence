@@ -58,7 +58,7 @@ export class PostTournamentRequest extends Endpoint {
 					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
-						case 'matchRequest':
+						case 'tournamentRequest':
 							matchManager.requestTournament(connection, jsonData.userUID);
 							break;
 					}
@@ -85,7 +85,7 @@ export class PostHotSeatTournamentRequest extends Endpoint {
 					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
-						case 'matchRequest':
+						case 'hotSeatTournamentRequest':
 							matchManager.requestHotSeatTournament(connection, jsonData.userUID);
 							break;
 					}
