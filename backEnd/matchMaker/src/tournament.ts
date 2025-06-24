@@ -20,7 +20,6 @@ export class Tournament {
 		this.matches = new Set<Match>();
 		this.ranking = new Map<number, number>();
 		this.phase = Phase.DRAW;
-
 	}
 
 	private checkDupPlayer(playerUID: number): boolean {
@@ -86,18 +85,47 @@ export class Tournament {
 		this.matches.clear();
 		this.matches.add(finalsWinners);
 		this.matches.add(finalsLosers);
+		this.playersReady = 0;
+		this.phase = Phase.FINALS;
 		console.log(`Info: Tournament ${this.tournamentUID} finals phase has been drawn`);
 	}
 
 	public endTournament(): void {
-		//TODO @@@@@@@@@@@@@@@@@@@@ implemetntar la fase final, desde el HTML hasta aqui!!!!!
-		//TODO implementar
-		console.log(`Info: Tournament ${this.tournamentUID} has been completed`);
+		
+		const matchArray = Array.from(this.matches);
+
+		if (matchArray[1].player0UID == matchArray[0].winnerUID) {
+			this.ranking.set(1, matchArray[0].player0UID);
+			this.ranking.set(2, matchArray[0].player1UID);
+		}
+		else {
+			this.ranking.set(1, matchArray[0].player1UID);
+			this.ranking.set(2, matchArray[0].player0UID);
+		}
+
+
+		if (matchArray[1].player0UID == matchArray[1].winnerUID) {
+			this.ranking.set(3, matchArray[1].player0UID);
+			this.ranking.set(4, matchArray[1].player1UID);
+		}
+		else {
+			this.ranking.set(3, matchArray[1].player1UID);
+			this.ranking.set(4, matchArray[1].player0UID);
+		}
+
+		this.matches.clear();
+		this.playersReady = 0;
+		this.phase =  Phase.COMPLETED;
+		console.log(`Info: Tournament ${this.tournamentUID} complete, ranking is:\n
+		p1: ${this.ranking.get(1)}\n
+		p2: ${this.ranking.get(2)}\n
+		p3: ${this.ranking.get(3)}\n
+		p4: ${this.ranking.get(4)}
+		`);
 	}
 
-	public getPhase(): any {
-		return (this.phase);
-	}
+	public getPlayers(): any { return (this.players); }
+	public getPhase(): any { return (this.phase) };
 }
 
 export class HotSeatTournament extends Tournament {

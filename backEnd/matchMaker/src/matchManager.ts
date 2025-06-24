@@ -68,25 +68,28 @@ export class MatchManager {
 
 	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
 		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
-		if (currentTournament != null){
+		if (currentTournament != null) {
 			currentTournament.playersReady++;
 			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
 
 			if (currentTournament.playersReady < 4)
 				return;
 			if (currentTournament.getPhase() == Phase.SEMIFINALS){
-				console.log(`DEBUG: about to enter drawFinals: playerUID ${playerUID}`)
 				currentTournament.drawFinals();
 				for(const match of currentTournament.matches){
 					await this.postMatchEntry(match);
 					this.requestNewPongInstance(match);
 				}
 			}
-			else if (currentTournament.getPhase() == Phase.FINALS)
+			else if (currentTournament.getPhase() == Phase.FINALS) {
 				currentTournament.endTournament();
+				await this.patchTournamentEntry(currentTournament);
+				this.sendTournamentRanking(currentTournament);
+				this.closeTournament(currentTournament);
+			}
 		}
 	}
-	
+
 	private findTournamentID(tournamentUID: number): Tournament | null {
 		for(const tournament of this.tournamentList) {
 			if (tournament.tournamentUID == tournamentUID) {
@@ -103,6 +106,28 @@ export class MatchManager {
 			}
 		}
 		return (null);
+	}
+
+	private sendTournamentRanking(tournament: Tournament): void {
+		for (const player of tournament.getPlayers()){
+			player[1].send(JSON.stringify({
+				type: 'tournamentRanking',
+				p1: tournament.ranking.get(1),
+				p2: tournament.ranking.get(2),
+				p3: tournament.ranking.get(3),
+				p4: tournament.ranking.get(4)
+			}));
+		}
+		console.log(`Info: Tournament id ${tournament.tournamentUID} ranking sent to players`);
+	}
+
+	private closeTournament(tournament: Tournament): void {
+		setTimeout(() => {
+			for (const player of tournament.getPlayers())
+				player[1].close();
+		}, 1000);
+		this.tournamentList.delete(tournament);
+		console.log(`Info: Tournament id ${tournament.tournamentUID} has been closed`);
 	}
 	
 	private findPendingMatch(): Match | null {
