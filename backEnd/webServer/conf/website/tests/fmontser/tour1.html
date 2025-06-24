@@ -102,6 +102,22 @@
 				}, 3000);
 			}
 
+			function drawTornamentRanking(data) {
+				ctx.fillStyle = '#1a1a1a';
+				ctx.fillRect(0, 0, playField.width, playField.height);
+
+				ctx.fillStyle = 'white';
+				ctx.font = '48px monospace';
+				ctx.textAlign = 'center';
+				ctx.fillText('TOURNAMENT RANKING', playField.width / 2, playField.height / 3);
+
+				ctx.font = '36px monospace';
+				ctx.fillText(`1st: UID ${data.p1}`, playField.width / 2, playField.height / 2 - 40);
+				ctx.fillText(`2nd: UID ${data.p2}`, playField.width / 2, playField.height / 2 + 10);
+				ctx.fillText(`3rd: UID ${data.p3}`, playField.width / 2, playField.height / 2 + 60);
+				ctx.fillText(`4th: UID ${data.p4}`, playField.width / 2, playField.height / 2 + 110);
+			}
+
 
 			function setupMatchMakerWS() {
 				matchMakerWS = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/tournament`);
@@ -116,6 +132,10 @@
 						case 'matchAnnounce':
 							console.log("Info: Recieved match announce from matchMaker");
 							handleAnnounceResponse(data);
+							break;
+						case 'tournamentRanking':
+							console.log("Info: Recieved tournament ranking from matchMaker");
+							drawTornamentRanking(data);
 							break;
 					}
 				};
