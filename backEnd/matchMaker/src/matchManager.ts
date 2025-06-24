@@ -56,7 +56,7 @@ export class MatchManager {
 	}
 
 	public async requestHotSeatTournament(connection: any ,playerUID: number): Promise<void> {
-		//TODO implementar
+		//TODO implementar hot seat (unranked)
 	}
 
 	private rejectPlayerTournament(playerUID: number, connection: any): void {
