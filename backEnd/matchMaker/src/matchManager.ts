@@ -55,7 +55,7 @@ export class MatchManager {
 		}
 	}
 
-	public async requestHotSeatTournament(connection: any ,playerUID: number): Promise<void> {
+	public async requestHotSeatTournament(connection: any ,usersUIDs: number[]): Promise<void> {
 		//TODO implementar hot seat (unranked)
 	}
 
@@ -71,6 +71,33 @@ export class MatchManager {
 		if (currentTournament != null) {
 			currentTournament.playersReady++;
 			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
+
+			if (currentTournament.playersReady < 4)
+				return;
+			if (currentTournament.getPhase() == Phase.SEMIFINALS){
+				currentTournament.drawFinals();
+				for(const match of currentTournament.matches){
+					await this.postMatchEntry(match);
+					this.requestNewPongInstance(match);
+				}
+			}
+			else if (currentTournament.getPhase() == Phase.FINALS) {
+				currentTournament.endTournament();
+				await this.patchTournamentEntry(currentTournament);
+				this.sendTournamentRanking(currentTournament);
+				this.closeTournament(currentTournament);
+			}
+		}
+	}
+
+	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
+
+		//TODO refactor para hotseat!!
+
+		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
+		if (currentTournament != null) {
+			currentTournament.playersReady++;
+	
 
 			if (currentTournament.playersReady < 4)
 				return;

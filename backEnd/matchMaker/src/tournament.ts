@@ -127,7 +127,3 @@ export class Tournament {
 	public getPlayers(): any { return (this.players); }
 	public getPhase(): any { return (this.phase) };
 }
-
-export class HotSeatTournament extends Tournament {
-	//TODO implementar
-}

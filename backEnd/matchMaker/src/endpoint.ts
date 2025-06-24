@@ -90,7 +90,17 @@ export class PostHotSeatTournamentRequest extends Endpoint {
 
 					switch (jsonData.type) {
 						case 'hotSeatTournamentRequest':
-							matchManager.requestHotSeatTournament(connection, jsonData.userUID);
+							let usersUIDs: number[] = [
+								jsonData.user1UID,
+								jsonData.user2UID,
+								jsonData.user3UID,
+								jsonData.user4UID
+							];
+							matchManager.requestHotSeatTournament(connection, usersUIDs);
+							break;
+						case 'hotSeatTournamentPhaseEnd':
+							console.log("Info: Hot seat tournament phase request recieved");
+							matchManager.phaseHotSeatTournament(jsonData.tournamentUID);
 							break;
 					}
 				} catch (error) {
