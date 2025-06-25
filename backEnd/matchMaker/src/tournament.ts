@@ -94,7 +94,10 @@ export class Tournament {
 	}
 
 	public cancel(): void {
+		console.log(`Info: Tournament ${this.tournamentUID} canceled`);
 		this.phase = Phase.CANCELED;
+		this.matches.clear();
+		this.players.clear();
 	}
 
 	public endTournament(): void {
@@ -121,6 +124,7 @@ export class Tournament {
 		}
 
 		this.matches.clear();
+		this.players.clear();
 		this.playersReady = 0;
 		this.phase =  Phase.COMPLETED;
 		console.log(`Info: Tournament ${this.tournamentUID} complete, ranking is:\n

@@ -141,13 +141,25 @@
 					}
 				};
 
+				window.onbeforeunload = () => {
+					matchMakerWS.send(JSON.stringify({
+						type: 'canceled',
+						tournamentUID: tournamentUID
+					}));
+
+					serverPongWS.send(JSON.stringify({
+						type: 'canceled'
+					}));
+				};
+
 				matchMakerWS.onclose = () => {
-					console.log('Disconected from match maker.');
+					console.log('Disconected from match maker.')
 				};
 
 				matchMakerWS.onerror = (error) => {
 					console.error('WebSocket error:', error);
 				};
+
 			}
 
 			//TODO FRONTEND anuncio de juego!
@@ -272,7 +284,6 @@
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
-							//TODO check!
 							setTimeout(() => {
 								reportTournament();
 							}, 3000);

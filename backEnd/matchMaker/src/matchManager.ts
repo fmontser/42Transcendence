@@ -58,7 +58,6 @@ export class MatchManager {
 		}
 	}
 
-	//TODO @@@@@@@@@@@@@@@@@@@@
 	public async requestHotSeatTournament(connection: any ,usersUIDs: number[]): Promise<void> {
 
 		let newTournament: Tournament = new Tournament(true);
@@ -78,7 +77,7 @@ export class MatchManager {
 	}
 
 	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
+		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.tournamentList);
 		if (currentTournament != null) {
 			currentTournament.playersReady++;
 			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
@@ -101,9 +100,11 @@ export class MatchManager {
 		}
 	}
 
-	//TODO TEST!!!!!!!!!!!!!!!!!!
 	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournamentID(tournamentUID);
+		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.hotSeatList);
+		
+		console.log(`DEBUG: ${currentTournament}`);
+
 		if (currentTournament != null) {
 			if (currentTournament.getPhase() == Phase.SEMIFINALS){
 				currentTournament.drawFinals();
@@ -117,8 +118,8 @@ export class MatchManager {
 		}
 	}
 
-	private findTournamentID(tournamentUID: number): Tournament | null {
-		for(const tournament of this.tournamentList) {
+	private findTournament(tournamentUID: number, tournamentList: Set<Tournament>): Tournament | null {
+		for(const tournament of tournamentList) {
 			if (tournament.tournamentUID == tournamentUID) {
 				return (tournament); 
 			}
@@ -137,8 +138,10 @@ export class MatchManager {
 
 	private async sequenceHotSeatMatches(newTournament: Tournament) {
 		for (const match of newTournament.matches) {
-			if (newTournament.getPhase() == Phase.CANCELED)
+			if (newTournament.getPhase() == Phase.CANCELED) {
+				this.hotSeatList.delete(newTournament);
 				break;
+			}
 			this.requestNewPongInstance(match, true);
 			while (true) {
 				if (match.status === Status.COMPLETED)
@@ -149,6 +152,14 @@ export class MatchManager {
 				}
 				await new Promise(r => setTimeout(r, 1000));
 			}
+		}
+	}
+
+	public cancelHotSeat(hotSeatTournamentUID: number): void {
+		let hotSeatTournament: Tournament | null = this.findTournament(hotSeatTournamentUID, this.hotSeatList);
+		if (hotSeatTournament != null){
+			hotSeatTournament.cancel();
+			this.hotSeatList.delete(hotSeatTournament);
 		}
 	}
 

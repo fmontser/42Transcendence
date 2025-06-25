@@ -1,4 +1,5 @@
 import { matchManager } from './matchmaker'
+import { Tournament } from './tournament';
 
 export abstract class Endpoint {
 
@@ -81,12 +82,12 @@ export class PostTournamentRequest extends Endpoint {
 export class PostHotSeatTournamentRequest extends Endpoint {
 
 	add(server: any): void {
+
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
 			
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
 						case 'hotSeatTournamentRequest':
@@ -102,6 +103,9 @@ export class PostHotSeatTournamentRequest extends Endpoint {
 							console.log("Info: Hot seat tournament phase request recieved");
 							matchManager.phaseHotSeatTournament(jsonData.tournamentUID);
 							break;
+						case 'canceled':
+							matchManager.cancelHotSeat(jsonData.tournamentUID);
+						
 					}
 				} catch (error) {
 					console.error("Error processing message:", error);
@@ -110,6 +114,7 @@ export class PostHotSeatTournamentRequest extends Endpoint {
 
 			connection.on('close', () => {
 				console.log("Client left the matchMaker");
+
 			});
 		});
 	}
