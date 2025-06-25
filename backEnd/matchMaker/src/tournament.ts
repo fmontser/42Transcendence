@@ -1,7 +1,7 @@
 import { Match } from "./match";
 
 export enum Phase {
-	DRAW ,SEMIFINALS, FINALS, COMPLETED
+	DRAW ,SEMIFINALS, FINALS, COMPLETED, CANCELED
 }
 
 export class Tournament {
@@ -12,14 +12,16 @@ export class Tournament {
 	tournamentUID: number;
 	ranking: Map<number, number>;
 	playersReady = 0;
+	hotSeat: boolean;
 
-	constructor() {
+	constructor(hotSeat: boolean) {
 		this.tournamentUID = 0;
 		this.maxPlayers = 4;
 		this.players = new Map<number, any>();
 		this.matches = new Set<Match>();
 		this.ranking = new Map<number, number>();
 		this.phase = Phase.DRAW;
+		this.hotSeat = hotSeat;
 	}
 
 	private checkDupPlayer(playerUID: number): boolean {
@@ -61,6 +63,7 @@ export class Tournament {
 
 		this.matches.add(semiA);
 		this.matches.add(semiB);
+
 		console.log(`Info: Tournament ${this.tournamentUID} semifinals phase has been drawn`);
 	}
 
@@ -88,6 +91,10 @@ export class Tournament {
 		this.playersReady = 0;
 		this.phase = Phase.FINALS;
 		console.log(`Info: Tournament ${this.tournamentUID} finals phase has been drawn`);
+	}
+
+	public cancel(): void {
+		this.phase = Phase.CANCELED;
 	}
 
 	public endTournament(): void {

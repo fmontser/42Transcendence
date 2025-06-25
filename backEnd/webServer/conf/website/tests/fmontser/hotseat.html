@@ -46,6 +46,12 @@
 
 			let gameUID;
 			let tournamentUID;
+
+			let	player1UID;
+			let	player1Name;
+			let	player2UID;
+			let	player2Name;
+
 			let user1UID = 1; //TODO esto debe obtenerlo del perfil.
 			let user2UID = 2; //TODO esto debe obtenerlo del perfil.
 			let user3UID = 3; //TODO esto debe obtenerlo del perfil.
@@ -85,15 +91,10 @@
 
 				gameUID = data.gameUID;
 				tournamentUID = data.tournamentUID;
-				player0UID = data.player0UID;
-				player0Name = data.player0Name;
-				player1UID = data.player1UID;
-				player1Name = data.player1Name;
-
-				if (player0UID == userUID)
-					userSlot = 0;
-				else
-					userSlot = 1;
+				player1UID = data.player0UID;
+				player1Name = data.player0Name;
+				player2UID = data.player1UID;
+				player2Name = data.player1Name;
 
 				drawAnnounce();
 				//Tres segundos de margen
@@ -161,11 +162,11 @@
 					ctx.font = '28px monospace';
 
 					ctx.textAlign = 'left';
-					const player0Display = `${player0Name || 'Player 0'} (UID: ${player0UID || 'N/A'})`;
+					const player0Display = `${player1Name || 'Player 0'} (UID: ${player1UID || 'N/A'})`;
 					ctx.fillText(player0Display, 70, playField.height / 2 - 30);
 
 					ctx.textAlign = 'right';
-					const player1Display = `${player1Name || 'Player 1'} (UID: ${player1UID || 'N/A'})`;
+					const player1Display = `${player2Name || 'Player 1'} (UID: ${player2UID || 'N/A'})`;
 					ctx.fillText(player1Display, playField.width - 70, playField.height / 2 - 30);
 
 					ctx.textAlign = 'center';
@@ -214,17 +215,16 @@
 
 			function sendSetupRequest() {
 				serverPongWS.send(JSON.stringify({
-					type: 'setupRequest',
-					userUID: userUID,
-					userSlot: userSlot,
-					gameUID: gameUID
+					type: 'setupRequest'
 				}));
 			}
 
-			function sendStartRequest() {
-				serverPongWS.send(JSON.stringify({
-					type: 'startRequest',
-					userUID: userUID
+			function startNewGame() {
+				gameActive = true;
+				serverPongWS.send(JSON.stringify({ 
+					type: 'newGame',
+					player1UID: player1UID,
+					player2UID: player2UID
 				}));
 			}
 
@@ -237,7 +237,7 @@
 				gameState.paddles = data.paddlesPos;
 				gameState.score = data.score;
 
-				sendStartRequest();
+				startNewGame();
 			}
 
 			function reportTournament() {
@@ -269,16 +269,14 @@
 							drawFrame();
 							break;
 						case 'endGame':
-						case 'playerDisconnected':
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
+							//TODO check!
 							setTimeout(() => {
 								reportTournament();
 							}, 3000);
 							break;
-
-						//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'
 					}
 				};
 
@@ -292,53 +290,46 @@
 			}
 
 			function setupControls() {
-
-				console.log("Intentando añadir event listeners para controles. userSlot actual:", userSlot);
 				document.addEventListener('keydown', (event) => {
-					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
-					if (userSlot == 0) {
-						switch(event.key) {
-							case 'w':
-								input.direction = 'up';
-								serverPongWS.send(JSON.stringify(input));
-								break;
-							case 's':
-								input.direction = 'down';
-								serverPongWS.send(JSON.stringify(input));
-								break;
-						}
-					} else if (userSlot == 1) {
-						switch(event.key) {
-							case 'ArrowUp':
-								input.direction = 'up';
-								serverPongWS.send(JSON.stringify(input));
-								break;
-							case 'ArrowDown':
-								input.direction = 'down';
-								serverPongWS.send(JSON.stringify(input));
-								break;
-						}
+					let input = { type: 'input', playerSlot: 0, direction: 'stop' };
+					
+					switch(event.key) {
+						case 'w':
+							input.direction = 'up';
+							input.playerSlot = 0;
+							break;
+						case 's':
+							input.direction = 'down';
+							input.playerSlot = 0;
+							break;
+						case 'ArrowUp':
+							input.direction = 'up';
+							input.playerSlot = 1;
+							break;
+						case 'ArrowDown':
+							input.direction = 'down';
+							input.playerSlot = 1;
+							break;
 					}
+					
+					serverPongWS.send(JSON.stringify(input));
 				});
 
 				document.addEventListener('keyup', (event) => {
-					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
+					let input = { type: 'input', playerSlot: 0, direction: 'stop' };
 					
-					if (userSlot == 0) {
-						switch(event.key) {
-							case 'w':
-							case 's':
-								serverPongWS.send(JSON.stringify(input));
-								break;
-						}
-					} else if (userSlot == 1) {
-						switch(event.key) {
-							case 'ArrowUp':
-							case 'ArrowDown':
-								serverPongWS.send(JSON.stringify(input));
-								break;
-						}
+					switch(event.key) {
+						case 'w':
+						case 's':
+							input.playerSlot = 0;
+							break;
+						case 'ArrowUp':
+						case 'ArrowDown':
+							input.playerSlot = 1;
+							break;
 					}
+					
+					serverPongWS.send(JSON.stringify(input));
 				});
 			}
 
