@@ -77,6 +77,9 @@ export class GetNewLocalGame extends Endpoint {
 							else if (jsonData.playerSlot == P2)
 								this.currentGame.playField.paddle1.updateVector(jsonData.direction);
 							break;
+						case 'canceled':
+							console.log("Info: local game got canceled");
+							connection.close();
 					}
 				} catch (error) {
 					console.error("Error processing message:", error);

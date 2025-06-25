@@ -1,7 +1,7 @@
 import { Match } from "./match";
 
 export enum Phase {
-	DRAW ,SEMIFINALS, FINALS, COMPLETED
+	DRAW ,SEMIFINALS, FINALS, COMPLETED, CANCELED
 }
 
 export class Tournament {
@@ -12,14 +12,16 @@ export class Tournament {
 	tournamentUID: number;
 	ranking: Map<number, number>;
 	playersReady = 0;
+	hotSeat: boolean;
 
-	constructor() {
+	constructor(hotSeat: boolean) {
 		this.tournamentUID = 0;
 		this.maxPlayers = 4;
 		this.players = new Map<number, any>();
 		this.matches = new Set<Match>();
 		this.ranking = new Map<number, number>();
 		this.phase = Phase.DRAW;
+		this.hotSeat = hotSeat;
 	}
 
 	private checkDupPlayer(playerUID: number): boolean {
@@ -61,6 +63,7 @@ export class Tournament {
 
 		this.matches.add(semiA);
 		this.matches.add(semiB);
+
 		console.log(`Info: Tournament ${this.tournamentUID} semifinals phase has been drawn`);
 	}
 
@@ -90,6 +93,13 @@ export class Tournament {
 		console.log(`Info: Tournament ${this.tournamentUID} finals phase has been drawn`);
 	}
 
+	public cancel(): void {
+		console.log(`Info: Tournament ${this.tournamentUID} canceled`);
+		this.phase = Phase.CANCELED;
+		this.matches.clear();
+		this.players.clear();
+	}
+
 	public endTournament(): void {
 		
 		const matchArray = Array.from(this.matches);
@@ -114,6 +124,7 @@ export class Tournament {
 		}
 
 		this.matches.clear();
+		this.players.clear();
 		this.playersReady = 0;
 		this.phase =  Phase.COMPLETED;
 		console.log(`Info: Tournament ${this.tournamentUID} complete, ranking is:\n
@@ -126,8 +137,4 @@ export class Tournament {
 
 	public getPlayers(): any { return (this.players); }
 	public getPhase(): any { return (this.phase) };
-}
-
-export class HotSeatTournament extends Tournament {
-	//TODO implementar
 }

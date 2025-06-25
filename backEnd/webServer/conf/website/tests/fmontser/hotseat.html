@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Multiplayer Pong Test Client</title>
+	<title>Hot seat Tournament Pong Test Client (UNRANKED)</title>
 	<style>
 		body {
 			display: flex;
@@ -34,7 +34,8 @@
 		</div>
 
 		<script>
-			let ws;
+			let matchMakerWS;
+			let serverPongWS;
 			const playField = document.getElementById('playField');
 			const ctx = playField.getContext('2d');
 			const scoreElement = document.getElementById('score');
@@ -44,13 +45,17 @@
 			let BALL_RADIUS = 32;
 
 			let gameUID;
-			let userUID = 4; //TODO esto debe obtenerlo del perfil.
-			let userSlot;
+			let tournamentUID;
 
-			let player0Name;
-			let player0UID;
-			let player1Name;
-			let player1UID;
+			let	player1UID;
+			let	player1Name;
+			let	player2UID;
+			let	player2Name;
+
+			let user1UID = 1; //TODO esto debe obtenerlo del perfil.
+			let user2UID = 2; //TODO esto debe obtenerlo del perfil.
+			let user3UID = 3; //TODO esto debe obtenerlo del perfil.
+			let user4UID = 4; //TODO esto debe obtenerlo del perfil.
 
 			let gameActive = false;
 			let gameStarted = false;
@@ -71,60 +76,90 @@
 
 			//MATCH MAKER SECTION
 
-			function sendMatchRequest() {
-				ws.send(JSON.stringify({
-					type: 'matchRequest',
-					userUID: userUID
+			function sendTournamentRequest() {
+				matchMakerWS.send(JSON.stringify({
+					type: 'hotSeatTournamentRequest',
+					user1UID: user1UID,
+					user2UID: user2UID,
+					user3UID: user3UID,
+					user4UID: user4UID
 				}));
-				console.log("Info: Match request sent to matchMaker");
+				console.log("Info: Hot seat tournament request sent to matchMaker");
 			}
 
 			function handleAnnounceResponse(data) {
 
 				gameUID = data.gameUID;
-				player0UID = data.player0UID;
-				player0Name = data.player0Name;
-				player1UID = data.player1UID;
-				player1Name = data.player1Name;
-
-				if (player0UID == userUID)
-					userSlot = 0;
-				else
-					userSlot = 1;
+				tournamentUID = data.tournamentUID;
+				player1UID = data.player0UID;
+				player1Name = data.player0Name;
+				player2UID = data.player1UID;
+				player2Name = data.player1Name;
 
 				drawAnnounce();
 				//Tres segundos de margen
 				setTimeout(() => {
-					ws.close();
 					setupPongWS();
 				}, 3000);
 			}
 
+			function drawTornamentRanking(data) {
+				ctx.fillStyle = '#1a1a1a';
+				ctx.fillRect(0, 0, playField.width, playField.height);
+
+				ctx.fillStyle = 'white';
+				ctx.font = '48px monospace';
+				ctx.textAlign = 'center';
+				ctx.fillText('TOURNAMENT RANKING', playField.width / 2, playField.height / 3);
+
+				ctx.font = '36px monospace';
+				ctx.fillText(`1st: UID ${data.p1}`, playField.width / 2, playField.height / 2 - 40);
+				ctx.fillText(`2nd: UID ${data.p2}`, playField.width / 2, playField.height / 2 + 10);
+				ctx.fillText(`3rd: UID ${data.p3}`, playField.width / 2, playField.height / 2 + 60);
+				ctx.fillText(`4th: UID ${data.p4}`, playField.width / 2, playField.height / 2 + 110);
+			}
+
 
 			function setupMatchMakerWS() {
-				ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/match`);
+				matchMakerWS = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/hotseat`);
 
-				ws.onopen = () => {
-					sendMatchRequest();
+				matchMakerWS.onopen = () => {
+					sendTournamentRequest();
 				};
 
-				ws.onmessage = (event) => {
+				matchMakerWS.onmessage = (event) => {
 					const data = JSON.parse(event.data);
 					switch(data.type) {
 						case 'matchAnnounce':
 							console.log("Info: Recieved match announce from matchMaker");
 							handleAnnounceResponse(data);
 							break;
+						case 'tournamentRanking':
+							console.log("Info: Recieved tournament ranking from matchMaker");
+							drawTornamentRanking(data);
+							break;
 					}
 				};
 
-				ws.onclose = () => {
-					console.log('Disconected from match maker.');
+				window.onbeforeunload = () => {
+					matchMakerWS.send(JSON.stringify({
+						type: 'canceled',
+						tournamentUID: tournamentUID
+					}));
+
+					serverPongWS.send(JSON.stringify({
+						type: 'canceled'
+					}));
 				};
 
-				ws.onerror = (error) => {
+				matchMakerWS.onclose = () => {
+					console.log('Disconected from match maker.')
+				};
+
+				matchMakerWS.onerror = (error) => {
 					console.error('WebSocket error:', error);
 				};
+
 			}
 
 			//TODO FRONTEND anuncio de juego!
@@ -139,11 +174,11 @@
 					ctx.font = '28px monospace';
 
 					ctx.textAlign = 'left';
-					const player0Display = `${player0Name || 'Player 0'} (UID: ${player0UID || 'N/A'})`;
+					const player0Display = `${player1Name || 'Player 0'} (UID: ${player1UID || 'N/A'})`;
 					ctx.fillText(player0Display, 70, playField.height / 2 - 30);
 
 					ctx.textAlign = 'right';
-					const player1Display = `${player1Name || 'Player 1'} (UID: ${player1UID || 'N/A'})`;
+					const player1Display = `${player2Name || 'Player 1'} (UID: ${player2UID || 'N/A'})`;
 					ctx.fillText(player1Display, playField.width - 70, playField.height / 2 - 30);
 
 					ctx.textAlign = 'center';
@@ -191,18 +226,17 @@
 			//SERVER PONG SECTION
 
 			function sendSetupRequest() {
-				ws.send(JSON.stringify({
-					type: 'setupRequest',
-					userUID: userUID,
-					userSlot: userSlot,
-					gameUID: gameUID
+				serverPongWS.send(JSON.stringify({
+					type: 'setupRequest'
 				}));
 			}
 
-			function sendStartRequest() {
-				ws.send(JSON.stringify({
-					type: 'startRequest',
-					userUID: userUID
+			function startNewGame() {
+				gameActive = true;
+				serverPongWS.send(JSON.stringify({ 
+					type: 'newGame',
+					player1UID: player1UID,
+					player2UID: player2UID
 				}));
 			}
 
@@ -215,19 +249,27 @@
 				gameState.paddles = data.paddlesPos;
 				gameState.score = data.score;
 
-				sendStartRequest();
+				startNewGame();
+			}
+
+			function reportTournament() {
+				console.log("Info: Hot seat Tournament phase request sent to matchMaker");
+				matchMakerWS.send(JSON.stringify({
+					type: 'hotSeatTournamentPhaseEnd',
+					tournamentUID: tournamentUID
+				}));
 			}
 
 			function setupPongWS() {
-				ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+				serverPongWS = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
 
-				ws.onopen = () => {
+				serverPongWS.onopen = () => {
 					console.log('Conectado al servidor');
 					sendSetupRequest();
 					setupControls();
 				};
 
-				ws.onmessage = (event) => {
+				serverPongWS.onmessage = (event) => {
 					const data = JSON.parse(event.data);
 					switch(data.type) {
 						case 'setupResponse':
@@ -239,73 +281,66 @@
 							drawFrame();
 							break;
 						case 'endGame':
-						case 'playerDisconnected':
 							gameActive = false;
 							gameStarted = false;
 							drawEndGameScreen(data);
+							setTimeout(() => {
+								reportTournament();
+							}, 3000);
 							break;
-
-						//TODO pantalla resultados con desconexion de jugador... case 'playerDisconnected'
 					}
 				};
 
-				ws.onclose = () => {
+				serverPongWS.onclose = () => {
 					console.log('Disconected from pong server.');
 				};
 
-				ws.onerror = (error) => {
+				serverPongWS.onerror = (error) => {
 					console.error('WebSocket error:', error);
 				};
 			}
 
 			function setupControls() {
-
-				console.log("Intentando añadir event listeners para controles. userSlot actual:", userSlot);
 				document.addEventListener('keydown', (event) => {
-					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
-					if (userSlot == 0) {
-						switch(event.key) {
-							case 'w':
-								input.direction = 'up';
-								ws.send(JSON.stringify(input));
-								break;
-							case 's':
-								input.direction = 'down';
-								ws.send(JSON.stringify(input));
-								break;
-						}
-					} else if (userSlot == 1) {
-						switch(event.key) {
-							case 'ArrowUp':
-								input.direction = 'up';
-								ws.send(JSON.stringify(input));
-								break;
-							case 'ArrowDown':
-								input.direction = 'down';
-								ws.send(JSON.stringify(input));
-								break;
-						}
+					let input = { type: 'input', playerSlot: 0, direction: 'stop' };
+					
+					switch(event.key) {
+						case 'w':
+							input.direction = 'up';
+							input.playerSlot = 0;
+							break;
+						case 's':
+							input.direction = 'down';
+							input.playerSlot = 0;
+							break;
+						case 'ArrowUp':
+							input.direction = 'up';
+							input.playerSlot = 1;
+							break;
+						case 'ArrowDown':
+							input.direction = 'down';
+							input.playerSlot = 1;
+							break;
 					}
+					
+					serverPongWS.send(JSON.stringify(input));
 				});
 
 				document.addEventListener('keyup', (event) => {
-					let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
+					let input = { type: 'input', playerSlot: 0, direction: 'stop' };
 					
-					if (userSlot == 0) {
-						switch(event.key) {
-							case 'w':
-							case 's':
-								ws.send(JSON.stringify(input));
-								break;
-						}
-					} else if (userSlot == 1) {
-						switch(event.key) {
-							case 'ArrowUp':
-							case 'ArrowDown':
-								ws.send(JSON.stringify(input));
-								break;
-						}
+					switch(event.key) {
+						case 'w':
+						case 's':
+							input.playerSlot = 0;
+							break;
+						case 'ArrowUp':
+						case 'ArrowDown':
+							input.playerSlot = 1;
+							break;
 					}
+					
+					serverPongWS.send(JSON.stringify(input));
 				});
 			}
 

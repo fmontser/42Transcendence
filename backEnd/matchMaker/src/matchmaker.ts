@@ -15,7 +15,6 @@ function setEndPoints(): void {
 
 	new EndPoints.PostHotSeatTournamentRequest('/matchmaker/front/post/hotseat', 'Error obtaining post hotseat endpoint');
 
-
 	EndPoints.Endpoint.enableAll(server);
 }
 
