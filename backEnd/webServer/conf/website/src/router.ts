@@ -72,7 +72,8 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
-					console.log("html 1:", data);
+					//TODO FIX!
+/* 					console.log("html 1:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -83,7 +84,7 @@ const routes: Page[] = [
 					} else {
 						console.error('Root element not found');
 					}
-					import()
+					import() */
 					// 
 					//creo objeto(id en el constructor);
 				}
@@ -118,10 +119,11 @@ const routes: Page[] = [
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						console.log("html 2 :", data);
+						//TODO FIX!
+/* 						console.log("html 2 :", data);
 						const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
 						const gameInstance = new multiplayerModule.gameInstance(2);
-						multiplayerModule.start();
+						multiplayerModule.start(); */
 					} else {
 						console.error('Root element not found');
 					}
