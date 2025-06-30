@@ -12,11 +12,13 @@ build:
 	@echo "Compilando TypeScript..."
 	@$(TSC)
 
+install:
+	@npm install
 
 clean:
 	@echo "Limpiando proyecto Webserver..."
 	@rm -rf $(NODES_DIR)
-	#@rm -rf $(DIST_DIR) 
+	@rm -rf $(DIST_DIR) 
 
 re: clean build
 
