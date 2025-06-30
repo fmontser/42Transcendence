@@ -65,7 +65,7 @@ interface Page {
 
 const routes: Page[] = [
 		{
-		path: "/multiplayer",
+		path: "/multiplayer1",
 		view: async () => {
 			try {
 				let response: Response = await fetch("src/multiplayer.html");
@@ -77,9 +77,15 @@ const routes: Page[] = [
 					if (root) {
 						root.innerHTML = data;
 						console.log("html 2 :", data);
+						const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
+						const gameInstance = new multiplayerModule.gameInstance(1);
+						multiplayerModule.start();
 					} else {
 						console.error('Root element not found');
 					}
+					import()
+					// 
+					//creo objeto(id en el constructor);
 				}
 				else {
 					console.log("Fetch failed.");
@@ -99,6 +105,48 @@ const routes: Page[] = [
 			}
 		}
 	},
+
+	{
+		path: "/multiplayer2",
+		view: async () => {
+			try {
+				let response: Response = await fetch("src/multiplayer.html");
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					console.log("html 1:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						console.log("html 2 :", data);
+						const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
+						const gameInstance = new multiplayerModule.gameInstance(2);
+						multiplayerModule.start();
+					} else {
+						console.error('Root element not found');
+					}
+					// 
+					//creo objeto(id en el constructor);
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
 	{
 		path: "/",
 		view: async () => {

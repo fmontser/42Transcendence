@@ -14,7 +14,7 @@ let BALL_RADIUS!: number;
 
 //TODO testing, gameActive/gameStarted
 
-export class OnlineGame {
+export class const gameInstance = new multiplayerModule.MultiplayerGame(); {
 	private playField: any = document.getElementById('playField');
 	private ctx2d: any = this.playField.getContext('2d');
 	private scoreElement: any = document.getElementById('score');
