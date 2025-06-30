@@ -1,62 +1,4 @@
-// interface Route {
-// 	path: string;
-// 	view: () => Promise<void>;
-// }
-
-// const routes: Routes[] = [
-// 	{
-// 		path: '/', //home path
-// 		view: async() => {
-// 			console.log("Home page...");
-// 			const [html, script] = await Promise.all([
-// 				fetch('../src/pages/home.html').then(res => res.text()),
-// 			]);
-
-// 			document.querySelector('#root')!.innerHTML = html;
-// 			import()
-// 			//script.init();
-// 		},
-// 	},
-
-// 	{
-// 		path: '/login', //login path
-// 		view: async() => {
-// 			console.log("Log in...");
-// 			const [html, script] = await Promise.all([
-// 				fetch('../src/pages/logIn.html').then(res => res.text());
-// 			]);
-// 		},
-// 	},
-// ]
-
-// const router = async () => {
-// 	const path = location.pathname;
-// 	const match = routes.find(routes => router.path === path);
-
-// 	if (match) {
-// 		await match.view();
-// 	}
-// 	else {
-// 		document.querySelector('#root')!.innerHTML = '<h1>404 - Page Not Found</h1>';
-// 	}
-// };
-
-// document.addEventListener('click', e => {
-// 	const target = e.target as HTMLElement;
-// 	if (target.matches('.nav-link')) {
-// 		e.preventDefault();
-// 		const href = target.getAttribute('href')!;
-
-// 		history.pushState(null, '', href);
-
-// 		router();
-// 	}
-// });
-
-// window.addEventListener('popstate', router);
-
-// document.addEventListener('DOMContentLoaded', router);
-
+import OnlineGame from './gameScripts/onlineGame'
 
 interface Page {
 	path: string;
@@ -73,18 +15,18 @@ const routes: Page[] = [
 				{
 					let data: string = await response.text();
 					//TODO FIX!
-/* 					console.log("html 1:", data);
+					console.log("html 1:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
 						console.log("html 2 :", data);
-						const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
-						const gameInstance = new multiplayerModule.gameInstance(1);
-						multiplayerModule.start();
+						//const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
+						const gameInstance = new OnlineGame(1);
+						gameInstance.start();
 					} else {
 						console.error('Root element not found');
 					}
-					import() */
+					//import()
 					// 
 					//creo objeto(id en el constructor);
 				}
@@ -120,10 +62,10 @@ const routes: Page[] = [
 					if (root) {
 						root.innerHTML = data;
 						//TODO FIX!
-/* 						console.log("html 2 :", data);
-						const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
-						const gameInstance = new multiplayerModule.gameInstance(2);
-						multiplayerModule.start(); */
+						console.log("html 2 :", data);
+						//const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
+						const gameInstance = new OnlineGame(2);
+						gameInstance.start();
 					} else {
 						console.error('Root element not found');
 					}
