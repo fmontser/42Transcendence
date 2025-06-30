@@ -5,7 +5,8 @@ let PADDLE_WIDTH!: number;
 let PADDLE_HEIGHT!: number;
 let BALL_RADIUS!: number;
 
-export class LocalGame {
+//TODO testing clase
+class LocalGame {
 	private playField: any = document.getElementById('playField');
 	private ctx2d: any = this.playField.getContext('2d');
 	private scoreElement: any = document.getElementById('score');
@@ -26,7 +27,7 @@ export class LocalGame {
 	}
 
 	public start():  void {
-		this.serverPongConnector = new ServerPongConnector(this);
+		this.drawStartScreen()
 	} 
 
 	//TODO FRONTEND estetica
@@ -55,6 +56,7 @@ export class LocalGame {
 		this.scoreElement.textContent = `${this._gameState.score[0]} - ${this._gameState.score[1]}`;
 	}
 
+	//TODO FRONTEND estetica
 	public drawEndGameScreen(endGameData: any) {
 		// canvas
 		this.ctx2d.fillStyle = '#1a1a1a';
@@ -73,9 +75,49 @@ export class LocalGame {
 		this.ctx2d.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
 			this.playField.width/2, this.playField.height/2);
 		
+		//TODO pasar de winnerUID al nombre temporal del jugador
 		// winner
 		this.ctx2d.fillText(`Winner: Player ${endGameData.winnerUID}`, 
 			this.playField.width/2, this.playField.height/2 + 50);
+	}
+
+	//TODO FRONTEND estetica
+	private drawStartScreen() {
+		// Fondo
+		this.ctx2d.fillStyle = '#1a1a1a';
+		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
+
+		// Título
+		this.ctx2d.fillStyle = 'white';
+		this.ctx2d.font = '48px monospace';
+		this.ctx2d.textAlign = 'center';
+		this.ctx2d.fillText(`${player0Name} VS ${player1Name}`, this.playField.width/2, this.playField.height/3);
+
+		// Botón de inicio
+		const buttonY = this.playField.height/2 + 50;
+		this.ctx2d.fillStyle = '#4CAF50';
+		this.ctx2d.fillRect(this.playField.width/2 - 100, buttonY, 200, 50);
+		
+		this.ctx2d.fillStyle = 'white';
+		this.ctx2d.font = '24px monospace';
+		this.ctx2d.fillText('Start Game', this.playField.width/2, buttonY + 32);
+
+		// Listener para el botón
+		this.playField.addEventListener('click', this.handleStartClick);
+	}
+
+	private handleStartClick(event: any) {
+		const rect = this.playField.getBoundingClientRect();
+		const x = event.clientX - rect.left;
+		const y = event.clientY - rect.top;
+		
+		const buttonY = this.playField.height/2 + 50;
+		if (x >= this.playField.width/2 - 100 && x <= this.playField.width/2 + 100 &&
+			y >= buttonY && y <= buttonY + 50) {
+			
+			this.playField.removeEventListener('click', this.handleStartClick);
+			this.serverPongConnector = new ServerPongConnector(this);
+		}
 	}
 
 	set setGameState(data: any) {

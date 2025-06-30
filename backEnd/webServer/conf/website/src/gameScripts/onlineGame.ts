@@ -29,8 +29,8 @@ export class OnlineGame {
 		score: [0, 0]
 	};
 
-	constructor (userUID: number) {
-		userUID = userUID;
+	constructor (id: number) {
+		userUID = id;
 	}
 
 	public start(): void {
@@ -66,6 +66,7 @@ export class OnlineGame {
 				this.ctx2d.fillText(currentCountdownValue.toString(), this.playField.width / 2, this.playField.height / 2 + 70);
 			}
 		};
+
 
 		drawCurrentAnnounceState(countdown);
 
@@ -139,7 +140,7 @@ export class OnlineGame {
 			this.playField.width/2, this.playField.height/2 + 50);
 	}
 
-	set setGameState(data: any) {
+	public setGameState(data: any) {
 		this._gameState.ball = data.ballPos;
 		this._gameState.paddles = data.paddlesPos;
 		this._gameState.score = data.score;
@@ -209,6 +210,7 @@ class MatchMakerConnector {
 		else
 			userSlot = 1;
 
+		console.log(`Info: Announce recieved from matchMaker`);
 		this.gameCtx.announceMatch();
 		this.ws.close();
 	}
