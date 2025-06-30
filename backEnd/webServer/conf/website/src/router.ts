@@ -64,6 +64,41 @@ interface Page {
 }
 
 const routes: Page[] = [
+		{
+		path: "/multiplayer",
+		view: async () => {
+			try {
+				let response: Response = await fetch("src/multiplayer.html");
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					console.log("html 1:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						console.log("html 2 :", data);
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
 	{
 		path: "/",
 		view: async () => {

@@ -5,3 +5,20 @@ export class TournamentGame {
 
 	}
 }
+
+class MatchMakerConnector {
+	private gameCtx: TournamentGame;
+
+	constructor (gameCtx: TournamentGame) {
+		this.gameCtx = gameCtx;
+	}
+
+}
+
+class ServerPongConnector {
+	private gameCtx: TournamentGame;
+
+	constructor (gameCtx: TournamentGame) {
+		this.gameCtx = gameCtx;
+	}
+}
