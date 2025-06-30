@@ -1,4 +1,3 @@
-
 let gameUID!: number;
 let userUID!: number;
 let userSlot!: number;
@@ -38,7 +37,7 @@ export class OnlineGame {
 		this.matchMakerConnector = new MatchMakerConnector(this);
 	}
 
-	//TODO comprobar el playerName en (obtenerlo dle matchmaker??)
+
 	public announceMatch() {
 		let countdown = 3;
 
