@@ -1,3 +1,4 @@
 #.env
 .myTODO
 *.db
+node_modules/**/*
