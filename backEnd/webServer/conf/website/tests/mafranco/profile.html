@@ -430,5 +430,35 @@
     fetchPendingFriends();
     loadProfile();
   </script>
+
+    <!-- Bouton de déconnexion -->
+  <button id="logoutBtn" style="display:none; margin-top: 10px;">
+    Se déconnecter
+  </button>
+
+  <script>
+      // Rendre visible le bouton de logout après connexion réussie
+    document.getElementById('logoutBtn').style.display = 'block';
+
+    // Gérer la déconnexion
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/logout`, {
+        method: 'POST',
+        credentials: 'include' // important pour envoyer le cookie
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("Déconnexion réussie");
+          window.location.href = './login.html'; // ou page de login
+        } else {
+          alert("Erreur lors de la déconnexion");
+        }
+      })
+      .catch(err => {
+        console.error("Erreur réseau lors du logout :", err);
+      });
+    });
+  </script>
 </body>
 </html>
