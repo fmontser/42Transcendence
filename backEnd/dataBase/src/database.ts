@@ -25,7 +25,9 @@ function setTables(): void {
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT UNIQUE NOT NULL,
-			pass TEXT NOT NULL
+			pass TEXT NOT NULL,
+			two_fa BOOLEAN DEFAULT FALSE,
+			login_method TEXT DEFAULT 'local' -- local, google
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS profiles (
@@ -132,6 +134,58 @@ function setEndPoints(): void {
 		"Failed to get user"
 	);
 
+	new EndPoints.getEndpoint(
+		"/get/friendships_pending",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'pending'
+		AND f.sender_id != ?
+		`,
+		"Failed to get pending friendships"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/friendships_accepted",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'accepted'
+		`,
+		"Failed to get accepted friendships"
+	);
+	
+	new EndPoints.getEndpoint(
+		"/get/friendships_blocked",
+		`SELECT 
+		f.id AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'blocked'
+		`,
+		"Failed to get blocked friendships"
+	);
+
 	new EndPoints.postEndpoint(
 		"/post/match",
 		"INSERT INTO matches (player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?)",
@@ -146,7 +200,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/user",
-		"INSERT INTO users (name, pass) VALUES (?, ?)",
+		"INSERT INTO users (name, pass, login_method) VALUES (?, ?, ?)",
 		"Data insertion error"
 	);
 

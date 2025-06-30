@@ -86,3 +86,16 @@ services:
         depends_on:
             - dataBase
             - webServer
+
+    userAuthentication:
+        build: ${USER_AUTHENTICATION_BUILD_PATH}
+        init: true
+        image: userauthentication-img
+        restart: unless-stopped
+        container_name: userAuthentication
+        networks:
+            - proxy-network
+            - backend-network
+        depends_on:
+            - dataBase
+            - webServer
