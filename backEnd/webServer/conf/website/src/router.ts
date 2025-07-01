@@ -1,4 +1,7 @@
-import OnlineGame from './gameScripts/onlineGame'
+import { OnlineGame } from './gameScripts/onlineGame.js'
+import { LocalGame } from './gameScripts/localGame.js'
+//import { HotSeatGame } from './gameScripts/hotSeatGame.js';
+
 
 interface Page {
 	path: string;
@@ -6,29 +9,25 @@ interface Page {
 }
 
 const routes: Page[] = [
-		{
-		path: "/multiplayer1",
+
+	{
+		path: "/localGame",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/multiplayer.html");
+				let response: Response = await fetch("src/pongGame.html");
 				if (response.ok)
 				{
 					let data: string = await response.text();
-					//TODO FIX!
 					console.log("html 1:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
 						console.log("html 2 :", data);
-						//const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
-						const gameInstance = new OnlineGame(1);
-						gameInstance.start();
+						let newGame = new LocalGame("Fran-temp", "Dario-temp");
+						newGame.start()
 					} else {
 						console.error('Root element not found');
 					}
-					//import()
-					// 
-					//creo objeto(id en el constructor);
 				}
 				else {
 					console.log("Fetch failed.");
@@ -50,27 +49,24 @@ const routes: Page[] = [
 	},
 
 	{
-		path: "/multiplayer2",
+		path: "/onlineGame-1",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/multiplayer.html");
+				let response: Response = await fetch("src/pongGame.html");
 				if (response.ok)
 				{
 					let data: string = await response.text();
+
 					console.log("html 1:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						//TODO FIX!
 						console.log("html 2 :", data);
-						//const multiplayerModule = await import('src/gameScripts/onlineGame.ts');
-						const gameInstance = new OnlineGame(2);
-						gameInstance.start();
+						let newGame = new OnlineGame(1);
+						newGame.start()
 					} else {
 						console.error('Root element not found');
 					}
-					// 
-					//creo objeto(id en el constructor);
 				}
 				else {
 					console.log("Fetch failed.");
@@ -90,6 +86,84 @@ const routes: Page[] = [
 			}
 		}
 	},
+
+	{
+		path: "/onlineGame-2",
+		view: async () => {
+			try {
+				let response: Response = await fetch("src/pongGame.html");
+				if (response.ok)
+				{
+					let data: string = await response.text();
+
+					console.log("html 1:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						console.log("html 2 :", data);
+						let newGame = new OnlineGame(2);
+						newGame.start()
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+/* 	{
+		path: "/hotSeat",
+		view: async () => {
+			try {
+				let response: Response = await fetch("src/pongGame.html");
+				if (response.ok)
+				{
+					let data: string = await response.text();
+
+					console.log("html 1:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						console.log("html 2 :", data);
+						let newGame = new HotSeatGame([1,2,3,4]);
+						newGame.start()
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	}, */
 
 	{
 		path: "/",

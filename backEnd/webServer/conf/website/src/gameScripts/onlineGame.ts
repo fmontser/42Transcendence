@@ -2,16 +2,14 @@ let gameUID!: number;
 let userUID!: number;
 let userSlot!: number;
 
-let player0Name!: number;
+let player0Name!: string;
 let player0UID!: number;
-let player1Name!: number;
+let player1Name!: string;
 let player1UID!: number;
 
 let PADDLE_WIDTH!: number;
 let PADDLE_HEIGHT!: number;
 let BALL_RADIUS!: number;
-
-//TODO testing, gameActive/gameStarted
 
 export class OnlineGame {
 	private playField: any = document.getElementById('playField');
@@ -29,14 +27,13 @@ export class OnlineGame {
 		score: [0, 0]
 	};
 
-	constructor (userUID: number) {
-		userUID = userUID;
+	constructor (id: number) {
+		userUID = id;
 	}
 
 	public start(): void {
 		this.matchMakerConnector = new MatchMakerConnector(this);
 	}
-
 
 	public announceMatch() {
 		let countdown = 3;
@@ -49,12 +46,10 @@ export class OnlineGame {
 			this.ctx2d.font = '28px monospace';
 
 			this.ctx2d.textAlign = 'left';
-			const player0Display = `${player0Name || 'Player 0'} (UID: ${player0UID || 'N/A'})`;
-			this.ctx2d.fillText(player0Display, 70, this.playField.height / 2 - 30);
+			this.ctx2d.fillText(player0Name, 70, this.playField.height / 2 - 30);
 
 			this.ctx2d.textAlign = 'right';
-			const player1Display = `${player1Name || 'Player 1'} (UID: ${player1UID || 'N/A'})`;
-			this.ctx2d.fillText(player1Display, this.playField.width - 70, this.playField.height / 2 - 30);
+			this.ctx2d.fillText(player1Name, this.playField.width - 70, this.playField.height / 2 - 30);
 
 			this.ctx2d.textAlign = 'center';
 			this.ctx2d.font = '36px monospace';
@@ -66,6 +61,7 @@ export class OnlineGame {
 				this.ctx2d.fillText(currentCountdownValue.toString(), this.playField.width / 2, this.playField.height / 2 + 70);
 			}
 		};
+
 
 		drawCurrentAnnounceState(countdown);
 
@@ -135,16 +131,15 @@ export class OnlineGame {
 			this.playField.width/2, this.playField.height/2);
 		
 		// winner
-		this.ctx2d.fillText(`Winner: Player ${endGameData.winnerUID}`, 
-			this.playField.width/2, this.playField.height/2 + 50);
+		let winnerName: string = endGameData.score[0] > endGameData.score[1] ? player0Name : player1Name;
+		this.ctx2d.fillText(`Winner: ${winnerName}`, this.playField.width/2, this.playField.height/2 + 50);
 	}
 
-	set setGameState(data: any) {
+	public setGameState(data: any) {
 		this._gameState.ball = data.ballPos;
 		this._gameState.paddles = data.paddlesPos;
 		this._gameState.score = data.score;
 	}
-	
 }
 
 class MatchMakerConnector {
@@ -209,6 +204,7 @@ class MatchMakerConnector {
 		else
 			userSlot = 1;
 
+		console.log(`Info: Announce recieved from matchMaker`);
 		this.gameCtx.announceMatch();
 		this.ws.close();
 	}

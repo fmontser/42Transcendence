@@ -66,7 +66,7 @@ export class GetNewLocalGame extends Endpoint {
 							this.currentGame = new LocalGame(jsonData.gameUID);
 							this.currentGame.gameSetup(connection);
 							break;
-						case 'newGame':
+						case 'startRequest':
 							console.log("New local game requested!");
 							this.currentGame.addLocalPlayers(connection);
 							this.currentGame.gameStart(connection);

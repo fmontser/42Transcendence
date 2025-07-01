@@ -205,7 +205,7 @@ export class MatchManager {
 	}
 
 	private checkPlayers(match: Match): boolean {
-		if (match.player0UID != undefined && match.player1UID != undefined) {
+		if (match.player0UID != 0 && match.player1UID != 0) {
 			return (true);
 		}
 		return (false);
