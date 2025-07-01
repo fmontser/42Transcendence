@@ -1,6 +1,6 @@
 import { OnlineGame } from './gameScripts/onlineGame.js'
 import { LocalGame } from './gameScripts/localGame.js'
-//import { HotSeatGame } from './gameScripts/hotSeatGame.js';
+import { HotSeatGame } from './gameScripts/hotSeatGame.js';
 
 interface Page {
 	path: string;
@@ -32,7 +32,6 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -63,7 +62,7 @@ const routes: Page[] = [
 						root.innerHTML = data;
 						console.log("html 2 :", data);
 						let newGame = new OnlineGame(1);
-						newGame.start()
+						newGame.start();
 					} else {
 						console.error('Root element not found');
 					}
@@ -71,7 +70,6 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -110,7 +108,6 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -126,7 +123,7 @@ const routes: Page[] = [
 		}
 	},
 
-/* 	{
+	{
 		path: "/hotSeat",
 		view: async () => {
 			try {
@@ -149,7 +146,7 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
+
 			}
 			catch (error: unknown)
 			{
@@ -163,7 +160,7 @@ const routes: Page[] = [
 				}
 			}
 		}
-	}, */
+	},
 
 	{
 		path: "/",

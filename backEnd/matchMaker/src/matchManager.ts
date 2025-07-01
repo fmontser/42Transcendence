@@ -102,8 +102,6 @@ export class MatchManager {
 
 	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
 		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.hotSeatList);
-		
-		console.log(`DEBUG: ${currentTournament}`);
 
 		if (currentTournament != null) {
 			if (currentTournament.getPhase() == Phase.SEMIFINALS){
@@ -136,12 +134,24 @@ export class MatchManager {
 		return (null);
 	}
 
+	//TODO borrar si no hace falta...
+/* 	private checkCompletedMatches(matches: Set<Match>): boolean {
+		for (const m of matches){
+			if (m.status != Status.COMPLETED)
+				return (false);
+		}
+		return (true);
+	} */
+
 	private async sequenceHotSeatMatches(newTournament: Tournament) {
 		for (const match of newTournament.matches) {
 			if (newTournament.getPhase() == Phase.CANCELED) {
 				this.hotSeatList.delete(newTournament);
 				break;
 			}
+			
+			console.log(`DEBUG: >>>>>>> match request... ${match.player0Name}, ${match.player1Name}`)
+			
 			this.requestNewPongInstance(match, true);
 			while (true) {
 				if (match.status === Status.COMPLETED)

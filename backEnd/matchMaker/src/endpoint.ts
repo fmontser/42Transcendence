@@ -1,5 +1,4 @@
 import { matchManager } from './matchmaker'
-import { Tournament } from './tournament';
 
 export abstract class Endpoint {
 

@@ -1,4 +1,4 @@
-/* let gameUID!: number;
+let gameUID!: number;
 let tournamentUID!: number;
 
 let player0Name!: string;
@@ -21,6 +21,7 @@ export class HotSeatGame {
 	private scoreElement: any = document.getElementById('score');
 	private matchMakerConnector!: MatchMakerConnector;
 	private serverPongConnector!: ServerPongConnector;
+	public	matchCount!: number;
 	
 	private _gameState = {
 		ball: { x: 0, y: 0 },
@@ -32,6 +33,7 @@ export class HotSeatGame {
 	};
 
 	constructor (usersUIDs: number[]) {
+		this.matchCount = 0;
 		user1UID = usersUIDs[0];
 		user2UID = usersUIDs[1];
 		user3UID = usersUIDs[2];
@@ -44,6 +46,7 @@ export class HotSeatGame {
 
 	public announceMatch() {
 		let countdown = 3;
+		this.matchCount++;
 
 		const drawCurrentAnnounceState = (currentCountdownValue: any) => {
 			this.ctx2d.fillStyle = '#1a1a1a';
@@ -68,7 +71,6 @@ export class HotSeatGame {
 				this.ctx2d.fillText(currentCountdownValue.toString(), this.playField.width / 2, this.playField.height / 2 + 70);
 			}
 		};
-
 
 		drawCurrentAnnounceState(countdown);
 
@@ -117,6 +119,7 @@ export class HotSeatGame {
 
 	//TODO FRONTEND estetica
 	public drawEndGameScreen(endGameData: any) {
+
 		// canvas
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
@@ -163,6 +166,8 @@ export class HotSeatGame {
 		this._gameState.paddles = data.paddlesPos;
 		this._gameState.score = data.score;
 	}
+
+	public getMatchMakerConnector(): any { return this.matchMakerConnector};
 }
 
 class MatchMakerConnector {
@@ -234,14 +239,6 @@ class MatchMakerConnector {
 		console.log("Info: Hot seat tournament request sent to matchMaker");
 	}
 
-	private sendMatchRequest(): void {
-		this.ws.send(JSON.stringify({
-			type: 'matchRequest',
-			userUID: userUID
-		}));
-		console.log("Info: Match request sent to matchMaker");
-	}
-
 	private handleAnnounceResponse(data: any) {
 
 		gameUID = data.gameUID;
@@ -253,6 +250,9 @@ class MatchMakerConnector {
 
 		this.gameCtx.announceMatch();
 	}
+
+	public getWebSocket(): any { return this.ws };
+}
 
 class ServerPongConnector {
 	private ws: any;
@@ -267,7 +267,7 @@ class ServerPongConnector {
 
 	private connect(): void {
 		try {
-			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/pong`);
 		} catch (error) {
 			console.log(`Error: connection to serverPong failed: ${error}`);
 		}
@@ -291,8 +291,11 @@ class ServerPongConnector {
 					this.gameCtx.drawFrame();
 					break;
 				case 'endGame':
-				case 'playerDisconnected':
 					this.gameCtx.drawEndGameScreen(data);
+					this.ws.close();
+					setTimeout(() => {
+						this.reportTournament();
+					}, 3000);
 					break;
 			}
 		};
@@ -308,67 +311,68 @@ class ServerPongConnector {
 
 	private setupControls() {
 		document.addEventListener('keydown', (event) => {
-			let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
-			if (userSlot == 0) {
+			let input = { type: 'input', playerSlot: 0, direction: 'stop' };
 				switch(event.key) {
-					case 'w':
-						input.direction = 'up';
-						this.ws.send(JSON.stringify(input));
-						break;
-					case 's':
-						input.direction = 'down';
-						this.ws.send(JSON.stringify(input));
-						break;
+				case 'w':
+					input.direction = 'up';
+					input.playerSlot = 0;
+					break;
+				case 's':
+					input.direction = 'down';
+					input.playerSlot = 0;
+					break;
+				case 'ArrowUp':
+					input.direction = 'up';
+					input.playerSlot = 1;
+					break;
+				case 'ArrowDown':
+					input.direction = 'down';
+					input.playerSlot = 1;
+					break;
 				}
-			} else if (userSlot == 1) {
-				switch(event.key) {
-					case 'ArrowUp':
-						input.direction = 'up';
-						this.ws.send(JSON.stringify(input));
-						break;
-					case 'ArrowDown':
-						input.direction = 'down';
-						this.ws.send(JSON.stringify(input));
-						break;
-				}
-			}
-		});
+				if (this.ws.readyState === WebSocket.OPEN)
+					this.ws.send(JSON.stringify(input));
+			});
 
 		document.addEventListener('keyup', (event) => {
-			let input = { type: 'input', playerSlot: userSlot, direction: 'stop' };
-			
-			if (userSlot == 0) {
+			let input = { type: 'input', playerSlot: 0, direction: 'stop' };
 				switch(event.key) {
 					case 'w':
 					case 's':
-						this.ws.send(JSON.stringify(input));
+						input.playerSlot = 0;
 						break;
-				}
-			} else if (userSlot == 1) {
-				switch(event.key) {
 					case 'ArrowUp':
 					case 'ArrowDown':
-						this.ws.send(JSON.stringify(input));
+						input.playerSlot = 1;
 						break;
 				}
-			}
-		});
+				if (this.ws.readyState === WebSocket.OPEN)
+					this.ws.send(JSON.stringify(input));
+			});
 	}
-
+	
 	private sendSetupRequest() {
 		this.ws.send(JSON.stringify({
-			type: 'setupRequest',
-			userUID: userUID,
-			userSlot: userSlot,
-			gameUID: gameUID
+			type: 'setupRequest'
 		}));
 	}
 
 	private sendStartRequest() {
 		this.ws.send(JSON.stringify({
 			type: 'startRequest',
-			userUID: userUID
+			player1UID: player0UID,
+			player2UID: player1UID
 		}));
+	}
+
+	private reportTournament() {
+		if (this.gameCtx.matchCount % 2 == 0){
+			console.log("Info: Hot seat Tournament phase request sent to matchMaker");
+			this.gameCtx.getMatchMakerConnector().getWebSocket().send(JSON.stringify({
+				type: 'hotSeatTournamentPhaseEnd',
+				tournamentUID: tournamentUID
+			}));
+		}
 	}
 
 	private handleSetupResponse(data: any) {
@@ -378,4 +382,4 @@ class ServerPongConnector {
 		this.gameCtx.setGameState(data);
 		this.sendStartRequest();
 	}
-} */
+}
