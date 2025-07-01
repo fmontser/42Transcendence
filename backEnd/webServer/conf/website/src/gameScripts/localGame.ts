@@ -6,7 +6,7 @@ let PADDLE_HEIGHT!: number;
 let BALL_RADIUS!: number;
 
 //TODO testing clase
-class LocalGame {
+export class LocalGame {
 	private playField: any = document.getElementById('playField');
 	private ctx2d: any = this.playField.getContext('2d');
 	private scoreElement: any = document.getElementById('score');
@@ -57,31 +57,6 @@ class LocalGame {
 	}
 
 	//TODO FRONTEND estetica
-	public drawEndGameScreen(endGameData: any) {
-		// canvas
-		this.ctx2d.fillStyle = '#1a1a1a';
-		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
-
-		// results
-		this.ctx2d.fillStyle = 'white';
-		this.ctx2d.font = '48px monospace';
-		this.ctx2d.textAlign = 'center';
-		
-		// title
-		this.ctx2d.fillText('Game Over!', this.playField.width/2, this.playField.height/3);
-	
-		// score
-		this.ctx2d.font = '36px monospace';
-		this.ctx2d.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
-			this.playField.width/2, this.playField.height/2);
-		
-		//TODO pasar de winnerUID al nombre temporal del jugador
-		// winner
-		this.ctx2d.fillText(`Winner: Player ${endGameData.winnerUID}`, 
-			this.playField.width/2, this.playField.height/2 + 50);
-	}
-
-	//TODO FRONTEND estetica
 	private drawStartScreen() {
 		// Fondo
 		this.ctx2d.fillStyle = '#1a1a1a';
@@ -103,7 +78,31 @@ class LocalGame {
 		this.ctx2d.fillText('Start Game', this.playField.width/2, buttonY + 32);
 
 		// Listener para el botón
-		this.playField.addEventListener('click', this.handleStartClick);
+		this.playField.addEventListener('click', (event: any) => this.handleStartClick(event));
+	}
+
+	//TODO FRONTEND estetica
+	public drawEndGameScreen(endGameData: any) {
+		// canvas
+		this.ctx2d.fillStyle = '#1a1a1a';
+		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
+
+		// results
+		this.ctx2d.fillStyle = 'white';
+		this.ctx2d.font = '48px monospace';
+		this.ctx2d.textAlign = 'center';
+		
+		// title
+		this.ctx2d.fillText('Game Over!', this.playField.width/2, this.playField.height/3);
+	
+		// score
+		this.ctx2d.font = '36px monospace';
+		this.ctx2d.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
+			this.playField.width/2, this.playField.height/2);
+		
+		// winner
+		let winnerName: string = endGameData.score[0] > endGameData.score[1] ? player0Name : player1Name;
+		this.ctx2d.fillText(`Winner: ${winnerName}`, this.playField.width/2, this.playField.height/2 + 50);
 	}
 
 	private handleStartClick(event: any) {
@@ -120,7 +119,7 @@ class LocalGame {
 		}
 	}
 
-	set setGameState(data: any) {
+	public setGameState(data: any) {
 		this._gameState.ball = data.ballPos;
 		this._gameState.paddles = data.paddlesPos;
 		this._gameState.score = data.score;

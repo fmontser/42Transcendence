@@ -158,8 +158,8 @@ export class LocalGame extends Game {
 
 			connection.send(JSON.stringify({
 				type: 'update',
-				ball: this.playField.ball.pos,
-				paddles: [
+				ballPos: this.playField.ball.pos,
+				paddlesPos: [
 					this.playField.paddle0.pos,
 					this.playField.paddle1.pos
 				],
