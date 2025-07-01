@@ -2,6 +2,7 @@ import { OnlineGame } from './gameScripts/onlineGame.js'
 import { LocalGame } from './gameScripts/localGame.js'
 //import { HotSeatGame } from './gameScripts/hotSeatGame.js';
 
+
 interface Page {
 	path: string;
 	view: () => Promise<void>;
@@ -17,7 +18,6 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
-
 					console.log("html 1:", data);
 					const root = document.getElementById('root');
 					if (root) {
