@@ -37,6 +37,36 @@ Este directorio contiene el código fuente y la configuración para el servicio 
         *   Ejemplos de peticiones.
         *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
         *   Ejemplos de respuestas.
+        
+        **EndPoint para crear un user**  
+        * PATH:   "/userauthentication/front/post/create"  
+        METHOD: POST  
+        ARG:    'name' and 'pass' in body  
+        RETURN: Nada
+
+        **EndPoint para log in**  
+        * PATH:   "/userauthentication/front/post/login"  
+        METHOD: POST  
+        ARG:    'name' and 'pass' in body  
+        RETURN: Nada
+
+        **EndPoint para log in con Google Auth**  
+        * PATH:   "/userauthentication/front/post/google_connect"  
+        METHOD: POST  
+        ARG:    response.credential (de la API google) en el body
+        RETURN: Nada
+
+        **EndPoint para log out**  
+        * PATH:   "/userauthentication/front/post/logout"  
+        METHOD: POST  
+        ARG:    Nada  
+        RETURN: Nada
+
+        **EndPoint para ver si el usuario esta connectado**  
+        * PATH:   "/userauthentication/front/get/profile_session"  
+        METHOD: GET  
+        ARG:    'user'  
+        RETURN: 'id' del user
 ---
 
 *   **Dependencias:** Descripcion de dependencias inter-servicios.
