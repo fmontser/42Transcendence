@@ -292,10 +292,10 @@ class ServerPongConnector {
 					break;
 				case 'endGame':
 					this.gameCtx.drawEndGameScreen(data);
-					this.ws.close();
 					setTimeout(() => {
 						this.reportTournament();
 					}, 3000);
+					this.ws.close();
 					break;
 			}
 		};
@@ -366,13 +366,23 @@ class ServerPongConnector {
 	}
 
 	private reportTournament() {
-		if (this.gameCtx.matchCount % 2 == 0){
-			console.log("Info: Hot seat Tournament phase request sent to matchMaker");
-			this.gameCtx.getMatchMakerConnector().getWebSocket().send(JSON.stringify({
-				type: 'hotSeatTournamentPhaseEnd',
-				tournamentUID: tournamentUID
-			}));
-		}
+		this.gameCtx.matchCount++;
+		
+		console.log("Info: Hot seat Tournament match complete request sent to matchMaker");
+		this.gameCtx.getMatchMakerConnector().getWebSocket().send(JSON.stringify({
+			type: 'completeHotSeatMatch',
+			tournamentUID: tournamentUID
+		}));
+
+		setTimeout(() => {
+			if (this.gameCtx.matchCount == 2 || this.gameCtx.matchCount >= 4) {
+				console.log("Info: Hot seat Tournament phase request sent to matchMaker");
+				this.gameCtx.getMatchMakerConnector().getWebSocket().send(JSON.stringify({
+					type: 'hotSeatTournamentPhaseEnd',
+					tournamentUID: tournamentUID
+				}));
+			}
+		}, 1000);
 	}
 
 	private handleSetupResponse(data: any) {

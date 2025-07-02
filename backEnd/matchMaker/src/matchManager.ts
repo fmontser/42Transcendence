@@ -29,7 +29,7 @@ export class MatchManager {
 
 		if (this.checkPlayers(newMatch)){
 			await this.postMatchEntry(newMatch);
-			this.requestNewPongInstance(newMatch, false);
+			this.requestNewPongInstance(newMatch);
 		}
 	}
 
@@ -53,7 +53,31 @@ export class MatchManager {
 
 			for(const match of newTournament.matches){
 				await this.postMatchEntry(match);
-				this.requestNewPongInstance(match, false);
+				this.requestNewPongInstance(match);
+			}
+		}
+	}
+
+	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
+		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.tournamentList);
+		if (currentTournament != null) {
+			currentTournament.playersReady++;
+			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
+
+			if (currentTournament.playersReady < 4)
+				return;
+			if (currentTournament.getPhase() == Phase.SEMIFINALS){
+				currentTournament.drawFinals();
+				for(const match of currentTournament.matches){
+					await this.postMatchEntry(match);
+					this.requestNewPongInstance(match);
+				}
+			}
+			else if (currentTournament.getPhase() == Phase.FINALS) {
+				currentTournament.endTournament();
+				await this.patchTournamentEntry(currentTournament);
+				this.sendTournamentRanking(currentTournament);
+				this.closeTournament(currentTournament);
 			}
 		}
 	}
@@ -76,31 +100,7 @@ export class MatchManager {
 		}
 	}
 
-	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.tournamentList);
-		if (currentTournament != null) {
-			currentTournament.playersReady++;
-			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
-
-			if (currentTournament.playersReady < 4)
-				return;
-			if (currentTournament.getPhase() == Phase.SEMIFINALS){
-				currentTournament.drawFinals();
-				for(const match of currentTournament.matches){
-					await this.postMatchEntry(match);
-					this.requestNewPongInstance(match, false);
-				}
-			}
-			else if (currentTournament.getPhase() == Phase.FINALS) {
-				currentTournament.endTournament();
-				await this.patchTournamentEntry(currentTournament);
-				this.sendTournamentRanking(currentTournament);
-				this.closeTournament(currentTournament);
-			}
-		}
-	}
-
-	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
+ 	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
 		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.hotSeatList);
 
 		if (currentTournament != null) {
@@ -112,6 +112,20 @@ export class MatchManager {
 				currentTournament.endTournament();
 				this.sendTournamentRanking(currentTournament);
 				this.closeTournament(currentTournament);
+			}
+		}
+	}
+
+	public async completeHotSeatMatch(tournamentUID: number): Promise<void> {
+		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.hotSeatList);
+
+		if (currentTournament != null) {
+			console.log(`DEBUG: hotseat phase change recieved`);
+			for (const m of currentTournament.matches){
+				if (m.status == Status.ONGOING){
+					m.status = Status.COMPLETED;
+					console.log(`DEBUG: match set to completed`);
+				}
 			}
 		}
 	}
@@ -134,25 +148,27 @@ export class MatchManager {
 		return (null);
 	}
 
-	//TODO borrar si no hace falta...
-/* 	private checkCompletedMatches(matches: Set<Match>): boolean {
-		for (const m of matches){
-			if (m.status != Status.COMPLETED)
-				return (false);
-		}
-		return (true);
-	} */
-
 	private async sequenceHotSeatMatches(newTournament: Tournament) {
 		for (const match of newTournament.matches) {
 			if (newTournament.getPhase() == Phase.CANCELED) {
 				this.hotSeatList.delete(newTournament);
 				break;
 			}
+
+			match.player0Conn.send(JSON.stringify({
+				type: 'matchAnnounce',
+				gameUID: 0,
+				tournamentUID: match.tournamentUID,
+				player0UID: match.player0UID,
+				player0Name: match.player0Name,
+				player1UID: match.player1UID,
+				player1Name: match.player1Name
+			}));
 			
-			console.log(`DEBUG: >>>>>>> match request... ${match.player0Name}, ${match.player1Name}`)
-			
-			this.requestNewPongInstance(match, true);
+			if (match.status !== Status.COMPLETED && match.status !== Status.DISCONNECTED) {
+				match.status = Status.ONGOING;
+			}
+
 			while (true) {
 				if (match.status === Status.COMPLETED)
 					break;
@@ -294,7 +310,7 @@ export class MatchManager {
 		console.log("Info: Succesfully patched TournamentUID: " + tournament.tournamentUID);
 	};
 
-	private async requestNewPongInstance(match: Match, isHotSeat: boolean): Promise<void> {
+	private async requestNewPongInstance(match: Match): Promise<void> {
 		const ws = new WebSocket('ws://serverpong:3000/post/match');
 		console.log("Info: Connection to serverPong");
 
@@ -323,8 +339,6 @@ export class MatchManager {
 							player1Name: match.player1Name
 						}));
 						console.log("Info: match announce sent to client");
-						if (isHotSeat)
-							break;
 					}
 					break;
 				case 'endGame':

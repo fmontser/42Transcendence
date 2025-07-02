@@ -98,6 +98,10 @@ export class PostHotSeatTournamentRequest extends Endpoint {
 							];
 							matchManager.requestHotSeatTournament(connection, usersUIDs);
 							break;
+						case 'completeHotSeatMatch':
+							console.log("Info: Hot seat match complete request recieved");
+							matchManager.completeHotSeatMatch(jsonData.tournamentUID);
+							break;
 						case 'hotSeatTournamentPhaseEnd':
 							console.log("Info: Hot seat tournament phase request recieved");
 							matchManager.phaseHotSeatTournament(jsonData.tournamentUID);

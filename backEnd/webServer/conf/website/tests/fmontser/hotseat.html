@@ -62,8 +62,8 @@
 
 			// Estado inicial
 			let gameState = {
-				ball: { x: 0, y: 0 },
-				paddles: [
+				ballPos: { x: 0, y: 0 },
+				paddlesPos: [
 					{ x: 0, y: 0 },
 					{ x: 0, y: 0 }
 				],
@@ -234,7 +234,7 @@
 			function startNewGame() {
 				gameActive = true;
 				serverPongWS.send(JSON.stringify({ 
-					type: 'newGame',
+					type: 'startRequest',
 					player1UID: player1UID,
 					player2UID: player2UID
 				}));
@@ -277,7 +277,9 @@
 							break;
 						case 'update':
 							gameActive = true;
-							gameState = data;
+							gameState.ballPos = data.ballPos;
+							gameStarted.paddlesPos = data.paddlesPos;
+							gameState.score = data.score;
 							drawFrame();
 							break;
 						case 'endGame':
