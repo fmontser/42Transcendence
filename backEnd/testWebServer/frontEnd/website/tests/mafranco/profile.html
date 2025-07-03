@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Profil</title>
+  <style>
+    .friend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 400px;
+      margin: 8px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Bienvenue</h1>
+
+  <p>
+    Votre pseudo :
+    <span id="pseudo">...</span>
+    <input type="text" id="pseudoInput" style="display:none;">
+    <button id="editPseudoBtn">Modifier le pseudo</button>
+    <button id="savePseudoBtn" style="display:none;">Enregistrer</button>
+  </p>
+
+  <p>
+    Bio :
+    <span id="bio">...</span>
+    <textarea id="bioInput" style="display:none;"></textarea>
+    <button id="editBioBtn">Modifier la bio</button>
+    <button id="saveBioBtn" style="display:none;">Enregistrer</button>
+  </p>
+
+  <p>Date de création : <span id="creationDate">...</span></p>
+  <p>Expérience : <span id="experience">...</span></p>
+  <button id="showPseudosBtn">Afficher tous les pseudos</button>
+
+  <ul id="pseudoList" style="margin-top: 20px; list-style: none; padding: 0;"></ul>
+
+  <p id="message" style="color: green;"></p>
+
+  <h1>Friends demands</h1>
+  <div id="friend-list"></div>
+
+  <h1>Friends</h1>
+  <div id="friend-list-accepted"></div>
+
+  <h1>Blocked Friends</h1>
+  <div id="friend-list-blocked"></div>
+
+  <button onclick="deleteAccount()">Supprimer mon compte</button>
+  <script>
+    async function deleteAccount() {
+      if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/user`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+
+        if (response.ok) {
+          alert('Votre compte a été supprimé avec succès.');
+          window.location.href = 'login.html';
+        } else {
+          alert('Erreur lors de la suppression du compte.');
+        }
+      }
+    }
+  </script>
+
+  <p id="message" style="color: green;"></p>
+
+  <script>
+    let username = '';
+
+    async function loadProfile() {
+      const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!sessionResponse.ok) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const sessionData = await sessionResponse.json();
+      id = sessionData.name;
+
+      const profileResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile?id=${id}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (profileResponse.ok) {
+        const profile = (await profileResponse.json())[0];
+        document.getElementById('pseudo').textContent = profile.pseudo || 'Inconnu';
+        document.getElementById('pseudoInput').value = profile.pseudo || '';
+        document.getElementById('bio').textContent = profile.bio || 'Inconnu';
+        document.getElementById('bioInput').value = profile.bio || '';
+        document.getElementById('creationDate').textContent = profile.date_creation || 'Inconnue';
+        document.getElementById('experience').textContent = profile.experience || '0';
+      } else {
+        console.error('Erreur lors du chargement du profil');
+      }
+    }
+
+    // Modifier bio
+    document.getElementById('editBioBtn').addEventListener('click', () => {
+      document.getElementById('bio').style.display = 'none';
+      document.getElementById('bioInput').style.display = 'inline';
+      document.getElementById('editBioBtn').style.display = 'none';
+      document.getElementById('saveBioBtn').style.display = 'inline';
+    });
+
+    document.getElementById('saveBioBtn').addEventListener('click', async () => {
+      const newBio = document.getElementById('bioInput').value;
+
+      const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/put/modify_bio`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bio: newBio })
+      });
+
+      if (response.ok) {
+        document.getElementById('bio').textContent = newBio;
+        document.getElementById('message').textContent = 'Bio mise à jour.';
+      } else {
+        document.getElementById('message').textContent = 'Erreur lors de la mise à jour de la bio.';
+      }
+
+      document.getElementById('bio').style.display = 'inline';
+      document.getElementById('bioInput').style.display = 'none';
+      document.getElementById('editBioBtn').style.display = 'inline';
+      document.getElementById('saveBioBtn').style.display = 'none';
+    });
+
+    // Modifier pseudo
+    document.getElementById('editPseudoBtn').addEventListener('click', () => {
+      document.getElementById('pseudo').style.display = 'none';
+      document.getElementById('pseudoInput').style.display = 'inline';
+      document.getElementById('editPseudoBtn').style.display = 'none';
+      document.getElementById('savePseudoBtn').style.display = 'inline';
+    });
+
+    document.getElementById('savePseudoBtn').addEventListener('click', async () => {
+      const newPseudo = document.getElementById('pseudoInput').value;
+
+      const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/put/modify_pseudo`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pseudo: newPseudo })
+      });
+
+      if (response.ok) {
+        document.getElementById('pseudo').textContent = newPseudo;
+        document.getElementById('message').textContent = 'Pseudo mis à jour.';
+      } else {
+        document.getElementById('message').textContent = 'Erreur lors de la mise à jour du pseudo.';
+      }
+
+      document.getElementById('pseudo').style.display = 'inline';
+      document.getElementById('pseudoInput').style.display = 'none';
+      document.getElementById('editPseudoBtn').style.display = 'inline';
+      document.getElementById('savePseudoBtn').style.display = 'none';
+    });
+    
+    // document.getElementById('showPseudosBtn').addEventListener('click', async () => {
+    //   const list = document.getElementById('pseudoList');
+    //   list.innerHTML = ''; // Réinitialise la liste
+
+    //   const response = await fetch('https://${window.location.hostname}:8443/usermanagement/front/get/pseudos', {
+    //     method: 'GET',
+    //     credentials: 'include'
+    //   });
+
+    //   if (!response.ok) throw new Error('Erreur lors de la récupération des pseudos.');
+
+    //   const pseudos = await response.json(); // attend un tableau ["alice", "bob", ...]
+
+    //   if (Array.isArray(pseudos) && pseudos.length > 0) {
+    //     pseudos.forEach(pseudo => {
+    //       const li = document.createElement('li');
+    //       li.textContent = pseudo.pseudo || 'Inconnu';
+    //       list.appendChild(li);
+    //     });
+    //   } else {
+    //     list.innerHTML = '<li>Aucun pseudo trouvé.</li>';
+    //   }
+    // });
+
+    document.getElementById('showPseudosBtn').addEventListener('click', async () => {
+      const list = document.getElementById('pseudoList');
+      list.innerHTML = ''; // Réinitialise la liste
+
+      const response = await fetch('/usermanagement/front/get/pseudos', {
+        method: 'GET',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        list.innerHTML = '<li>Erreur lors de la récupération des pseudos.</li>';
+        return;
+      }
+
+      const pseudos = await response.json(); // attend [{ pseudo: 'alice' }, { pseudo: 'bob' }]
+
+      if (Array.isArray(pseudos) && pseudos.length > 0) {
+        pseudos.forEach(({ pseudo }) => {
+          const li = document.createElement('li');
+          li.style.marginBottom = '10px';
+          li.style.display = 'flex';
+          li.style.justifyContent = 'space-between';
+          li.style.alignItems = 'center';
+          li.style.gap = '10px';
+
+          const span = document.createElement('span');
+          span.textContent = pseudo || 'Inconnu';
+
+          const button = document.createElement('button');
+          button.textContent = 'Ajouter';
+          button.addEventListener('click', async () => {
+            const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ targetPseudo: pseudo })
+            });
+
+            const message = document.getElementById('message');
+            if (res.ok) {
+              message.textContent = `Requête d'amitié envoyée à ${pseudo}`;
+              message.style.color = 'green';
+            } else {
+              message.textContent = `Erreur lors de l'ajout de ${pseudo}`;
+              message.style.color = 'red';
+            }
+          });
+
+          li.appendChild(span);
+          li.appendChild(button);
+          list.appendChild(li);
+        });
+      } else {
+        list.innerHTML = '<li>Aucun pseudo trouvé.</li>';
+      }
+
+    });
+
+    async function fetchPendingFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_pending`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Accept';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors de l\'acceptation');
+              }
+
+              // Retirer l’élément de la liste
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    async function fetchAcceptedFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_accepted`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list-accepted');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Block';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/block_friendship`, {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors du blocage');
+              }
+
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list-accepted').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    async function fetchBlockedFriends() {
+      try {
+        const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_blocked`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur réseau');
+        }
+
+        const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+        const list = document.getElementById('friend-list-blocked');
+        list.innerHTML = '';
+
+        data.forEach(friend => {
+          const container = document.createElement('div');
+          container.className = 'friend-item';
+
+          const name = document.createElement('span');
+          name.textContent = friend.pseudo;
+
+          const button = document.createElement('button');
+          button.textContent = 'Delete';
+          button.onclick = async () => {
+            try {
+              const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
+                method: 'DELETE',
+                credentials: 'include',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: friend.id })
+              });
+
+              if (!postResponse.ok) {
+                throw new Error('Erreur lors du delete');
+              }
+
+              container.remove();
+            } catch (error) {
+              alert('Erreur : ' + error.message);
+            }
+          };
+
+          container.appendChild(name);
+          container.appendChild(button);
+          list.appendChild(container);
+        });
+
+      } catch (error) {
+        document.getElementById('friend-list-blocked').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', error);
+      }
+    }
+
+    fetchBlockedFriends();
+
+    fetchAcceptedFriends();
+    // Charger la liste dès que la page est prête
+    fetchPendingFriends();
+    loadProfile();
+  </script>
+
+    <!-- Bouton de déconnexion -->
+  <button id="logoutBtn" style="display:none; margin-top: 10px;">
+    Se déconnecter
+  </button>
+
+  <script>
+      // Rendre visible le bouton de logout après connexion réussie
+    document.getElementById('logoutBtn').style.display = 'block';
+
+    // Gérer la déconnexion
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/logout`, {
+        method: 'POST',
+        credentials: 'include' // important pour envoyer le cookie
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert("Déconnexion réussie");
+          window.location.href = './login.html'; // ou page de login
+        } else {
+          alert("Erreur lors de la déconnexion");
+        }
+      })
+      .catch(err => {
+        console.error("Erreur réseau lors du logout :", err);
+      });
+    });
+  </script>
+</body>
+</html>
