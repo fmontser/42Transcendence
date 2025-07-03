@@ -169,7 +169,10 @@ const routes: Page[] = [
 		path: "/",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/home.html");
+				let response: Response = await fetch("src/home.html", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
@@ -183,6 +186,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
+					window.location.href="/login"
 					console.log("Fetch failed.");
 				}
 				//import("");
@@ -232,6 +236,33 @@ const routes: Page[] = [
 		view: async () => {
 			try {
 				let response: Response = await fetch("src/signIn.html");
+				let data: string = await response.text();
+				const root = document.getElementById('root');
+				if (root) {
+					root.innerHTML = data;
+				} else {
+					console.error('Root element not found');
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+	{
+		path: "/profile",
+		view: async () => {
+			try {
+				let response: Response = await fetch("src/profile.html");
 				let data: string = await response.text();
 				const root = document.getElementById('root');
 				if (root) {

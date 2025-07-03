@@ -1,0 +1,47 @@
+<style>
+    .friend-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 400px;
+      margin: 8px 0;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+</style>
+
+  <h1>Welcome</h1>
+
+<p>
+    Alias :
+    <span id="pseudo">...</span>
+    <input type="text" id="pseudoInput" style="display:none;">
+    <button id="editPseudoBtn">Modifier le pseudo</button>
+    <button id="savePseudoBtn" style="display:none;">Enregistrer</button>
+</p>
+
+  <p>
+    Bio :
+    <span id="bio">...</span>
+    <textarea id="bioInput" style="display:none;"></textarea>
+    <button id="editBioBtn">Modifier la bio</button>
+    <button id="saveBioBtn" style="display:none;">Enregistrer</button>
+  </p>
+
+  <p>Creation date : <span id="creationDate">...</span></p>
+  <p>Experience : <span id="experience">...</span></p>
+  <button id="showPseudosBtn">Afficher tous les pseudos</button>
+
+  <ul id="pseudoList" style="margin-top: 20px; list-style: none; padding: 0;"></ul>
+
+  <p id="message" style="color: green;"></p>
+
+  <h1>Friend requests</h1>
+  <div id="friend-list"></div>
+
+  <h1>Friends</h1>
+  <div id="friend-list-accepted"></div>
+
+  <h1>Blocked Friends</h1>
+  <div id="friend-list-blocked"></div>
