@@ -14,15 +14,17 @@ const routes: Page[] = [
 		path: "/localGame",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html");
+				let response: Response = await fetch("src/pongGame.html", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
-					console.log("html 1:", data);
+					console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						console.log("html 2 :", data);
 						let newGame = new LocalGame("Fran-temp", "Dario-temp");
 						newGame.start()
 					} else {
@@ -52,16 +54,18 @@ const routes: Page[] = [
 		path: "/onlineGame-1",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html");
+				let response: Response = await fetch("src/pongGame.html", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
 
-					console.log("html 1:", data);
+					console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						console.log("html 2 :", data);
 						let newGame = new OnlineGame(1);
 						newGame.start()
 					} else {
@@ -91,16 +95,18 @@ const routes: Page[] = [
 		path: "/onlineGame-2",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html");
+				let response: Response = await fetch("src/pongGame.html", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
 
-					console.log("html 1:", data);
+					console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						console.log("html 2 :", data);
 						let newGame = new OnlineGame(2);
 						newGame.start()
 					} else {
@@ -169,24 +175,23 @@ const routes: Page[] = [
 		path: "/",
 		view: async () => {
 			try {
-				let response: Response = await fetch("./dist/components/home.html", {
+				let response: Response = await fetch("/components/home", {
 					method: 'GET',
 					credentials: 'include'
 				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
-					console.log("html 1:", data);
+					console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						console.log("html 2 :", data);
 					} else {
 						console.error('Root element not found');
 					}
 				}
 				else {
-					window.location.href="/login"
+					window.location.href="/components/login"
 					console.log("Fetch failed.");
 				}
 				//import("");
@@ -208,7 +213,10 @@ const routes: Page[] = [
 		path: "/login",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/logIn.html");
+				let response: Response = await fetch("/components/login", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				let data: string = await response.text();
 				const root = document.getElementById('root');
 				if (root) {
@@ -235,7 +243,10 @@ const routes: Page[] = [
 		path: "/signin",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/signIn.html");
+				let response: Response = await fetch("/components/signin", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				let data: string = await response.text();
 				const root = document.getElementById('root');
 				if (root) {
@@ -262,7 +273,10 @@ const routes: Page[] = [
 		path: "/profile",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/profile.html");
+				let response: Response = await fetch("/components/profile", {
+					method: 'GET',
+					credentials: 'include'
+				});
 				let data: string = await response.text();
 				const root = document.getElementById('root');
 				if (root) {

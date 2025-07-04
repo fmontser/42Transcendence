@@ -1,15 +1,17 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fastifyStatic from '@fastify/static';
-import path from 'path'; // FIX: Import the 'path' module
-import { fileURLToPath } from 'url';
+import * as EndPoints from './endpoint.js';
+import path from 'path';
 import { dirname } from 'path';
-import * as EndPoints from './endpoint'
+import { fileURLToPath } from 'url';
+import fastifyJwt from '@fastify/jwt';
+import fastifyCookie from '@fastify/cookie';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const server = Fastify({
-	logger: true // It's good practice to enable logging
+	logger: false // It's good practice to enable logging
 });
 
 
@@ -26,51 +28,50 @@ server.setNotFoundHandler(async (request: FastifyRequest, reply: FastifyReply) =
 	return reply.sendFile('index.html');
 });
 
-// function setEndPoints(): void {
+function setEndPoints(): void {
 
-// 	/*	Create EndPoints Here 
+	/*	Create EndPoints Here 
 	
-// 	new EndPoints.SeeAllUsersEndpoint(
-// 		"/usermanagement/front/get/users",
-// 		"Failed to retrieve users"
-// 	);
+	new EndPoints.SeeAllUsersEndpoint(
+		"/usermanagement/front/get/users",
+		"Failed to retrieve users"
+	);
 	
-// 	*/
-// 	//examples
-// 	new EndPoints.CreateUserEndpoint(
-// 		"/userauthentication/front/post/create",
-// 		"Failed to create user"
-// 	);
+	*/
+	//examples
+	new EndPoints.AccessComponentEndpoint(
+		"/components/:name",
+		"Unknown error."
+	);
 
-// 	new EndPoints.GoogleAuthEndpoint(
-// 		"/userauthentication/front/post/google_connect",
-// 		"Failed to connect user with Google",
-// 	);
-
-// 	new EndPoints.LogOutEndpoint(
-// 		"/userauthentication/front/post/logout",
-// 		"Failed to log out user"
-// 	);
-
-// 	new EndPoints.LogInEndpoint(
-// 		"/userauthentication/front/post/login",
-// 		"Failed to log in user"
-// 	);
-
-// 	new EndPoints.SeeAllUsersEndpoint(
-// 		"/userauthentication/front/get/users",
-// 		"Failed to retrieve users"
-// 	);
-
-// 	EndPoints.Endpoint.enableAll(server);
-// }
+	EndPoints.Endpoint.enableAll(server);
+}
 
 async function start() {
 	try {
-		console.log(path.dirname);
+		//console.log(path.dirname);
+		await server.register(fastifyCookie);
+		await server.register(fastifyJwt, {
+			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
+			cookie: {
+				cookieName: 'token',
+				signed: false
+			}
+		});
+		server.decorate("authenticate", async (request:any, reply:any) => {
+			try {
+				await request.jwtVerify();
+				console.log("User authenticated");
+			} catch (err) {
+				console.log(request.cookies.token);
+				reply.status(401).send({ error: 'Unauthorized' });
+			}
+		});
+
+		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {
-		server.log.error(err);
+		//server.log.error(err);
 		process.exit(1);
 	}
 }

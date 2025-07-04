@@ -24,7 +24,7 @@ export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
 			console.log(`SeeAllUsersEndpoint: ${this.path} called`);
-			const response = await fetch('http://dataBase:3000/get/users', {
+			const response = await fetch('../src/users', {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeAllUsersEndpoint: ${this.errorMsg} - `, response.statusText);
