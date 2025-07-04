@@ -6,7 +6,6 @@ MM_DIR			:= backEnd/matchMaker/
 SP_DIR			:= backEnd/serverPong/
 UM_DIR			:= backEnd/userManagement/
 WS_DIR			:= backEnd/webServer/
-WS_TEST_DIR		:= backEnd/testWebServer/
 
 COMPOSE_FILE	:= docker-compose.yml
 
@@ -59,7 +58,6 @@ build:
 	@make -C $(SP_DIR) install
 	@make -C $(UM_DIR) install
 	@make -C $(WS_DIR) install
-	@make -C $(WS_TEST_DIR) install
 
 	@docker compose -f $(COMPOSE_FILE) build
 
@@ -79,8 +77,6 @@ clean:
 	@make -C $(SP_DIR) clean
 	@make -C $(UM_DIR) clean
 	@make -C $(WS_DIR) clean
-
-	@make -C $(WS_TEST_DIR) clean
 	
 fclean: clean
 	@echo "Force cleaning whole project..."
