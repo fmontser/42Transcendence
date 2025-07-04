@@ -84,6 +84,16 @@ function setEndPoints(): void {
 		"Failed to log in user"
 	);
 
+	
+
+	//TODO @@@@@@@@@@@@@@ endpooint para verificar (solo browser)
+	// const respuesta = await fetch("http://userManagement:3000/get/profile_session", {
+	// method:'GET',
+	// credential=True
+	// })
+	// if (respuesta.ok) {
+	// 		
+	// }
 	new EndPoints.ProfileEndpoint(
 		"/usermanagement/front/get/profile_session",
 		"Failed to retrieve user profile"

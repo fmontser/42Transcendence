@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import { Match } from "./match";
 import { Tournament, Phase } from "./tournament";
 import WebSocket from 'ws';
@@ -322,7 +321,7 @@ export class MatchManager {
 			console.log("Info: New game request sent to serverPong");
 		});
 
-		ws.on('message', (event) => {
+		ws.on('message', (event: any) => {
 			const data = JSON.parse(event.toString());
 
 			switch (data.type) {

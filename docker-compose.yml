@@ -13,6 +13,17 @@ volumes:
             device: ${HOST_DB_VOL_PATH}
 
 services:
+    debugger:
+        build: ${DEBUGGER_BUILD_PATH}
+        init: true
+        image: debugger-img
+        restart: unless-stopped
+        container_name: debugger
+        ports:
+            - "9229:9229"
+        networks:
+            - proxy-network
+
     proxy:
         build: ${PROXY_NGINX_BUILD_PATH}
         init: true

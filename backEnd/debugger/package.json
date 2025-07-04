@@ -1,0 +1,27 @@
+{
+  "name": "debugger",
+  "version": "1.0.0",
+  "description": "Servicio Debugger para el proyecto Trascendence",
+  "main": "dist/debugger.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/debugger.js",
+    "dev": "tsc -w & nodemon dist/debugger.js"
+  },
+  "keywords": [
+    "fastify",
+    "nodejs",
+    "typescript",
+    "debugger"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "nodemon": "latest",
+    "typescript": "latest"
+  }
+}
