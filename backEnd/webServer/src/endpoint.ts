@@ -26,20 +26,48 @@ export abstract class Endpoint {
 
 const pages: Array<string> = ["login", "signin", "profile", "home", "localGame", "onlineGame-1", "onlineGame-2"];
 
+export class AccessLoginEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			const filePath = path.join('website/dist/components', `login.html`);
+			console.log("The file path:", filePath)
+			const data = await fs.readFile(filePath, 'utf-8');
+			//console.log('File found:', data);
+			reply.send(data);
+		});
+	}
+}
+
+export class AccessSigninEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			const filePath = path.join('website/dist/components', `signin.html`);
+			console.log("The file path:", filePath)
+			const data = await fs.readFile(filePath, 'utf-8');
+			//console.log('File found:', data);
+			reply.send(data);
+		});
+	}
+}
+
+
+
 
 export class AccessComponentEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
 			//console.log(`AccessComponent endpoint: ${this.path} called`);
 			const requestedFile = request.params.name;
-			console.log(request.cookies)
+			const token = request.cookies.token;
+			console.log(token)
 			let cred = 0
 			try {
-				let hola = await fetch("http://userManagement:3000/get/profile_session", {
+				let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
 					method: 'GET',
-					credentials: 'include'
 				});
-				if (hola.ok)
+				let data = await response.json();
+				if (response.ok)
+					console.log(data.id)
 					cred = 1;
 			} catch (error: unknown){
 				if (error instanceof Error)

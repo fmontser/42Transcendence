@@ -19,6 +19,11 @@ function setEndPoints(): void {
 	);
 	
 	*/
+	new EndPoints.ProfileEndpoint(
+		"/userauthentication/front/get/profile_session_with_token",
+		"Failed to retrieve user profile"
+	);
+	
 
 	new EndPoints.CreateUserEndpoint(
 		"/userauthentication/front/post/create",
