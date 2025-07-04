@@ -38,16 +38,6 @@ services:
             - proxy-network
             - backend-network
 
-    testWebServer:
-        build: ${TEST_WEBSERVER_FASTIFY_PATH}
-        init: true
-        image: testwebserver-img
-        restart: unless-stopped
-        container_name: testWebServer
-        networks:
-            - proxy-network
-            - backend-network
-
     dataBase:
         build: ${DB_BUILD_PATH}
         init: true

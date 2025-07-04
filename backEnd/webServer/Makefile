@@ -1,6 +1,6 @@
 SRC_DIR		:= conf/website/src/
 DIST_DIR	:= conf/website/dist/
-NAME		:= webserver.js
+NAME		:= testwebserver.js
 NODES_DIR	:= node_modules/
 TSC			:= $(NODES_DIR)/.bin/tsc
 

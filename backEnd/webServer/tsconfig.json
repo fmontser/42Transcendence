@@ -3,15 +3,16 @@
     "target": "ES6",
     "module": "ESNext",
     "sourceMap": true,
-    "outDir": "./conf/website/dist",
-    "rootDir": "./conf/website/src",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "bundler"
   },
   "include": [
-    "conf/website/src/**/*.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules"
