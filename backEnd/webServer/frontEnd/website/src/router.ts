@@ -213,7 +213,7 @@ const routes: Page[] = [
 		path: "/login",
 		view: async () => {
 			try {
-				let response: Response = await fetch("/components/login", {
+				let response: Response = await fetch("/access/login", {
 					method: 'GET',
 					credentials: 'include'
 				});
@@ -243,7 +243,7 @@ const routes: Page[] = [
 		path: "/signin",
 		view: async () => {
 			try {
-				let response: Response = await fetch("/components/signin", {
+				let response: Response = await fetch("/access/signin", {
 					method: 'GET',
 					credentials: 'include'
 				});

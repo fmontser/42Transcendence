@@ -44,6 +44,16 @@ function setEndPoints(): void {
 		"Unknown error."
 	);
 
+	new EndPoints.AccessLoginEndpoint(
+		"/access/login",
+		"Unknown error."
+	);
+
+	new EndPoints.AccessSigninEndpoint(
+		"/access/signin",
+		"Unknown error."
+	);
+
 	EndPoints.Endpoint.enableAll(server);
 }
 

@@ -23,6 +23,23 @@ export abstract class Endpoint {
 	}
 }
 
+export class ProfileEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, async (request:any, reply:any) => {
+			const token = request.query.token
+			console.log(`Token received: ${token}`);
+			try {
+				const decoded = server.jwt.verify(token);
+				console.log('Decoded token:', decoded);
+				reply.send({ id: decoded.id });
+			} catch (err) {
+				reply.status(401).send({ error: 'Invalid token' });
+				return;
+			}			
+		});
+	}
+}
+
 export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
