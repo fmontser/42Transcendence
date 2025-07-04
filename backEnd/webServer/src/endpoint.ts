@@ -52,6 +52,7 @@ export class AccessSigninEndpoint extends Endpoint {
 
 
 
+
 export class AccessComponentEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
