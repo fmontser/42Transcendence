@@ -19,6 +19,11 @@ export class MatchManager {
 	}
 
 	public async requestMatch(connection: any ,playerUID: number): Promise<void> {
+
+
+		//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@ continuar aqui!!!! llegan los requests
+
+
 		let newMatch: Match | null = this.findPendingMatch();
 
 		if (newMatch == null) {
@@ -29,7 +34,7 @@ export class MatchManager {
 
 		if (this.checkPlayers(newMatch)){
 			await this.postMatchEntry(newMatch);
-			this.requestNewPongInstance(newMatch, false);
+			this.requestNewPongInstance(newMatch);
 		}
 	}
 
@@ -53,7 +58,7 @@ export class MatchManager {
 
 			for(const match of newTournament.matches){
 				await this.postMatchEntry(match);
-				this.requestNewPongInstance(match, false);
+				this.requestNewPongInstance(match);
 			}
 		}
 	}
@@ -88,7 +93,7 @@ export class MatchManager {
 				currentTournament.drawFinals();
 				for(const match of currentTournament.matches){
 					await this.postMatchEntry(match);
-					this.requestNewPongInstance(match, false);
+					this.requestNewPongInstance(match);
 				}
 			}
 			else if (currentTournament.getPhase() == Phase.FINALS) {
@@ -142,7 +147,7 @@ export class MatchManager {
 				this.hotSeatList.delete(newTournament);
 				break;
 			}
-			this.requestNewPongInstance(match, true);
+			this.requestNewPongInstance(match);
 			while (true) {
 				if (match.status === Status.COMPLETED)
 					break;
@@ -284,7 +289,7 @@ export class MatchManager {
 		console.log("Info: Succesfully patched TournamentUID: " + tournament.tournamentUID);
 	};
 
-	private async requestNewPongInstance(match: Match, isHotSeat: boolean): Promise<void> {
+	private async requestNewPongInstance(match: Match): Promise<void> {
 		const ws = new WebSocket('ws://serverpong:3000/post/match');
 		console.log("Info: Connection to serverPong");
 
@@ -305,16 +310,15 @@ export class MatchManager {
 					for (const connection of [match.player0Conn, match.player1Conn]){
 						connection.send(JSON.stringify({
 							type: 'matchAnnounce',
-							gameUID: match.matchUID,
-							tournamentUID: match.tournamentUID,
+//TODO borrar si no sirven ya...
+/* 							gameUID: match.matchUID,
+							tournamentUID: match.tournamentUID, */
 							player0UID: match.player0UID,
 							player0Name: match.player0Name,
 							player1UID: match.player1UID,
 							player1Name: match.player1Name
 						}));
 						console.log("Info: match announce sent to client");
-						if (isHotSeat)
-							break;
 					}
 					break;
 				case 'endGame':

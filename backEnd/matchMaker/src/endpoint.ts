@@ -6,6 +6,8 @@ export abstract class Endpoint {
 	protected static list: Set<Endpoint> = new Set();
 	protected path: string;
 	protected errorMsg: string;
+	protected sessionToken!: any;
+	protected userId!: number;
 
 	constructor(path: string, errorMsg: string	) {
 		this.path = path;
@@ -13,31 +15,86 @@ export abstract class Endpoint {
 		Endpoint.list.add(this);
 	}
 	
-	protected abstract add(server: any): void;
-
 	public static enableAll(server: any): void {
 		for (const endpoint of Endpoint.list)
 			endpoint.add(server);
+	}
+	
+	protected abstract add(server: any): void;
+
+	protected async validateSession(): Promise<boolean> {
+		const reply = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${this.sessionToken}`, {
+			method: 'GET'
+		});
+		if (reply.ok) {
+			const data = await reply.json();
+			console.log(`Info: UserId ${data.id} session confirmed`);
+			this.userId = data.id;
+			return (true);
+		} else {
+			console.log('Info: Invalid user session');
+			return (false);
+		}
+	}
+
+	protected retrieveSessionToken(request: any): any {
+			const cookieHeader = request.headers.cookie;
+			if (cookieHeader) {
+				const cookies = cookieHeader.split(';');
+				for (const c of cookies) {
+					const [name, value] = c.trim().split('=');
+					if (name === 'token') {
+						this.sessionToken = value;
+						break;
+					}
+				}
+			}
+			return (this.sessionToken);
+	}
+
+	protected replyNotAllowed(connection: any): void {
+		connection.send(JSON.stringify({
+		type: 'error',
+		code: 403,
+		message: 'Not allowed please login'
+		}));
+		connection.close();
+	}
+
+	protected replyServerError(connection: any): void {
+		connection.send(JSON.stringify({
+		type: 'error',
+		code: 500,
+		message: 'Internal server error'
+		}));
+		connection.close();
 	}
 }
 
 export class PostMatchRequest extends Endpoint {
 
 	add(server: any): void {
-		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
-			
+		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
+
+			const sessionToken = this.retrieveSessionToken(req);
+			if (sessionToken == null || !(await this.validateSession())) {
+				this.replyNotAllowed(connection);
+				return;
+			}
+
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
 					console.log("Received message:", jsonData);
-
 					switch (jsonData.type) {
 						case 'matchRequest':
-							matchManager.requestMatch(connection, jsonData.userUID);
+							matchManager.requestMatch(connection, this.userId);
 							break;
 					}
 				} catch (error) {
 					console.error("Error processing message:", error);
+					this.replyServerError(connection);
+					return;
 				}
 			});
 
@@ -79,6 +136,7 @@ export class PostTournamentRequest extends Endpoint {
 	}
 }
 
+//TODO elminar hotseat endpoint
 export class PostHotSeatTournamentRequest extends Endpoint {
 
 	add(server: any): void {
