@@ -13,23 +13,22 @@ export class MatchMakerConnector {
 	private connect(): void {
 		try {
 			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/match`);
-
 		} catch (error) {
 			console.log(`Error: connection to matchMaker failed: ${error}`)
 		}
 	}
 
 	private setupEvents(): void {
-		this.ws.onopen = () => {
-			this.sendMatchRequest();
-		};
 
 		this.ws.onmessage = (event: any) => {
 			const data = JSON.parse(event.data);
 			switch(data.type) {
-				case 'matchAnnounce':
-					console.log("Info: Recieved match announce from matchMaker");
-					this.handleAnnounceResponse(data);
+				case 'accepted':
+					this.sendMatchRequest();
+					break;
+				case 'matchResponse':
+					console.log("Info: Recieved match response from matchMaker");
+					this.handleMatchResponse(data);
 					break;
 				case 'error':
 					console.log(`Error: ${data.message}`);
@@ -55,25 +54,18 @@ export class MatchMakerConnector {
 		console.log("Info: Match request sent to matchMaker");
 	}
 
-	private sendTournamentRequest(): void {
+	//TODO tournament
+/* 	private sendTournamentRequest(): void {
 		this.ws.send(JSON.stringify({
 			type: 'tournamentRequest'
 		}));
 		console.log("Info: Tournament request sent to matchMaker");
-	}
+	} */
 
-	private handleAnnounceResponse(data: any) {
+	private handleMatchResponse(data: any) {
  		this.game.leftPlayerName = data.player0Name;
 		this.game.rightPlayerName = data.player1Name;
-
-		//TODO asignar el slot!!
-		/* 
-		if (player0UID == userToken)
-			userSlot = 0;
-		else
-			userSlot = 1; */
-
-		console.log(`Info: Announce recieved from matchMaker`);
+		this.game.userSlot = data.userSlot;
 		this.game.announceMatch();
 		this.ws.close();
 	}

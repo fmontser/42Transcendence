@@ -167,7 +167,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	```typescript
 	//Juego online registrado
 	function connect(): void { 
-		ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+		ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/game`);
 		//...
 	}
 	```

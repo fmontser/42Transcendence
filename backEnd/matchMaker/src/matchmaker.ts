@@ -9,11 +9,14 @@ const server = Fastify({
 export const matchManager = new MatchManager();
 
 function setEndPoints(): void {
-	new EndPoints.PostMatchRequest('/matchmaker/front/post/match', 'Error obtaining post match endpoint');
+	new EndPoints.PostMatchRequest(
+		'/matchmaker/front/post/match',
+		'Error obtaining post match endpoint'
+	);
 
-	new EndPoints.PostTournamentRequest('/matchmaker/front/post/tournament', 'Error obtaining post tournament endpoint');
-
-	new EndPoints.PostHotSeatTournamentRequest('/matchmaker/front/post/hotseat', 'Error obtaining post hotseat endpoint');
+/* 	new EndPoints.PostTournamentRequest(
+		'/matchmaker/front/post/tournament',
+		 'Error obtaining post tournament endpoint'); */
 
 	EndPoints.Endpoint.enableAll(server);
 }

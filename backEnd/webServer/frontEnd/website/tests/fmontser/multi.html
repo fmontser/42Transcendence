@@ -219,7 +219,7 @@
 			}
 
 			function setupPongWS() {
-				ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+				ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/game`);
 
 				ws.onopen = () => {
 					console.log('Conectado al servidor');

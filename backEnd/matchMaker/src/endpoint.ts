@@ -52,6 +52,14 @@ export abstract class Endpoint {
 			return (this.sessionToken);
 	}
 
+	protected replyAccepted(connection: any): void {
+		connection.send(JSON.stringify({
+		type: 'accepted',
+		code: 202,
+		message: 'Token accepted'
+		}));
+	}
+
 	protected replyNotAllowed(connection: any): void {
 		connection.send(JSON.stringify({
 		type: 'error',
@@ -81,13 +89,14 @@ export class PostMatchRequest extends Endpoint {
 				this.replyNotAllowed(connection);
 				return;
 			}
+			this.replyAccepted(connection);
 
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
 					switch (jsonData.type) {
 						case 'matchRequest':
+							console.log(`Info: Recieved matchRequest from userId ${this.userId}`);
 							matchManager.requestMatch(connection, this.userId);
 							break;
 					}
@@ -105,7 +114,7 @@ export class PostMatchRequest extends Endpoint {
 	}
 }
 
-export class PostTournamentRequest extends Endpoint {
+/* export class PostTournamentRequest extends Endpoint {
 
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
@@ -134,46 +143,4 @@ export class PostTournamentRequest extends Endpoint {
 			});
 		});
 	}
-}
-
-//TODO elminar hotseat endpoint
-export class PostHotSeatTournamentRequest extends Endpoint {
-
-	add(server: any): void {
-
-		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
-			
-			connection.on('message', (data: any) => {
-				try {
-					const jsonData = JSON.parse(data.toString());
-
-					switch (jsonData.type) {
-						case 'hotSeatTournamentRequest':
-							let usersUIDs: number[] = [
-								jsonData.user1UID,
-								jsonData.user2UID,
-								jsonData.user3UID,
-								jsonData.user4UID
-							];
-							matchManager.requestHotSeatTournament(connection, usersUIDs);
-							break;
-						case 'hotSeatTournamentPhaseEnd':
-							console.log("Info: Hot seat tournament phase request recieved");
-							matchManager.phaseHotSeatTournament(jsonData.tournamentUID);
-							break;
-						case 'canceled':
-							matchManager.cancelHotSeat(jsonData.tournamentUID);
-						
-					}
-				} catch (error) {
-					console.error("Error processing message:", error);
-				}
-			});
-
-			connection.on('close', () => {
-				console.log("Client left the matchMaker");
-
-			});
-		});
-	}
-}
+} */

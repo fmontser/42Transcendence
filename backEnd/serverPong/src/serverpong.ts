@@ -27,7 +27,7 @@ function setEndPoints(): void {
 
 	new EndPoints.GetNewLocalGame('/serverpong/front/get/pong', 'Error obtaining local pong endpoint');
 
-	new EndPoints.GetNewMultiGame('/serverpong/front/get/multi', 'Error obtaining online pong endpoint');
+	new EndPoints.GetNewMultiGame('/serverpong/front/get/game', 'Error obtaining online pong endpoint');
 
 	new EndPoints.PostNewMatch('/post/match', 'Error obtaining match endpoint');
 

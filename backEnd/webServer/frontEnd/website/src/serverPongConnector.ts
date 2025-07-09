@@ -2,10 +2,10 @@ import { PongGame, PlayerPosition } from "./pongGame.js";
 
 export class ServerPongConnector {
 	private ws: any;
-	private gameCtx: PongGame;
+	private game: PongGame;
 
-	constructor (gameCtx: PongGame) {
-		this.gameCtx = gameCtx;
+	constructor (game: PongGame) {
+		this.game = game;
 		this.connect();
 		this.setupEvents();
 		this.setupControls();
@@ -13,7 +13,7 @@ export class ServerPongConnector {
 
 	private connect(): void {
 		try {
-			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/game`);
 		} catch (error) {
 			console.log(`Error: connection to serverPong failed: ${error}`);
 		}
@@ -33,12 +33,12 @@ export class ServerPongConnector {
 					this.handleSetupResponse(data);
 					break;
 				case 'update':
-					this.gameCtx.setGameState(data);
-					this.gameCtx.drawFrame();
+					this.game.setGameState(data);
+					this.game.drawFrame();
 					break;
 				case 'endGame':
 				case 'playerDisconnected':
-					this.gameCtx.drawEndGameScreen(data);
+					this.game.drawEndGameScreen(data);
 					break;
 			}
 		};
@@ -54,8 +54,8 @@ export class ServerPongConnector {
 
 	private setupControls() {
 		document.addEventListener('keydown', (event) => {
-			let input = { type: 'input', playerSlot: this.gameCtx.userSlot, direction: 'stop' };
-			if (this.gameCtx.userSlot == PlayerPosition.LEFT) {
+			let input = { type: 'input', playerSlot: this.game.userSlot, direction: 'stop' };
+			if (this.game.userSlot == PlayerPosition.LEFT) {
 				switch(event.key) {
 					case 'w':
 						input.direction = 'up';
@@ -66,7 +66,7 @@ export class ServerPongConnector {
 						this.ws.send(JSON.stringify(input));
 						break;
 				}
-			} else if (this.gameCtx.userSlot == PlayerPosition.RIGHT) {
+			} else if (this.game.userSlot == PlayerPosition.RIGHT) {
 				switch(event.key) {
 					case 'ArrowUp':
 						input.direction = 'up';
@@ -81,16 +81,16 @@ export class ServerPongConnector {
 		});
 
 		document.addEventListener('keyup', (event) => {
-			let input = { type: 'input', playerSlot: this.gameCtx.userSlot, direction: 'stop' };
+			let input = { type: 'input', playerSlot: this.game.userSlot, direction: 'stop' };
 			
-			if (this.gameCtx.userSlot == PlayerPosition.LEFT) {
+			if (this.game.userSlot == PlayerPosition.LEFT) {
 				switch(event.key) {
 					case 'w':
 					case 's':
 						this.ws.send(JSON.stringify(input));
 						break;
 				}
-			} else if (this.gameCtx.userSlot == PlayerPosition.RIGHT) {
+			} else if (this.game.userSlot == PlayerPosition.RIGHT) {
 				switch(event.key) {
 					case 'ArrowUp':
 					case 'ArrowDown':
@@ -104,7 +104,7 @@ export class ServerPongConnector {
 	private sendSetupRequest() {
 		this.ws.send(JSON.stringify({
 			type: 'setupRequest',
-			userSlot: this.gameCtx.userSlot,
+			userSlot: this.game.userSlot,
 		}));
 	}
 
@@ -115,10 +115,10 @@ export class ServerPongConnector {
 	}
 
 	private handleSetupResponse(data: any) {
-		this.gameCtx.PADDLE_WIDTH = data.paddleWidth;
-		this.gameCtx.PADDLE_HEIGHT = data.paddleHeight;
-		this.gameCtx.BALL_RADIUS = data.ballRadius;
-		this.gameCtx.setGameState(data);
+		this.game.PADDLE_WIDTH = data.paddleWidth;
+		this.game.PADDLE_HEIGHT = data.paddleHeight;
+		this.game.BALL_RADIUS = data.ballRadius;
+		this.game.setGameState(data);
 		this.sendStartRequest();
 	}
 }

@@ -223,7 +223,7 @@ class ServerPongConnector {
 
 	private connect(): void {
 		try {
-			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/multi`);
+			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/serverpong/front/get/game`);
 		} catch (error) {
 			console.log(`Error: connection to serverPong failed: ${error}`);
 		}

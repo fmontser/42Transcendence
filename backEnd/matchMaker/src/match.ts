@@ -32,6 +32,13 @@ export class Match {
 		}
 	}
 
+	public checkMatchPlayers(): boolean {
+		if (this.player0UID != 0 && this.player1UID != 0) {
+			return (true);
+		}
+		return (false);
+	}
+
 	private async getPlayerName(playerUID: number): Promise<string> {
 		const response = await fetch(`http://dataBase:3000/get/username?id=${playerUID}`);
 		const data = await response.json();
