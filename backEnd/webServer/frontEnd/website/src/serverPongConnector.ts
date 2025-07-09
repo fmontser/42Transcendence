@@ -1,4 +1,4 @@
-import { PongGame, PlayerPosition } from "./pongGame.js";
+import { PongGame } from "./pongGame.js";
 
 export class ServerPongConnector {
 	private ws: any;
@@ -54,57 +54,33 @@ export class ServerPongConnector {
 
 	private setupControls() {
 		document.addEventListener('keydown', (event) => {
-			let input = { type: 'input', playerSlot: this.game.userSlot, direction: 'stop' };
-			if (this.game.userSlot == PlayerPosition.LEFT) {
-				switch(event.key) {
-					case 'w':
-						input.direction = 'up';
-						this.ws.send(JSON.stringify(input));
-						break;
-					case 's':
-						input.direction = 'down';
-						this.ws.send(JSON.stringify(input));
-						break;
-				}
-			} else if (this.game.userSlot == PlayerPosition.RIGHT) {
-				switch(event.key) {
-					case 'ArrowUp':
-						input.direction = 'up';
-						this.ws.send(JSON.stringify(input));
-						break;
-					case 'ArrowDown':
-						input.direction = 'down';
-						this.ws.send(JSON.stringify(input));
-						break;
-				}
+			let input = { type: 'input', direction: 'stop' };
+			switch(event.key) {
+				case 'ArrowUp':
+					input.direction = 'up';
+					this.ws.send(JSON.stringify(input));
+					break;
+				case 'ArrowDown':
+					input.direction = 'down';
+					this.ws.send(JSON.stringify(input));
+					break;
 			}
 		});
 
 		document.addEventListener('keyup', (event) => {
-			let input = { type: 'input', playerSlot: this.game.userSlot, direction: 'stop' };
-			
-			if (this.game.userSlot == PlayerPosition.LEFT) {
-				switch(event.key) {
-					case 'w':
-					case 's':
-						this.ws.send(JSON.stringify(input));
-						break;
-				}
-			} else if (this.game.userSlot == PlayerPosition.RIGHT) {
-				switch(event.key) {
-					case 'ArrowUp':
-					case 'ArrowDown':
-						this.ws.send(JSON.stringify(input));
-						break;
-				}
-			}
+			let input = { type: 'input', direction: 'stop' };
+			switch(event.key) {
+				case 'ArrowUp':
+				case 'ArrowDown':
+					this.ws.send(JSON.stringify(input));
+					break;
+			}	
 		});
 	}
 
 	private sendSetupRequest() {
 		this.ws.send(JSON.stringify({
 			type: 'setupRequest',
-			userSlot: this.game.userSlot,
 		}));
 	}
 

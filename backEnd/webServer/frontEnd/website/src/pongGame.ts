@@ -1,16 +1,12 @@
 import { MatchMakerConnector } from "./matchMakerConnector.js";
 import { ServerPongConnector } from "./serverPongConnector.js";
 
-export enum PlayerPosition { LEFT, RIGHT }
-
 export class PongGame {
 	private playField: any = document.getElementById('playField');
 	private ctx2d: any = this.playField.getContext('2d');
 	private scoreElement: any = document.getElementById('score');
 	private matchMakerConnector!: MatchMakerConnector;
 	private serverPongConnector!: ServerPongConnector;
-
-	public userSlot!: PlayerPosition;
 
 	public leftPlayerName!: string;
 	public rightPlayerName!: string;

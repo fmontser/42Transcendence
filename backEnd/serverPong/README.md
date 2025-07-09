@@ -148,9 +148,9 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 		"type": "endGame",
 		"gameUID": "number",
 		"giveUp": "boolean",
-		"player1UID": "number",
+		"player1Id": "number",
 		"player2UID": "number",
-		"winnerUID": "number",
+		"winnerId": "number",
 		"score": ["number", "number"]
 	}
 	```
@@ -178,7 +178,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	```json
 	{
 		"type": "setupRequest",
-		"userUID:" userUID,
+		"userId:" userId,
 		"userSlor:" userSlot,
 		"gameUID:" gameUID
 	}
@@ -207,7 +207,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	```json
 	{
 		"type": "startRequest",
-		"userUID": userUID
+		"userId": userId
 	}
 	```
 ---
@@ -248,7 +248,7 @@ Este directorio contiene el código fuente y la configuración para el servicio 
 	{
 		"type": "endGame | playerDisconnected",
 		"gameUID": "number",
-		"winnerUID": "number",
+		"winnerId": "number",
 		"score": ["number", "number"]
 	}
 	```

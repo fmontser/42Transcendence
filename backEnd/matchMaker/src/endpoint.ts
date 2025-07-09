@@ -126,11 +126,11 @@ export class PostMatchRequest extends Endpoint {
 					switch (jsonData.type) {
 						case 'tournamentRequest':
 							console.log("Info: Tournament request recieved");
-							matchManager.requestTournament(connection, jsonData.userUID);
+							matchManager.requestTournament(connection, jsonData.userId);
 							break;
 						case 'tournamentPhaseEnd':
 							console.log("Info: Tournament phase request recieved");
-							matchManager.phaseTournament(jsonData.tournamentUID, jsonData.playerUID);
+							matchManager.phaseTournament(jsonData.tournamentUID, jsonData.userId);
 							break;
 					}
 				} catch (error) {

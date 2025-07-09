@@ -1,4 +1,4 @@
-import { PongGame, PlayerPosition } from "./pongGame.js";
+import { PongGame } from "./pongGame.js";
 
 export class MatchMakerConnector {
 	private game: PongGame;
@@ -65,7 +65,6 @@ export class MatchMakerConnector {
 	private handleMatchResponse(data: any) {
  		this.game.leftPlayerName = data.player0Name;
 		this.game.rightPlayerName = data.player1Name;
-		this.game.userSlot = data.userSlot;
 		this.game.announceMatch();
 		this.ws.close();
 	}

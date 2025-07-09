@@ -48,11 +48,11 @@ export class MatchManager {
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				tournament_id: match.tournamentUID,
-				player0_id: match.player0UID,
+				player0_id: match.player0Id,
 				player0_score: gameOverData.score[0],
-				player1_id: match.player1UID,
+				player1_id: match.player1Id,
 				player1_score: gameOverData.score[1],
-				winner_id: gameOverData.winnerUID,
+				winner_id: gameOverData.winnerId,
 				disconnected: match.status == Status.DISCONNECTED ? true : false
 			})
 		});
@@ -64,7 +64,7 @@ export class MatchManager {
 	
 	private async sendMatchResponse(match: Match): Promise<void> {
 		let userMap: Map<string, any> = new Map<string, any>();
-		let userSlot: number = 0;
+
 
 		userMap.set(match.player0Name, match.player0Conn);
 		userMap.set(match.player1Name, match.player1Conn);
@@ -72,14 +72,12 @@ export class MatchManager {
 		for (const [name, connection] of userMap){
 			connection.send(JSON.stringify({
 				type: 'matchResponse',
-				userSlot: userSlot,
-				player0UID: match.player0UID,
+				player0Id: match.player0Id,
 				player0Name: match.player0Name,
-				player1UID: match.player1UID,
+				player1Id: match.player1Id,
 				player1Name: match.player1Name
 			}));
 			console.log(`Info: Announce sent to user ${name}`);
-			userSlot++;
 		}
 	}
 
@@ -93,7 +91,8 @@ export class MatchManager {
 		ws.on('open', () => {
 			ws.send(JSON.stringify({
 				type: 'postMatchRequest',
-				gameUID: match.matchUID
+				player0Id: match.player0Id,
+				player1Id: match.player1Id,
 			}));
 			console.log("Info: New game request sent to serverPong");
 		});

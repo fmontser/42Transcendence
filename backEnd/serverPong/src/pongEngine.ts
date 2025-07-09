@@ -7,7 +7,8 @@ import { P1, P2, TICK_INTERVAL,
 		 PADDLE_SPEED, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_MARGIN,
 		 BALL_RADIUS, BALL_SPEED,
 		 MAX_SCORE, 
-		 multiGameManager} from './serverpong';
+		 standardGameManager} from './serverpong';
+
 import { clearInterval } from 'timers';
 
 enum Status {
@@ -16,71 +17,73 @@ enum Status {
 
 export class Player {
 	connection: any;
-	playerSlot: number;
-	playerUID: number;
+	userId!: number;
 	public isReady: boolean;
 
-	constructor(connection: any, playerUID: number, playerSlot: number) {
+	constructor(connection: any) {
 		this.connection = connection;
-		this.playerUID = playerUID;
-		this.playerSlot = playerSlot;
 		this.isReady = false;
 	}
 }
 
-export class MultiGameManager {
-	private multiGameList: Set<MultiGame>;
+export class StandardGameManager {
+	private StandardGameList: Set<StandardGame>;
 
 	constructor() {
-		this.multiGameList = new Set<MultiGame>();
+		this.StandardGameList = new Set<StandardGame>();
 	}
 
-	public createGame(gameUID: number): MultiGame {
-		let newGame: MultiGame = new MultiGame(gameUID);
-		this.multiGameList.add(newGame);
+	public createGame(player0Id: number, player1Id: number): StandardGame {
+		let newGame: StandardGame = new StandardGame(player0Id, player1Id);
+		this.StandardGameList.add(newGame);
 		return (newGame);
 	}
 
-	public joinGame(gameUID: number, player: Player): MultiGame {
-		let newGame: MultiGame  = this.findGame(gameUID);
+	public joinGame(gameUID: number, player: Player): StandardGame {
+		let newGame: StandardGame  = this.findGame(gameUID);
 		newGame.addOnlinePlayer(player);
 		return (newGame);
 	}
 
-	private findGame(gameUID: number): MultiGame {
-		let found!: MultiGame;
+	private findGame(gameUID: number): StandardGame {
+		let found!: StandardGame;
 		
-		for(const game of this.multiGameList) {
+
+		//TODO @@@@@@@@@@@@@@@@@@@@@@ seguir sacando gameUID, remplazando por playerID....
+
+		for(const game of this.StandardGameList) {
 			if (game.getUID() == gameUID)
 				found = game;
 		}
 		return (found);
 	}
 
-	public deleteGame(game: MultiGame): void {
-		this.multiGameList.delete(game);
+	public deleteGame(game: StandardGame): void {
+		this.StandardGameList.delete(game);
 	}
 
 }
 
-export abstract class Game {
-	protected gameUID: number;
+export abstract class PongGame {
 	public score: number[];
 	protected players!: Player[];
 	protected maxScore: number;
 	public playField: PlayField;
 	protected gameLoop!: NodeJS.Timeout;
 	protected status!: Status;
-	protected winnerUID!: number;
+	protected player0Id!: number;
+	protected player1Id!: number;
+	protected winnerId!: number;
 	protected endType!: string;
 
-	constructor(gameUID: number) {
-		this.gameUID = gameUID;
+	constructor(player0Id: number, player1Id: number) {
+
 		this.score = [0,0];
 		this.players = [];
 		this.maxScore = MAX_SCORE;
 		this.status = Status.PENDING;
-		
+		this.player0Id = player0Id;
+		this.player1Id = player1Id;
 
 		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
 
@@ -105,91 +108,14 @@ export abstract class Game {
 		));
 	}
 
-	public getUID(): number { return this.gameUID; }
-
 	public abstract gameStart(connection: any): void;
 	public abstract gameEnd(playerDisconected:  Player | null): void;
 }
 
-export class LocalGame extends Game {
-
-	constructor(gameUID: number) {
-		super(gameUID);
-	}
-
-	public addLocalPlayers(connection: any): void {
-		this.players.push(new Player(null, -1, P1));
-		this.players.push(new Player(null, -2, P2));
-		this.players.sort((a, b) => a.playerSlot - b.playerSlot);
-	}
-
-	public gameSetup(connection: any): void {
-		console.log("Sent message: Game configuration");
-
-		connection.send(JSON.stringify({
-			type: 'setupResponse',
-			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
-			ballRadius: this.playField.ball.radius,
-			paddlesPos: [
-				{ x: this.playField.paddle0.pos.x, y: this.playField.paddle0.pos.y },
-				{ x: this.playField.paddle1.pos.x, y: this.playField.paddle1.pos.y }
-			],
-			paddleHeight: this.playField.paddle0.rect.height,
-			paddleWidth: this.playField.paddle0.rect.width,
-			score: [0, 0]
-		}));
-	}
-
-	public gameStart(connection: any): void {
-		this.playField.ball.launchBall();
-
-		this.gameLoop = setInterval(() => {
-
-			this.playField.paddle0.transpose();
-			this.playField.paddle1.transpose();
-			this.playField.ball.transpose();
-			this.playField.ball.checkScore();
-
-			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
-				clearInterval(this.gameLoop);
-				this.gameEnd(connection);
-				return;
-			}
-
-			connection.send(JSON.stringify({
-				type: 'update',
-				ballPos: this.playField.ball.pos,
-				paddlesPos: [
-					this.playField.paddle0.pos,
-					this.playField.paddle1.pos
-				],
-				score: this.score
-			}));
-
-		}, TICK_INTERVAL);
-	}
-
-	public gameEnd(connection: any): void {
-		let winnerUID: number = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
-		console.log("Sent message: End game summary. winner: " + winnerUID);
-
-		connection.send(JSON.stringify({
-			type: 'endGame',
-			gameUID: this.gameUID,
-			player1UID: this.players[P1].playerUID,
-			player2UID: this.players[P2].playerUID,
-			winnerUID: winnerUID,
-			score: this.score
-		}));
-
-		connection.close();
-	}
-}
-
-export class MultiGame extends Game {
+export class StandardGame extends PongGame {
 	
-	constructor(gameUID: number) {
-		super(gameUID);
+	constructor(player0Id: number, player1Id: number) {
+		super(player0Id, player1Id);
 	}
 
 	public addOnlinePlayer(player: Player): void {
@@ -284,7 +210,7 @@ export class MultiGame extends Game {
 		connection.send(JSON.stringify({
 			type: this.endType,
 			gameUID: this.gameUID,
-			winnerUID: this.winnerUID,
+			winnerId: this.winnerId,
 			score: this.score
 		}))
 		console.log("Info: Sent game summary to matchMaker");
@@ -295,11 +221,11 @@ export class MultiGame extends Game {
 		if (this.status == Status.COMPLETED)
 			return;
 		if (disconnectedPlayer != null) {
-			this.winnerUID = this.players[P1].playerUID == disconnectedPlayer.playerUID ? this.players[P1].playerUID : this.players[P2].playerUID;
+			this.winnerId = this.players[P1].userId == disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
 			this.endType = 'playerDisconnected';
 			this.status = Status.DISCONNECTED;
 		} else {
-			this.winnerUID = this.score[P1] > this.score[P2] ? this.players[P1].playerUID : this.players[P2].playerUID;
+			this.winnerId = this.score[P1] > this.score[P2] ? this.players[P1].userId : this.players[P2].userId;
 			this.endType = 'endGame';
 			this.status = Status.COMPLETED;
 		}
@@ -307,12 +233,12 @@ export class MultiGame extends Game {
 		this.broadcastSend(JSON.stringify({
 			type: this.endType,
 			gameUID: this.gameUID,
-			winnerUID: this.winnerUID,
+			winnerId: this.winnerId,
 			score: this.score
 		}));
 		console.log("Info: Sent game summary to players");
 
-		multiGameManager.deleteGame(this);
+		StandardGameManager.deleteGame(this);
 		this.broadcastClose();
 	}
 
