@@ -1,12 +1,31 @@
-import * as EndPoints from './endpoint'
-import FormBodyPlugin from '@fastify/formbody';
-import Fastify from 'fastify';
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import fastifyStatic from '@fastify/static';
+import * as EndPoints from './endpoint.js';
+import path from 'path';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
-import cors from '@fastify/cors';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const server = Fastify({
-	logger: true 
+	logger: false // It's good practice to enable logging
+});
+
+
+//    Serves files from the 'public' directory
+server.register(fastifyStatic, {
+	root: path.join(__dirname, '..', 'website'),
+	// Optional: All other fastify-static options can be specified here
+});
+
+
+
+server.setNotFoundHandler(async (request: FastifyRequest, reply: FastifyReply) => {
+	// The client-side router will handle the 404
+	return reply.sendFile('index.html');
 });
 
 function setEndPoints(): void {
@@ -19,49 +38,28 @@ function setEndPoints(): void {
 	);
 	
 	*/
-	//TODO este endpoint no tendria que estar expuesto!! uso exclusivo del backend (y /userauthentication/ es redundante..)
-	new EndPoints.ProfileEndpoint(
-		"/userauthentication/front/get/profile_session_with_token",
-		"Failed to retrieve user profile"
-	);	
-	
-
-	new EndPoints.CreateUserEndpoint(
-		"/userauthentication/front/post/create",
-		"Failed to create user"
+	//examples
+	new EndPoints.AccessComponentEndpoint(
+		"/components/:name",
+		"Unknown error."
 	);
 
-	new EndPoints.GoogleAuthEndpoint(
-		"/userauthentication/front/post/google_connect",
-		"Failed to connect user with Google",
+	new EndPoints.AccessLoginEndpoint(
+		"/access/login",
+		"Unknown error."
 	);
 
-	new EndPoints.LogOutEndpoint(
-		"/userauthentication/front/post/logout",
-		"Failed to log out user"
-	);
-
-	new EndPoints.LogInEndpoint(
-		"/userauthentication/front/post/login",
-		"Failed to log in user"
-	);
-
-	new EndPoints.SeeAllUsersEndpoint(
-		"/userauthentication/front/get/users",
-		"Failed to retrieve users"
+	new EndPoints.AccessSigninEndpoint(
+		"/access/signin",
+		"Unknown error."
 	);
 
 	EndPoints.Endpoint.enableAll(server);
 }
 
 async function start() {
-
 	try {
-		await server.register(FormBodyPlugin);
-		await server.register(cors, {
-			origin: 'https://localhost',
-			credentials: true
-		});
+		//console.log(path.dirname);
 		await server.register(fastifyCookie);
 		await server.register(fastifyJwt, {
 			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
@@ -83,7 +81,7 @@ async function start() {
 		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {
-		server.log.error(err);
+		//server.log.error(err);
 		process.exit(1);
 	}
 }

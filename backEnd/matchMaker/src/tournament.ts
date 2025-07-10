@@ -24,20 +24,20 @@ export class Tournament {
 		this.hotSeat = hotSeat;
 	}
 
-	private checkDupPlayer(playerUID: number): boolean {
+	private checkDupPlayer(userId: number): boolean {
 		for (const p of this.players){
-			if (p[0] == playerUID)
+			if (p[0] == userId)
 				return (true);
 		}
 		return (false);
 	}
 
-	public join(playerUID: number, connection: any): boolean {
+	public join(userId: number, connection: any): boolean {
 		if (this.players.size >= this.maxPlayers
-			|| this.checkDupPlayer(playerUID))
+			|| this.checkDupPlayer(userId))
 			return (false);
 
-		this.players.set(playerUID, connection);
+		this.players.set(userId, connection);
 		if (this.players.size >= this.maxPlayers)
 			this.phase = Phase.SEMIFINALS;
 		return (true);
@@ -75,13 +75,13 @@ export class Tournament {
 		finalsLosers.tournamentUID = this.tournamentUID;
 
 		for (const m of this.matches) {
- 			if (m.player0UID == m.winnerUID) {
-				finalsWinners.addPlayer(m.player0Conn, m.player0UID);
-				finalsLosers.addPlayer(m.player1Conn, m.player1UID);
+ 			if (m.player0Id == m.winnerId) {
+				finalsWinners.addPlayer(m.player0Conn, m.player0Id);
+				finalsLosers.addPlayer(m.player1Conn, m.player1Id);
 			}
 			else {
-				finalsWinners.addPlayer(m.player1Conn, m.player1UID);
-				finalsLosers.addPlayer(m.player0Conn, m.player0UID);
+				finalsWinners.addPlayer(m.player1Conn, m.player1Id);
+				finalsLosers.addPlayer(m.player0Conn, m.player0Id);
 			}
 		}
 		
@@ -104,23 +104,23 @@ export class Tournament {
 		
 		const matchArray = Array.from(this.matches);
 
-		if (matchArray[1].player0UID == matchArray[0].winnerUID) {
-			this.ranking.set(1, matchArray[0].player0UID);
-			this.ranking.set(2, matchArray[0].player1UID);
+		if (matchArray[1].player0Id == matchArray[0].winnerId) {
+			this.ranking.set(1, matchArray[0].player0Id);
+			this.ranking.set(2, matchArray[0].player1Id);
 		}
 		else {
-			this.ranking.set(1, matchArray[0].player1UID);
-			this.ranking.set(2, matchArray[0].player0UID);
+			this.ranking.set(1, matchArray[0].player1Id);
+			this.ranking.set(2, matchArray[0].player0Id);
 		}
 
 
-		if (matchArray[1].player0UID == matchArray[1].winnerUID) {
-			this.ranking.set(3, matchArray[1].player0UID);
-			this.ranking.set(4, matchArray[1].player1UID);
+		if (matchArray[1].player0Id == matchArray[1].winnerId) {
+			this.ranking.set(3, matchArray[1].player0Id);
+			this.ranking.set(4, matchArray[1].player1Id);
 		}
 		else {
-			this.ranking.set(3, matchArray[1].player1UID);
-			this.ranking.set(4, matchArray[1].player0UID);
+			this.ranking.set(3, matchArray[1].player1Id);
+			this.ranking.set(4, matchArray[1].player0Id);
 		}
 
 		this.matches.clear();

@@ -5,6 +5,7 @@ DB_DIR			:= backEnd/dataBase/
 MM_DIR			:= backEnd/matchMaker/
 SP_DIR			:= backEnd/serverPong/
 UM_DIR			:= backEnd/userManagement/
+WS_DIR			:= backEnd/webServer/
 
 COMPOSE_FILE	:= docker-compose.yml
 
@@ -56,9 +57,26 @@ build:
 	@make -C $(MM_DIR) install
 	@make -C $(SP_DIR) install
 	@make -C $(UM_DIR) install
+	@make -C $(WS_DIR) install
+
 	@docker compose -f $(COMPOSE_FILE) build
 
+build_nc:
+	@echo "Building docker images..."
+	@mkdir -p volumes/dataBase-volume/
+	@make -C $(DB_DIR) install
+	@make -C $(MM_DIR) install
+	@make -C $(SP_DIR) install
+	@make -C $(UM_DIR) install
+	@make -C $(WS_DIR) install
+
+	@docker compose -f $(COMPOSE_FILE) build --no-cache
+
 up: down build
+	@echo "Setting services online..."
+	@docker compose -f $(COMPOSE_FILE) up -d
+
+upnc: down build_nc
 	@echo "Setting services online..."
 	@docker compose -f $(COMPOSE_FILE) up -d
 
@@ -73,6 +91,7 @@ clean:
 	@make -C $(MM_DIR) clean
 	@make -C $(SP_DIR) clean
 	@make -C $(UM_DIR) clean
+	@make -C $(WS_DIR) clean
 	
 fclean: clean
 	@echo "Force cleaning whole project..."
