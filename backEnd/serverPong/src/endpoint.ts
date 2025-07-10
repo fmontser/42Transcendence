@@ -6,7 +6,6 @@ export abstract class Endpoint {
 	protected path: string;
 	protected errorMsg: string;
 	protected sessionToken!: any;
-	protected userId!: number;
 
 	constructor(path: string, errorMsg: string	) {
 		this.path = path;
@@ -21,14 +20,14 @@ export abstract class Endpoint {
 			endpoint.add(server);
 	}
 
-	protected async validateSession(): Promise<boolean> {
+	protected async validateSession(player: Player): Promise<boolean> {
 		const reply = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${this.sessionToken}`, {
 			method: 'GET'
 		});
 		if (reply.ok) {
 			const data = await reply.json();
 			console.log(`Info: UserId ${data.id} session confirmed`);
-			this.userId = data.id;
+			player.userId = data.id;
 			return (true);
 		} else {
 			console.log('Info: Invalid user session');
@@ -91,13 +90,12 @@ export class PostNewMatch extends Endpoint {
 					switch (jsonData.type) {
 						case 'postMatchRequest':
 							console.log("Info: Match request recieved");
-							//TODO el gameUID ya no existe...
 							actualGame = standardGameManager.createGame(jsonData.player0Id, jsonData.player1Id);
+							actualGame.activateMatchDaemon(connection);
 							connection.send(JSON.stringify({
 								type: 'postMatchResponse'
 							}));
 							console.log("Info: post match confirmation sent");
-							actualGame.activateMatchDaemon(connection);
 							break;
 					}
 				} catch (error) {
@@ -117,24 +115,23 @@ export class GetNewGame extends Endpoint {
 		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
 
 			let currentGame!: StandardGame;
-			let player!: Player;
+			let player: Player =  new Player(connection);
 
 			const sessionToken = this.retrieveSessionToken(req);
-			if (sessionToken == null || !(await this.validateSession())) {
+			if (sessionToken == null || !(await this.validateSession(player))) {
 				this.replyNotAllowed(connection);
 				return;
 			}
 			this.replyAccepted(connection);
-			
+
 			connection.on('message', async (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
 					switch (jsonData.type) {
 						case 'setupRequest':
-							console.log("Info: Player " + this.userId + " is requesting setup data");
-							player = new Player(connection);
+							console.log(`Info: PlayerId ${player.userId} is requesting setup data`);
 							currentGame = standardGameManager.joinGame(player);
-							currentGame.gameSetup(connection, player);
+							currentGame.gameSetup(player);
 							console.log("Info: Sent setupResponse to user: " + player.userId);
 							break;
 						case 'startRequest':
@@ -143,9 +140,9 @@ export class GetNewGame extends Endpoint {
 							currentGame.gameStart();
 							break;
 						case 'input':
-							if (jsonData.playerSlot == P1)
+							if (player.userId == currentGame.player0Id)
 								currentGame.playField.paddle0.updateVector(jsonData.direction);
-							else if (jsonData.playerSlot == P2)
+							else if (player.userId == currentGame.player1Id)
 								currentGame.playField.paddle1.updateVector(jsonData.direction);
 							break;
 					}

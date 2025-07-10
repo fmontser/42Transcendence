@@ -22,13 +22,15 @@ export class ServerPongConnector {
 	private setupEvents(): void {
 
 		this.ws.onopen = () => {
-			console.log('Conectado al servidor');
-			this.sendSetupRequest();
+			console.log('Connected to serverPong');
 		};
 
 		this.ws.onmessage = (event: any) => {
 			const data = JSON.parse(event.data);
 			switch(data.type) {
+				case 'accepted':
+					this.sendSetupRequest();
+					break;
 				case 'setupResponse':
 					this.handleSetupResponse(data);
 					break;

@@ -107,11 +107,13 @@ export class MatchManager {
 					break;
 				case 'endGame':
 					match.status = Status.COMPLETED;
+					console.log("Info: Game summary recieved from serverPong");
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
 					break;
 				case 'playerDisconnected':
 					match.status = Status.DISCONNECTED;
+					console.log("Info: Game summary recieved from serverPong");
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
 					break;

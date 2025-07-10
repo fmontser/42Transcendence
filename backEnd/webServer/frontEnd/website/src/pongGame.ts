@@ -120,6 +120,7 @@ export class PongGame {
 			this.ctx2d.fillText('Game Over!', this.playField.width/2, this.playField.height/3);
 	
 		// score
+		this.scoreElement.textContent = `${endGameData.score[0]} - ${endGameData.score[1]}`;
 		this.ctx2d.font = '36px monospace';
 		this.ctx2d.fillText(`Final Score: ${endGameData.score[0]} - ${endGameData.score[1]}`, 
 			this.playField.width/2, this.playField.height/2);

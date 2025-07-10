@@ -16,7 +16,7 @@ enum Status {
 }
 
 export class Player {
-	connection: any;
+	connection!: any;
 	userId!: number;
 	public isReady: boolean;
 
@@ -39,23 +39,20 @@ export class StandardGameManager {
 		return (newGame);
 	}
 
-	public joinGame(gameUID: number, player: Player): StandardGame {
-		let newGame: StandardGame  = this.findGame(gameUID);
-		newGame.addOnlinePlayer(player);
+	public joinGame(player: Player): StandardGame {
+		let newGame: StandardGame  = this.findGame(player);
+		newGame.addPlayer(player);
 		return (newGame);
 	}
 
-	private findGame(gameUID: number): StandardGame {
-		let found!: StandardGame;
-		
-
-		//TODO @@@@@@@@@@@@@@@@@@@@@@ seguir sacando gameUID, remplazando por playerID....
+	private findGame(player: Player): StandardGame {
+		let pongGame!: StandardGame;
 
 		for(const game of this.StandardGameList) {
-			if (game.getUID() == gameUID)
-				found = game;
+			if (game.player0Id == player.userId || game.player1Id == player.userId)
+				pongGame = game;
 		}
-		return (found);
+		return (pongGame);
 	}
 
 	public deleteGame(game: StandardGame): void {
@@ -66,13 +63,13 @@ export class StandardGameManager {
 
 export abstract class PongGame {
 	public score: number[];
+	public player0Id!: number;
+	public player1Id!: number;
+	public playField: PlayField;
 	protected players!: Player[];
 	protected maxScore: number;
-	public playField: PlayField;
 	protected gameLoop!: NodeJS.Timeout;
 	protected status!: Status;
-	protected player0Id!: number;
-	protected player1Id!: number;
 	protected winnerId!: number;
 	protected endType!: string;
 
@@ -118,9 +115,8 @@ export class StandardGame extends PongGame {
 		super(player0Id, player1Id);
 	}
 
-	public addOnlinePlayer(player: Player): void {
+	public addPlayer(player: Player): void {
 		this.players.push(player);
-		this.players.sort((a, b) => a.playerSlot - b.playerSlot);
 	}
 
 	private playersReady(): boolean {
@@ -143,8 +139,8 @@ export class StandardGame extends PongGame {
 		});
 	}
 	
-	public gameSetup(connection: any, player: Player): void {
-		connection.send(JSON.stringify({
+	public gameSetup(player: Player): void {
+		player.connection.send(JSON.stringify({
 			type: 'setupResponse',
 			ballPos: { x: this.playField.ball.pos.x, y: this.playField.ball.pos.y },
 			ballRadius: this.playField.ball.radius,
@@ -166,7 +162,7 @@ export class StandardGame extends PongGame {
 		else
 			this.status = Status.ONGOING;
 
-		console.log("Info: Game " + this.gameUID + " has started!");
+		console.log(`Info: Game has started!: [ id: ${this.player0Id} vs id: ${this.player1Id}]`);
 		this.playField.ball.launchBall();
 
 		this.gameLoop = setInterval(() => {
@@ -209,7 +205,6 @@ export class StandardGame extends PongGame {
 
 		connection.send(JSON.stringify({
 			type: this.endType,
-			gameUID: this.gameUID,
 			winnerId: this.winnerId,
 			score: this.score
 		}))
@@ -232,13 +227,12 @@ export class StandardGame extends PongGame {
 
 		this.broadcastSend(JSON.stringify({
 			type: this.endType,
-			gameUID: this.gameUID,
 			winnerId: this.winnerId,
 			score: this.score
 		}));
 		console.log("Info: Sent game summary to players");
 
-		StandardGameManager.deleteGame(this);
+		standardGameManager.deleteGame(this);
 		this.broadcastClose();
 	}
 
