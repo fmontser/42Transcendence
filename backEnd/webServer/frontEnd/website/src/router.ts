@@ -1,5 +1,5 @@
 import { PongGame } from './pongGame.js';
-
+import { PongTournament } from './pongTournament.js';
 
 interface Page {
 	path: string;
@@ -25,6 +25,45 @@ const routes: Page[] = [
 						root.innerHTML = data;
 						let newGame = new PongGame();
 						newGame.start()
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+	{
+		path: "/tournament",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/tournament", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					console.log("html:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						let newTournament = new PongTournament();
+						newTournament.start()
 					} else {
 						console.error('Root element not found');
 					}
