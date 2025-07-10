@@ -1,3 +1,4 @@
+import { timeStamp } from "console";
 import { MatchMakerConnector } from "./matchMakerConnector.js";
 import { ServerPongConnector } from "./serverPongConnector.js";
 
@@ -15,7 +16,7 @@ export class PongGame {
 	public PADDLE_HEIGHT!: number;
 	public BALL_RADIUS!: number;
 	
-	private _gameState = {
+	private gameState = {
 		ball: { x: 0, y: 0 },
 		paddles: [
 			{ x: 0, y: 0 },
@@ -27,10 +28,11 @@ export class PongGame {
 	constructor () {}
 
 	public start(): void {
+		this.drawWaitScreen();
 		this.matchMakerConnector = new MatchMakerConnector(this);
 	}
 
-	public announceMatch() {
+	public announceMatch(): void {
 		let countdown = 3;
 
 		const drawCurrentAnnounceState = (currentCountdownValue: any) => {
@@ -77,14 +79,25 @@ export class PongGame {
 	}
 
 	//TODO FRONTEND estetica
-	public drawFrame() {
+	private drawWaitScreen(): void {
+		this.ctx2d.fillStyle = '#1a1a1a';
+		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
+
+		this.ctx2d.fillStyle = 'white';
+		this.ctx2d.font = '48px monospace';
+		this.ctx2d.textAlign = 'center';
+		this.ctx2d.fillText('FINDING A MATCH', this.playField.width / 2, this.playField.height / 2);
+	}
+
+	//TODO FRONTEND estetica
+	public drawFrame(): void {
 		// playField
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
 
 		// paddles
 		this.ctx2d.fillStyle = 'white';
-		this._gameState.paddles.forEach(paddle => {
+		this.gameState.paddles.forEach(paddle => {
 			this.ctx2d.fillRect(
 				paddle.x,
 				paddle.y,
@@ -95,15 +108,15 @@ export class PongGame {
 
 		// ball
 		this.ctx2d.beginPath();
-		this.ctx2d.arc(this._gameState.ball.x, this._gameState.ball.y, this.BALL_RADIUS, 0, Math.PI * 2);
+		this.ctx2d.arc(this.gameState.ball.x, this.gameState.ball.y, this.BALL_RADIUS, 0, Math.PI * 2);
 		this.ctx2d.fill();
 
 		// score
-		this.scoreElement.textContent = `${this._gameState.score[0]} - ${this._gameState.score[1]}`;
+		this.scoreElement.textContent = `${this.gameState.score[0]} - ${this.gameState.score[1]}`;
 	}
 
 	//TODO FRONTEND estetica
-	public drawEndGameScreen(endGameData: any) {
+	public drawEndGameScreen(endGameData: any): void {
 		// canvas
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
@@ -130,9 +143,9 @@ export class PongGame {
 		this.ctx2d.fillText(`Winner: ${winnerName}`, this.playField.width/2, this.playField.height/2 + 50);
 	}
 
-	public setGameState(data: any) {
-		this._gameState.ball = data.ballPos;
-		this._gameState.paddles = data.paddlesPos;
-		this._gameState.score = data.score;
+	public setGameState(data: any): void {
+		this.gameState.ball = data.ballPos;
+		this.gameState.paddles = data.paddlesPos;
+		this.gameState.score = data.score;
 	}
 }
