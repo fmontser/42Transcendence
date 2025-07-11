@@ -1,7 +1,5 @@
 import { Match } from "./match";
-import { Tournament, Phase } from "./tournament";
 import WebSocket from 'ws';
-
 
 export enum Status {
 	PENDING, ONGOING, COMPLETED, DISCONNECTED
@@ -9,11 +7,9 @@ export enum Status {
 
 export class MatchManager {
 	matchList: Set<Match>;
-	tournamentList: Set<Tournament>;
 
 	constructor() {
 		this.matchList = new Set<Match>();
-		this.tournamentList = new Set<Tournament>();
 	}
 
 	public async requestMatch(connection: any ,userId: number): Promise<void> {
@@ -30,6 +26,16 @@ export class MatchManager {
 			console.log(`Info: match found!: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
 			this.requestNewPongInstance(newMatch);
 		}
+	}
+
+	public async requestPairedMatch(connection: any[] ,userId: number[]): Promise<void> {
+		let newMatch: Match = new Match();
+
+		for (let i = 0; i < connection.length; i++)
+			await newMatch.addPlayer(connection[i], userId[i]);
+
+		console.log(`Info: Paired match ready!: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
+		this.requestNewPongInstance(newMatch);
 	}
 
 	private findPendingMatch(): Match | null {
@@ -125,124 +131,3 @@ export class MatchManager {
 		});
 	}
 }
-
-
-
-	/* public async requestTournament(connection: any ,userId: number): Promise<void> {
-		let newTournament: Tournament | null =  this.findPendingTournament(this.tournamentList);
-
-		if (newTournament == null) {
-			newTournament = new Tournament(false);
-			this.tournamentList.add(newTournament);
-			console.log(`Info: New tournament is preparing...`);
-		}
-		console.log(`Info: Player ${userId} is attemping to join...`);
-		if (!newTournament.join(userId, connection)) {
-			this.rejectPlayerTournament(userId, connection);
-			return;
-		}
-		console.log(`Info: userId: ${userId} has joined a tournament`)
-		if (newTournament.getPhase() == Phase.SEMIFINALS){
-			await this.postTournamentEntry(newTournament);
-			newTournament.drawSemifinals();
-
-			for(const match of newTournament.matches){
-				await this.postMatchEntry(match);
-				this.requestNewPongInstance(match);
-			}
-		}
-	}
-
-
-	private async postTournamentEntry(tournament: Tournament): Promise<void> {
-		const response = await fetch("http://dataBase:3000/post/tournament", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				ranking_1: 0,
-				ranking_2: 0,
-				ranking_3: 0,
-				ranking_4: 0,
-				status: Phase.DRAW
-			})
-		});
-		console.log("Info: New tournament entry request sent to database");
-		const data = await response.json();
-		tournament.tournamentUID = data.id;
-		console.log("Info: tournamentUID recieved from database: " + data.id);
-	}
-
-	public async phaseTournament(tournamentUID: number, userId: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.tournamentList);
-		if (currentTournament != null) {
-			currentTournament.playersReady++;
-			console.log(`Info: Player ${userId} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
-
-			if (currentTournament.playersReady < 4)
-				return;
-			if (currentTournament.getPhase() == Phase.SEMIFINALS){
-				currentTournament.drawFinals();
-				for(const match of currentTournament.matches){
-					await this.postMatchEntry(match);
-					this.requestNewPongInstance(match);
-				}
-			}
-			else if (currentTournament.getPhase() == Phase.FINALS) {
-				currentTournament.endTournament();
-				//TODO quitar ya no se va a hacer patch, solo se postean los resultados finales.
-				//await this.patchTournamentEntry(currentTournament);
-				this.sendTournamentRanking(currentTournament);
-				this.closeTournament(currentTournament);
-			}
-		}
-	}
-
-	private findTournament(tournamentUID: number, tournamentList: Set<Tournament>): Tournament | null {
-		for(const tournament of tournamentList) {
-			if (tournament.tournamentUID == tournamentUID) {
-				return (tournament); 
-			}
-		}
-		return (null);
-	}
-
-	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {
-		for(const tournament of tournamentList) {
-			if (tournament.getPhase() == Phase.DRAW) {
-				return (tournament); 
-			}
-		}
-		return (null);
-	}
-
-	private rejectPlayerTournament(userId: number, connection: any): void {
-			connection.send(JSON.stringify({
-				type: 'postTournamentReject'
-			}));
-			console.log(`Info: Player ${userId} has been rejected (full or duplicated)`);
-	}
-
-	private sendTournamentRanking(tournament: Tournament): void {
-		for (const player of tournament.getPlayers()){
-			player[1].send(JSON.stringify({
-				type: 'tournamentRanking',
-				p1: tournament.ranking.get(1),
-				p2: tournament.ranking.get(2),
-				p3: tournament.ranking.get(3),
-				p4: tournament.ranking.get(4)
-			}));
-			if (tournament.hotSeat)
-				break;
-		}
-		console.log(`Info: Tournament id ${tournament.tournamentUID} ranking sent to players`);
-	}
-
-	private closeTournament(tournament: Tournament): void {
-		setTimeout(() => {
-			for (const player of tournament.getPlayers())
-				player[1].close();
-		}, 1000);
-		this.tournamentList.delete(tournament);
-		console.log(`Info: Tournament id ${tournament.tournamentUID} has been closed`);
-	} */
-	

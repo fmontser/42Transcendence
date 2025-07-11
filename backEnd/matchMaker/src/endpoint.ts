@@ -1,4 +1,4 @@
-import { matchManager } from './matchmaker'
+import { matchManager, tournamentManager } from './matchmaker'
 import { Tournament } from './tournament';
 
 export abstract class Endpoint {
@@ -114,11 +114,19 @@ export class PostMatchRequest extends Endpoint {
 	}
 }
 
-/* export class PostTournamentRequest extends Endpoint {
+export class PostTournamentRequest extends Endpoint {
 
 	add(server: any): void {
-		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
 			
+			const sessionToken = this.retrieveSessionToken(req);
+			if (sessionToken == null || !(await this.validateSession())) {
+				this.replyNotAllowed(connection);
+				return;
+			}
+			this.replyAccepted(connection);
+
+
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
@@ -126,11 +134,12 @@ export class PostMatchRequest extends Endpoint {
 					switch (jsonData.type) {
 						case 'tournamentRequest':
 							console.log("Info: Tournament request recieved");
-							matchManager.requestTournament(connection, jsonData.userId);
+							tournamentManager.requestTournament(connection, this.userId);
 							break;
 						case 'tournamentPhaseEnd':
 							console.log("Info: Tournament phase request recieved");
-							matchManager.phaseTournament(jsonData.tournamentUID, jsonData.userId);
+							//TODO
+							//tournamentManager.phaseTournament(jsonData.tournamentUID, jsonData.userId);
 							break;
 					}
 				} catch (error) {
@@ -143,4 +152,4 @@ export class PostMatchRequest extends Endpoint {
 			});
 		});
 	}
-} */
+}
