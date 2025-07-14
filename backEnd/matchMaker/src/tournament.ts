@@ -1,5 +1,6 @@
 import { Match } from "./match";
 import { matchManager } from "./matchmaker";
+import { Status } from "./matchManager";
 
 export enum Phase {
 	DRAW, SEMIFINALS, FINALS, COMPLETED, CANCELED
@@ -90,7 +91,7 @@ export class Tournament {
 
 		const playersArray = Array.from(this.players.entries());
 
-		const matchA = await matchManager.requestPairedMatch(
+		const matchA = await matchManager.requestPairedMatch(this,
 			[	
 				playersArray[0][1].connection,
 				playersArray[1][1].connection
@@ -100,7 +101,7 @@ export class Tournament {
 				playersArray[1][1].id
 			]);
 
-		const matchB =	await matchManager.requestPairedMatch(
+		const matchB =	await matchManager.requestPairedMatch(this,
 			[
 				playersArray[2][1].connection,
 				playersArray[3][1].connection
@@ -115,24 +116,51 @@ export class Tournament {
 		console.log(`Info: Tournament semifinals phase has been drawn`);
 	}
 
-	public drawFinals(): void {
-		let finalsWinners: Match = new Match();
-		let finalsLosers: Match = new Match();
+	public async drawFinals(): Promise<void> {
+		let winners: Set<[any, number]> = new Set<[any, number]>();
+		let losers: Set<[any, number]> = new Set<[any, number]>();
+
 
 		for (const m of this.matches) {
-			if (m.player0Id == m.winnerId) {
-				finalsWinners.addPlayer(m.player0Conn, m.player0Id);
-				finalsLosers.addPlayer(m.player1Conn, m.player1Id);
+			if (m.status !== Status.COMPLETED)
+				return;
+			if (m.winnerId === m.player0Id) {
+				winners.add([m.player0Conn, m.player0Id]);
+				losers.add([m.player1Conn, m.player1Id]);
 			}
-			else {
-				finalsWinners.addPlayer(m.player1Conn, m.player1Id);
-				finalsLosers.addPlayer(m.player0Conn, m.player0Id);
+			else if (m.winnerId === m.player1Id) {
+				winners.add([m.player1Conn, m.player1Id]);
+				losers.add([m.player0Conn, m.player0Id]);
 			}
 		}
 
-		this.matches.clear();
-		this.matches.add(finalsWinners);
-		this.matches.add(finalsLosers);
+		//TODO @@@@@@@@@@ en este punto deberia actualizarse la web para mostrar los nuevos emparejameintos...
+
+		const winnersArray = Array.from(winners);
+		const losersArray = Array.from(losers);
+
+		const matchA = await matchManager.requestPairedMatch(this,
+			[	
+				winnersArray[0][0],
+				winnersArray[1][0]
+			],
+			[
+				winnersArray[0][1],
+				winnersArray[1][1]
+			]);
+
+		const matchB =	await matchManager.requestPairedMatch(this,
+			[	
+				losersArray[0][0],
+				losersArray[1][0]
+			],
+			[
+				losersArray[0][1],
+				losersArray[1][1]
+			]);
+
+		this.matches.add(matchA);
+		this.matches.add(matchB);
 		this.resetAllReadyStates();
 		this.phase = Phase.FINALS;
 		console.log(`Info: Tournament finals phase has been drawn`);
@@ -147,6 +175,13 @@ export class Tournament {
 
 	public endTournament(): void {
 
+		for (const m of this.matches) {
+			if (m.status !== Status.COMPLETED)
+				return;
+		}
+		
+		//TODO finalizar el torneo...
+		console.log(`DEBUG: >>>>>>>>>>>>>> END TOURNAMENT CALLED!!!!!`)
 		/* 		const matchArray = Array.from(this.matches);
 		
 				if (matchArray[1].player0Id == matchArray[0].winnerId) {

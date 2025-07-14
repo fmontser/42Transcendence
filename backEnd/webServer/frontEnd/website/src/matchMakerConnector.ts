@@ -122,7 +122,6 @@ export class MatchMakerConnector {
 		this.game.rightPlayerName = data.player1Name;
 		this.tournament.displayPlayfield();
 		this.game.announceMatch();
-		this.ws.close();
 	}
 
 	private handleTournamentResponse(data: any) {

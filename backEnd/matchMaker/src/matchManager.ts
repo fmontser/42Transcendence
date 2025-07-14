@@ -1,5 +1,6 @@
 import { Match } from "./match";
 import WebSocket from 'ws';
+import { Tournament, Phase } from "./tournament";
 
 export enum Status {
 	PENDING, ONGOING, COMPLETED, DISCONNECTED
@@ -28,8 +29,8 @@ export class MatchManager {
 		}
 	}
 
-	public async requestPairedMatch(connection: any[] ,userId: number[]): Promise<Match> {
-		let newMatch: Match = new Match();
+	public async requestPairedMatch(tournament: Tournament, connection: any[] ,userId: number[]): Promise<Match> {
+		let newMatch: Match = new Match(tournament);
 
 		for (let i = 0; i < connection.length; i++)
 			await newMatch.addPlayer(connection[i], userId[i]);
@@ -110,22 +111,35 @@ export class MatchManager {
 					this.sendMatchResponse(match);
 					break;
 				case 'endGame':
-					match.status = Status.COMPLETED;
 					console.log("Info: Game summary recieved from serverPong");
+					match.status = Status.COMPLETED;
+					match.score = data.score;
+					match.winnerId = data.winnerId;
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
+					ws.close();
 					break;
 				case 'playerDisconnected':
-					match.status = Status.DISCONNECTED;
 					console.log("Info: Game summary recieved from serverPong");
+					match.status = Status.DISCONNECTED;
+					match.score = data.score;
+					match.winnerId = data.winnerId;
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
+					ws.close();
 					break;
 			}
 		});
 
 		ws.on('close', () => {
 			console.log("Info: Connection to serverPong for match " + match.matchUID + " ended");
+			if (match.tournament != undefined) {
+				if (match.tournament.getPhase() === Phase.SEMIFINALS)
+					match.tournament.drawFinals();
+				else if (match.tournament.getPhase() === Phase.FINALS)
+					match.tournament.endTournament();
+			}
+			//TODO manejar las desconecxiones....
 		});
 	}
 }

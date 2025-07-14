@@ -25,10 +25,6 @@ export class TournamentManager {
 		}
 		newTournament.join(userId, connection);
 		console.log(`Info: userId: ${userId} has joined a tournament`)
-
-		//TODO dejar que el tournament se encarge??
-/* 		if (newTournament.getPhase() == Phase.SEMIFINALS) {
-		} */
 	}
 	
 	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {
