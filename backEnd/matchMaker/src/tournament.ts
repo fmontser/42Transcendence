@@ -63,7 +63,10 @@ export class Tournament {
 	}
 
 	private drawPairings(interval: number): void {
-
+		//TODO @@@@@@@@ comprobar que los emparejamentos coinciden con el front END
+		interval *= 0.6;
+		if (interval < 100)
+			return;
 		const entries = Array.from(this.players.entries());
 		for (let i = entries.length - 1; i > 0; i--) {
 			const j = Math.floor(Math.random() * (i + 1));
@@ -77,41 +80,38 @@ export class Tournament {
 			this.tournamentState.cards[i].avatar = player.avatar;
 			i++;
 		}
-
 		this.broadcastStatus();
-
-		interval *= 0.8;
-		if (interval < 100)
-			return;
 		setTimeout(() => this.drawPairings(interval), interval);
 	}
 
-	public drawSemifinals(): void {
+	public async drawSemifinals(): Promise<void> {
 		
 		this.drawPairings(1000);
 
+		const playersArray = Array.from(this.players.entries());
 
-		//TODO @@@@@@@@@@@@@@@ CONTINUAR AQUIIII!!!!    solicitar matches!!
-		//TODO @@@@@@@@@@@@@@@ CONTINUAR AQUIIII!!!!    solicitar matches!!
-		
-		//matchManager.requestPairedMatch([],[]);
+		const matchA = await matchManager.requestPairedMatch(
+			[	
+				playersArray[0][1].connection,
+				playersArray[1][1].connection
+			],
+			[
+				playersArray[0][1].id,
+				playersArray[1][1].id
+			]);
 
+		const matchB =	await matchManager.requestPairedMatch(
+			[
+				playersArray[2][1].connection,
+				playersArray[3][1].connection
+			],
+			[
+				playersArray[2][1].id,
+				playersArray[3][1].id
+			]);
 
-/* 		let semiA: Match = new Match();
-		let semiB: Match = new Match();
-		let i: number = 0;
-
-		for (const p of this.players) {
-			if (i % 2 == 0)
-				semiA.addPlayer(p[1], p[0]);
-			else
-				semiB.addPlayer(p[1], p[0]);
-			i++;
-		}
-
-		this.matches.add(semiA);
-		this.matches.add(semiB); */
-
+		this.matches.add(matchA);
+		this.matches.add(matchB);
 		console.log(`Info: Tournament semifinals phase has been drawn`);
 	}
 

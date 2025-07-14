@@ -1,7 +1,11 @@
 import { MatchMakerConnector } from "./matchMakerConnector.js";
+import { router } from "./router.js"
+import { PongGame } from "./pongGame.js";
 
 export class PongTournament {
 	private matchMakerConnector!: MatchMakerConnector;
+	private gameFrame!: HTMLElement | null;
+	private tournamentFrame!: HTMLElement | null
 
 	private tournamentState = {
 		type: 'statusUpdate',
@@ -18,7 +22,11 @@ export class PongTournament {
 		ranking: [0,0,0,0]
 	};
 
-	constructor () {}
+	constructor () {
+		this.gameFrame = document.getElementById("gameFrame");
+		this.tournamentFrame = document.getElementById("tournamentFrame");
+		this.injectGame();
+	}
 
 	public start(): void {
 		this.matchMakerConnector = new MatchMakerConnector(this);
@@ -48,9 +56,24 @@ export class PongTournament {
 		}
 	}
 
+	private injectGame(): void {
+		history.pushState(null, '', '/gameFrame');
+		router();
+	}
+
+	public displayPlayfield(): void {
+		this.tournamentFrame?.setAttribute("style", "display: none;");
+		this.gameFrame?.setAttribute("style", "display: flex;")
+	}
+
+	public hidePlayfield(): void {
+		this.gameFrame?.setAttribute("style", "display: none;")
+		this.tournamentFrame?.setAttribute("style", "display: flex;")
+	}
+
 	public announceTournament(): void {
 		console.log(`Info: Tournament announced`);
-		//TODO implementar
+		//TODO implementar, puede que no sea necesario...
 	}
 
 }

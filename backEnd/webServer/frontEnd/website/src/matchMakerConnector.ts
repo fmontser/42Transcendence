@@ -69,7 +69,7 @@ export class MatchMakerConnector {
 					case 'matchResponse':
 						console.log("Info: Recieved match response from matchMaker");
 						//TODO inyectar o hacer visible el campo de juego?
-						this.handleMatchResponse(data);
+						this.handleTournamentMatchResponse(data);
 						break;
 					case 'error':
 						console.log(`Error: ${data.message}`);
@@ -96,12 +96,14 @@ export class MatchMakerConnector {
 		console.log("Info: Match request sent to matchMaker");
 	}
 
+
 	private handleMatchResponse(data: any) {
- 		this.game.leftPlayerName = data.player0Name;
+		this.game.leftPlayerName = data.player0Name;
 		this.game.rightPlayerName = data.player1Name;
 		this.game.announceMatch();
 		this.ws.close();
 	}
+
 
 	private sendTournamentRequest(): void {
 		this.ws.send(JSON.stringify({
@@ -110,15 +112,20 @@ export class MatchMakerConnector {
 		console.log("Info: Tournament request sent to matchMaker");
 	}
 
-
 	private handleTournamentStatusUpdate(data: any): void {
 		this.tournament.updateState(data);
 	}
 
-	private handleTournamentResponse(data: any) {
-		//TODO procesar posibles datos...
+	private handleTournamentMatchResponse(data: any) {
+		this.game = new PongGame();
+		this.game.leftPlayerName = data.player0Name;
+		this.game.rightPlayerName = data.player1Name;
+		this.tournament.displayPlayfield();
+		this.game.announceMatch();
+		this.ws.close();
+	}
 
-		//this.tournament.announceTournament();
-		//this.ws.close();
+	private handleTournamentResponse(data: any) {
+		//TODO es necesario??
 	}
 }

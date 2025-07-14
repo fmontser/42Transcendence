@@ -28,14 +28,15 @@ export class MatchManager {
 		}
 	}
 
-	public async requestPairedMatch(connection: any[] ,userId: number[]): Promise<void> {
+	public async requestPairedMatch(connection: any[] ,userId: number[]): Promise<Match> {
 		let newMatch: Match = new Match();
 
 		for (let i = 0; i < connection.length; i++)
 			await newMatch.addPlayer(connection[i], userId[i]);
 
-		console.log(`Info: Paired match ready!: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
+		console.log(`Info: Requesting Paired match to serverPong: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
 		this.requestNewPongInstance(newMatch);
+		return (newMatch);
 	}
 
 	private findPendingMatch(): Match | null {
@@ -71,16 +72,13 @@ export class MatchManager {
 	private async sendMatchResponse(match: Match): Promise<void> {
 		let userMap: Map<string, any> = new Map<string, any>();
 
-
 		userMap.set(match.player0Name, match.player0Conn);
 		userMap.set(match.player1Name, match.player1Conn);
 
 		for (const [name, connection] of userMap){
 			connection.send(JSON.stringify({
 				type: 'matchResponse',
-				player0Id: match.player0Id,
 				player0Name: match.player0Name,
-				player1Id: match.player1Id,
 				player1Name: match.player1Name
 			}));
 			console.log(`Info: Announce sent to user ${name}`);

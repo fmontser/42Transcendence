@@ -48,6 +48,43 @@ const routes: Page[] = [
 	},
 
 	{
+		path: "/gameFrame",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/game", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					console.log("html:", data);
+					const gameFrame = document.getElementById('gameFrame');
+					if (gameFrame) {
+						gameFrame.innerHTML = data;
+					} else {
+						console.error('gameFrame element not found');
+					}
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+	{
 		path: "/tournament",
 		view: async () => {
 			try {
@@ -216,8 +253,7 @@ const routes: Page[] = [
 	}
 ]
 
-
-const router = async () => {
+export const router = async () => {
 	const path = location.pathname;
 	const match = routes.find(route => route.path == path);
 	if (match)
