@@ -66,8 +66,7 @@ export class MatchMakerConnector {
 						break;
 					case 'matchResponse':
 						console.log("Info: Recieved match response from matchMaker");
-						//TODO descomentar cuando todo este ready
-						// ##############this.handleTournamentMatchResponse(data);
+						this.handleTournamentMatchResponse(data);
 						break;
 					case 'setUserName':
 						console.log(`Info: Recieved userName: ${data.userName} from matchMaker`);

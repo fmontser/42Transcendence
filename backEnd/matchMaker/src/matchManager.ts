@@ -134,6 +134,12 @@ export class MatchManager {
 		ws.on('close', () => {
 			console.log("Info: Connection to serverPong for match " + match.matchUID + " ended");
 			if (match.tournament != undefined) {
+				//TODO @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+				// el matchmanager no debe tener la responsabilidad de cambiar de fasE!!!
+
+				// TODO cambiar a las finales, evalua el estado de los matches o algo...pero en el tournament Manager...
+
+
 				if (match.tournament.getPhase() === Phase.SEMIFINALS)
 					match.tournament.drawFinals();
 				else if (match.tournament.getPhase() === Phase.FINALS)

@@ -130,7 +130,6 @@ export class PostTournamentRequest extends Endpoint {
 			}
 			this.replyAccepted(connection);
 
-
 			connection.on('message', async (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());

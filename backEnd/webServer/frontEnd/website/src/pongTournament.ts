@@ -128,12 +128,7 @@ export class PongTournament {
 		this.gameFrame?.setAttribute("style", "display: none;")
 		this.tournamentFrame?.setAttribute("style", "display: flex;")
 	}
-
-	public announceTournament(): void {
-		console.log(`Info: Tournament announced`);
-		//TODO implementar, puede que no sea necesario...
-	}
-
+	
 	public setUserName(userName: string):  void {
 		this.userName = userName;
 	}

@@ -315,16 +315,17 @@ export class Tournament {
 	}
 
 	private async waitAllPlayersReady(): Promise<void> {
-		let ready: boolean = true;
-		
-		while(true) {
-			for (const p of this.players){
-				if (p[1].ready === false)
-					ready && p[1].ready;
+		while (true) {
+			let allReady = true;
+			for (const p of this.players) {
+				if (!p[1].ready) {
+					allReady = false;
+					break;
+				}
 			}
-			if (ready)
+			if (allReady)
 				break;
+			await new Promise(resolve => setTimeout(resolve, 200));
 		}
 	}
-
 }

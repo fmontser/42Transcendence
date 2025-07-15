@@ -3,7 +3,6 @@ import { Tournament, Phase } from "./tournament";
 import { MatchManager } from "./matchManager";
 import { matchManager } from "./matchmaker";
 import { Match } from "./match";
-import WebSocket from 'ws';
 
 export class TournamentManager {
 	tournamentList: Set<Tournament>;
