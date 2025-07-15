@@ -92,9 +92,8 @@ export class Tournament {
 
 		this.previousPhase = Phase.SEMIFINALS;
 		await this.drawPairings(4, 500);
+		await this.sendReadyRequest();
 		await this.waitAllPlayersReady();
-
-		console.log(`DEBUG: state:`, this.tournamentState);
 
 		const matchA = await tournamentManager.requestPairedMatch(this,
 			[	
@@ -275,6 +274,14 @@ export class Tournament {
 	public changePhase(phase: Phase): void {
 		this.phase = phase;
 		this.tournamentState.phase = phase;
+	}
+
+	private async sendReadyRequest(): Promise<void> {
+		for (const p of this.players) {
+			await p[1].connection.send(JSON.stringify({
+				type: 'readyRequest'
+			}));
+		}
 	}
 
 	public setPlayerReady(userId: number): void {

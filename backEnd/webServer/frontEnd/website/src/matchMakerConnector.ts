@@ -59,7 +59,10 @@ export class MatchMakerConnector {
 						break;
 					case 'statusUpdate':
 						console.log(`Info: Recieved tournament status update from matchmaker`)
-						this.handleTournamentStatusUpdate(data);
+						this.tournament.updateState(data);
+						break;
+					case 'readyRequest':
+						this.tournament.enableButtons();
 						break;
 					case 'matchResponse':
 						console.log("Info: Recieved match response from matchMaker");
@@ -115,10 +118,6 @@ export class MatchMakerConnector {
 			type: 'readyState'
 		}));
 		console.log("Info: player ready state sent to matchMaker");
-	}
-
-	private handleTournamentStatusUpdate(data: any): void {
-		this.tournament.updateState(data);
 	}
 
 	private handleTournamentMatchResponse(data: any) {

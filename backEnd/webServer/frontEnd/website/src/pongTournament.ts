@@ -42,8 +42,6 @@ export class PongTournament {
 	public updateState(data: any): void {
 		this.tournamentState = data;
 		this.updateCards();
-		if (!this.interactionFlag)
-			this.enableInteraction();
 	}
 
 	private setupEvents(): void {
@@ -83,7 +81,7 @@ export class PongTournament {
 		}
 	}
 
-	private enableInteraction(): void {
+	public enableButtons(): void {
 		const buttons = document.querySelectorAll('.readyButton');
 		const cards = document.querySelector(".cards")
 		
@@ -93,10 +91,7 @@ export class PongTournament {
 				(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
 				(btn as HTMLButtonElement).disabled = true;
 				if (btn === this.getUserButton()) {
-					//TODO esto esta mal, tiene que ser despues del del sorting!
-					console.debug(`DEBUG: >>>> enabling ${this.userName} button`);
 					(btn as HTMLButtonElement).disabled = false;
-
 				}
 			});
 		}
