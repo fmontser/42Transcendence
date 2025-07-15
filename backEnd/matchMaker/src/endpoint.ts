@@ -8,6 +8,7 @@ export abstract class Endpoint {
 	protected errorMsg: string;
 	protected sessionToken!: any;
 	protected userId!: number;
+	protected tournament!: Tournament;
 
 	constructor(path: string, errorMsg: string	) {
 		this.path = path;
@@ -127,19 +128,18 @@ export class PostTournamentRequest extends Endpoint {
 			this.replyAccepted(connection);
 
 
-			connection.on('message', (data: any) => {
+			connection.on('message', async (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
 
 					switch (jsonData.type) {
 						case 'tournamentRequest':
 							console.log("Info: Tournament request recieved");
-							tournamentManager.requestTournament(connection, this.userId);
+							this.tournament = await tournamentManager.requestTournament(connection, this.userId);
 							break;
-						case 'tournamentPhaseEnd':
-							console.log("Info: Tournament phase request recieved");
-							//TODO
-							//tournamentManager.phaseTournament(jsonData.tournamentUID, jsonData.userId);
+						case 'readyState':
+							console.log(`Info: Recieved readyState from UserId ${this.userId}`);
+							this.tournament.setPlayerReady(this.userId);
 							break;
 					}
 				} catch (error) {

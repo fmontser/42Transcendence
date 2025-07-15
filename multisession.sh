@@ -1,21 +1,39 @@
 #!/bin/bash
 
-# Ruta al ejecutable de Firefox (ajústala si es necesario)
 FIREFOX_CMD="firefox"
-
-# URL a abrir
 URL="https://localhost:8443/login"
+PROFILE_BASE="./misc/ffprofile"
 
-# Crear perfiles temporales (si no existen)
+mkdir -p "$PROFILE_BASE"
+
 for i in {1..4}; do
-  PROFILE_DIR="/tmp/firefox-user$i"
-  if [ ! -d "$PROFILE_DIR" ]; then
-    $FIREFOX_CMD -CreateProfile "user$i $PROFILE_DIR"
+  PROFILE_DIR="$PROFILE_BASE/user$i"
+  ABS_PROFILE_DIR="$(readlink -f "$PROFILE_DIR")"
+  if [ ! -d "$ABS_PROFILE_DIR" ]; then
+    echo "Creando carpeta para perfil user$i en $ABS_PROFILE_DIR"
+    mkdir -p "$ABS_PROFILE_DIR"
+    echo "Registrando perfil user$i en Firefox"
+    $FIREFOX_CMD -CreateProfile "user$i $ABS_PROFILE_DIR"
+    echo "Inicializando perfil user$i (esto puede tardar unos segundos)..."
+    $FIREFOX_CMD --no-remote -profile "$ABS_PROFILE_DIR" -headless &
+    sleep 3
+    pkill -f "$FIREFOX_CMD.*$ABS_PROFILE_DIR"
+  else
+    echo "Perfil user$i ya existe en $ABS_PROFILE_DIR"
   fi
 done
 
-# Lanzar 4 instancias de Firefox con perfiles separados
-$FIREFOX_CMD --no-remote -profile "/tmp/firefox-user1" -new-instance "$URL" &
-$FIREFOX_CMD --no-remote -profile "/tmp/firefox-user2" -new-instance "$URL" &
-$FIREFOX_CMD --no-remote -profile "/tmp/firefox-user3" -new-instance "$URL" &
-$FIREFOX_CMD --no-remote -profile "/tmp/firefox-user4" -new-instance "$URL" &
+for i in {1..4}; do
+  PROFILE_DIR="$PROFILE_BASE/user$i"
+  ABS_PROFILE_DIR="$(readlink -f "$PROFILE_DIR")"
+  if [ -d "$ABS_PROFILE_DIR" ]; then
+    echo "Lanzando Firefox con perfil user$i"
+	# Forzar barra de marcadores visible
+    echo 'user_pref("browser.toolbars.bookmarks.visibility", "always");' >> "$ABS_PROFILE_DIR/user.js"
+    $FIREFOX_CMD --no-remote -profile "$ABS_PROFILE_DIR" -new-instance "$URL" &
+  else
+    echo "ERROR: No se encontró el perfil $ABS_PROFILE_DIR"
+  fi
+done
+
+wait

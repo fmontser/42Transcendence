@@ -1,21 +1,44 @@
-import { Match } from "./match";
-import { tournamentManager } from "./matchmaker";
+
 import { Tournament, Phase } from "./tournament";
+import { MatchManager } from "./matchManager";
+import { matchManager } from "./matchmaker";
+import { Match } from "./match";
 import WebSocket from 'ws';
-
-
-export enum Status {
-	PENDING, ONGOING, COMPLETED, DISCONNECTED
-}
 
 export class TournamentManager {
 	tournamentList: Set<Tournament>;
+	matchManager!: MatchManager;
 	
 	constructor() {
 		this.tournamentList = new Set<Tournament>();
+		this.matchManager = matchManager;
+		this.daemon(1000);
 	}
 	
-	public async requestTournament(connection: any ,userId: number): Promise<void> {
+	private async daemon(interval: number): Promise<void> {
+		setInterval(() => {
+			for (const t of this.tournamentList){
+				if (t){
+					if (t.getPhase() !== t.getPreviousPhase()
+						&& t.getPhase() === Phase.SEMIFINALS) {
+							t.drawSemifinals();
+					}
+					else if (t.getPhase() !== t.getPreviousPhase()
+						&& t.getPhase() === Phase.FINALS) {
+							//TODO
+					}
+					else if (t.getPhase() !== t.getPreviousPhase()
+						&& t.getPhase() === Phase.COMPLETED) {
+							//TODO
+					}
+				}
+				//TODO gestionar desconexiones...
+			}
+		}, interval);
+	}
+	
+
+	public async requestTournament(connection: any ,userId: number): Promise<Tournament> {
 		let newTournament: Tournament | null =  this.findPendingTournament(this.tournamentList);
 		
 		if (newTournament == null) {
@@ -25,6 +48,11 @@ export class TournamentManager {
 		}
 		newTournament.join(userId, connection);
 		console.log(`Info: userId: ${userId} has joined a tournament`)
+		return (newTournament);
+	}
+
+	public async requestPairedMatch(tournament: Tournament, connection: any[] ,userId: number[]): Promise<Match> {
+		return (this.matchManager.requestPairedMatch(tournament, connection, userId));
 	}
 	
 	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {

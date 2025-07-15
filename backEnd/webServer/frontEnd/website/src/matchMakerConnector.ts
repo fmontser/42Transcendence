@@ -61,15 +61,14 @@ export class MatchMakerConnector {
 						console.log(`Info: Recieved tournament status update from matchmaker`)
 						this.handleTournamentStatusUpdate(data);
 						break;
-					case 'tournamentResponse':
-						console.log("Info: Recieved tournament response from matchMaker");
-						//TODO anunciar? sorting ready??
-						this.handleTournamentResponse(data);
-						break;
 					case 'matchResponse':
 						console.log("Info: Recieved match response from matchMaker");
-						//TODO inyectar o hacer visible el campo de juego?
-						this.handleTournamentMatchResponse(data);
+						//TODO descomentar cuando todo este ready
+						// ##############this.handleTournamentMatchResponse(data);
+						break;
+					case 'setUserName':
+						console.log(`Info: Recieved userName: ${data.userName} from matchMaker`);
+						this.tournament.setUserName(data.userName);
 						break;
 					case 'error':
 						console.log(`Error: ${data.message}`);
@@ -104,12 +103,18 @@ export class MatchMakerConnector {
 		this.ws.close();
 	}
 
-
 	private sendTournamentRequest(): void {
 		this.ws.send(JSON.stringify({
 			type: 'tournamentRequest'
 		}));
 		console.log("Info: Tournament request sent to matchMaker");
+	}
+
+	public sendReadyState(): void {
+		this.ws.send(JSON.stringify({
+			type: 'readyState'
+		}));
+		console.log("Info: player ready state sent to matchMaker");
 	}
 
 	private handleTournamentStatusUpdate(data: any): void {
@@ -122,9 +127,5 @@ export class MatchMakerConnector {
 		this.game.rightPlayerName = data.player1Name;
 		this.tournament.displayPlayfield();
 		this.game.announceMatch();
-	}
-
-	private handleTournamentResponse(data: any) {
-		//TODO es necesario??
 	}
 }

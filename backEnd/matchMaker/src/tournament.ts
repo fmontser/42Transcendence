@@ -1,5 +1,5 @@
 import { Match } from "./match";
-import { matchManager } from "./matchmaker";
+import { tournamentManager } from "./matchmaker";
 import { Status } from "./matchManager";
 
 export enum Phase {
@@ -17,24 +17,24 @@ interface Player {
 }
 
 export class Tournament {
-
 	ranking: Map<number, Player>;
 	matches: Set<Match>;
 
 	private players: Map<number, Player>;
+	private previousPhase: Phase;
 	private phase: Phase;
 
 	private tournamentState = {
 		type: 'statusUpdate',
-		phase: 0,
+		phase: Phase.DRAW,
 		cards: [
-			{ id: "card-3a", name: "", avatar: "" },
-			{ id: "card-3b", name: "", avatar: "" },
-			{ id: "card-3c", name: "", avatar: "" },
-			{ id: "card-3d", name: "", avatar: "" },
-			{ id: "card-2a", name: "", avatar: "" },
-			{ id: "card-2b", name: "", avatar: "" },
-			{ id: "card-1a", name: "", avatar: "" }
+			{ id: "card-3a", name: "", avatar: "", ready: false },
+			{ id: "card-3b", name: "", avatar: "", ready: false },
+			{ id: "card-3c", name: "", avatar: "", ready: false },
+			{ id: "card-3d", name: "", avatar: "", ready: false },
+			{ id: "card-2a", name: "", avatar: "", ready: false },
+			{ id: "card-2b", name: "", avatar: "", ready: false },
+			{ id: "card-1a", name: "", avatar: "", ready: false }
 		],
 		ranking: [0, 0, 0, 0]
 	};
@@ -44,71 +44,76 @@ export class Tournament {
 		this.players = new Map<number, Player>();
 		this.ranking = new Map<number, Player>();
 		this.matches = new Set<Match>();
+		this.previousPhase = Phase.DRAW;
 		this.phase = Phase.DRAW;
 	}
 
 	public async join(userId: number, connection: any): Promise<void> {
+		let userName: string = await this.getPlayerName(userId);
+		let userAvatar: string = await this.getPlayerAvatar(userId);
+
 		this.addPlayer({
 			id: userId,
-			name: await this.getPlayerName(userId),
-			avatar: await this.getPlayerAvatar(userId),
+			name: userName,
+			avatar: userAvatar, 
 			connection: connection,
 			card: "",
 			ready: false
 		});
+		await this.sendUserName(connection, userName);
 		this.broadcastStatus();
-		if (this.players.size == MAX_PLAYERS) {
+		if (this.players.size == MAX_PLAYERS)
 			this.changePhase(Phase.SEMIFINALS);
-			this.broadcastTournamentResponse();
-		}
 	}
 
-	private drawPairings(interval: number): void {
-		//TODO @@@@@@@@ comprobar que los emparejamentos coinciden con el front END
-		interval *= 0.6;
-		if (interval < 100)
-			return;
-		const entries = Array.from(this.players.entries());
-		for (let i = entries.length - 1; i > 0; i--) {
-			const j = Math.floor(Math.random() * (i + 1));
-			[entries[i], entries[j]] = [entries[j], entries[i]];
-		}
-		this.players = new Map(entries);
+	private async drawPairings(times: number, interval: number): Promise<void> {
+		for (let t = 0; t < times; t++) {
+			const cards = this.tournamentState.cards;
+			const dataToShuffle = cards.slice(0, 4).map(c => ({
+				name: c.name,
+				avatar: c.avatar,
+				ready: c.ready
+			}));
 
-		let i = 0;
-		for (const [id, player] of this.players) {
-			this.tournamentState.cards[i].name = player.name;
-			this.tournamentState.cards[i].avatar = player.avatar;
-			i++;
+			dataToShuffle.sort(() => Math.random() - 0.5);
+
+			for (let i = 0; i < 4; i++) {
+				cards[i].name = dataToShuffle[i].name;
+				cards[i].avatar = dataToShuffle[i].avatar;
+				cards[i].ready = dataToShuffle[i].ready;
+			}
+
+			this.broadcastStatus();
+			await new Promise(resolve => setTimeout(resolve, interval));
 		}
-		this.broadcastStatus();
-		setTimeout(() => this.drawPairings(interval), interval);
 	}
 
 	public async drawSemifinals(): Promise<void> {
-		
-		this.drawPairings(1000);
 
-		const playersArray = Array.from(this.players.entries());
+		this.previousPhase = Phase.SEMIFINALS;
+		await this.drawPairings(4, 500);
+		await this.waitAllPlayersReady();
 
-		const matchA = await matchManager.requestPairedMatch(this,
+		console.log(`DEBUG: state:`, this.tournamentState);
+
+		const matchA = await tournamentManager.requestPairedMatch(this,
 			[	
-				playersArray[0][1].connection,
-				playersArray[1][1].connection
+				this.findPlayer(this.tournamentState.cards[0].name).connection,
+				this.findPlayer(this.tournamentState.cards[1].name).connection,
 			],
 			[
-				playersArray[0][1].id,
-				playersArray[1][1].id
+				this.findPlayer(this.tournamentState.cards[0].name).id,
+				this.findPlayer(this.tournamentState.cards[1].name).id,
 			]);
 
-		const matchB =	await matchManager.requestPairedMatch(this,
+		const matchB =	await tournamentManager.requestPairedMatch(this,
 			[
-				playersArray[2][1].connection,
-				playersArray[3][1].connection
+				this.findPlayer(this.tournamentState.cards[2].name).connection,
+				this.findPlayer(this.tournamentState.cards[3].name).connection,
 			],
 			[
-				playersArray[2][1].id,
-				playersArray[3][1].id
+				this.findPlayer(this.tournamentState.cards[2].name).id,
+				this.findPlayer(this.tournamentState.cards[3].name).id,
 			]);
 
 		this.matches.add(matchA);
@@ -119,7 +124,6 @@ export class Tournament {
 	public async drawFinals(): Promise<void> {
 		let winners: Set<[any, number]> = new Set<[any, number]>();
 		let losers: Set<[any, number]> = new Set<[any, number]>();
-
 
 		for (const m of this.matches) {
 			if (m.status !== Status.COMPLETED)
@@ -134,12 +138,10 @@ export class Tournament {
 			}
 		}
 
-		//TODO @@@@@@@@@@ en este punto deberia actualizarse la web para mostrar los nuevos emparejameintos...
-
 		const winnersArray = Array.from(winners);
 		const losersArray = Array.from(losers);
 
-		const matchA = await matchManager.requestPairedMatch(this,
+		const matchA = await tournamentManager.requestPairedMatch(this,
 			[	
 				winnersArray[0][0],
 				winnersArray[1][0]
@@ -149,7 +151,7 @@ export class Tournament {
 				winnersArray[1][1]
 			]);
 
-		const matchB =	await matchManager.requestPairedMatch(this,
+		const matchB =	await tournamentManager.requestPairedMatch(this,
 			[	
 				losersArray[0][0],
 				losersArray[1][0]
@@ -162,8 +164,10 @@ export class Tournament {
 		this.matches.add(matchA);
 		this.matches.add(matchB);
 		this.resetAllReadyStates();
-		this.phase = Phase.FINALS;
+		//TODO check this.changePhase(Phase.FINALS)
+
 		console.log(`Info: Tournament finals phase has been drawn`);
+
 	}
 
 	public cancel(): void {
@@ -217,6 +221,7 @@ export class Tournament {
 
 	public getPlayers(): any { return (this.players); }
 	public getPhase(): any { return (this.phase) };
+	public getPreviousPhase(): any { return (this.previousPhase) };
 
 	private async getPlayerName(userId: number): Promise<string> {
 		const response = await fetch(`http://dataBase:3000/get/username?id=${userId}`);
@@ -242,31 +247,77 @@ export class Tournament {
 		}
 	}
 
+	private findPlayer(name: string): Player {
+		let player!: Player;
+		
+		for (const p of this.players) {
+			if (p[1].name == name){
+				player = p[1];
+				break;
+			}
+		}
+		return (player);
+	}
+
+	private async sendUserName(connection: any, userName: string): Promise<void> {
+		await connection.send(JSON.stringify({
+			type: 'setUserName',
+			userName: userName
+		}));
+	}
+
 	private async broadcastStatus(): Promise<void> {
 		for (const p of this.players) {
 			await (p[1] as Player).connection.send(JSON.stringify(this.tournamentState));
 		}
 	}
 
-	private async broadcastTournamentResponse(): Promise<void> {
-		this.broadcastStatus();
-		for (const p of this.players) {
-			await (p[1] as Player).connection.send(JSON.stringify({
-				type: 'tournamentResponse'
-			}));
-		}
-		//TODO borrar solo es para test
-		this.drawSemifinals();
-	}
-
-	private changePhase(phase: Phase): void {
+	public changePhase(phase: Phase): void {
 		this.phase = phase;
 		this.tournamentState.phase = phase;
+	}
+
+	public setPlayerReady(userId: number): void {
+		for (const p of this.players) {
+			if (p[1].id === userId){
+				p[1].ready = true;
+				for (const c of this.tournamentState.cards) {
+					if (c.name == p[1].name) {
+						c.ready = true;
+						break;
+					}
+				}
+				this.broadcastStatus();
+				return;
+			}
+		}
 	}
 
 	private resetAllReadyStates(): void {
 		for (const p of this.players) {
 			(p[1] as Player).ready = false;
+			for (const c of this.tournamentState.cards) {
+				if (c.name == p[1].name) {
+					c.ready = true;
+					break;
+				}
+			}
+			this.broadcastStatus();
+			return;
 		}
 	}
+
+	private async waitAllPlayersReady(): Promise<void> {
+		let ready: boolean = true;
+		
+		while(true) {
+			for (const p of this.players){
+				if (p[1].ready === false)
+					ready && p[1].ready;
+			}
+			if (ready)
+				break;
+		}
+	}
+
 }
