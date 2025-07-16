@@ -1,11 +1,12 @@
 import { Status } from "./matchManager";
-import { Tournament } from "./tournament";
+import { Tournament, Phase } from "./tournament";
 
 export class Match {
 	status: Status;
 	matchUID!: number;
 	tournamentUID: number;
 	tournament!: Tournament | undefined;
+	tournamentPhase!: Phase | undefined;
 	player0Id: number;
 	player0Name!: string;
 	player0Conn!: any;
@@ -14,11 +15,13 @@ export class Match {
 	player1Conn!: any;
 	score: number[] = [0,0];
 	winnerId!: number;
+	loserId!: number;
 
-	constructor (tournament?: Tournament){
+	constructor (tournament?: Tournament, tournamentPhase?: Phase){
 		this.status = Status.PENDING;
 		this.tournamentUID = 0;
 		this.tournament = tournament;
+		this.tournamentPhase = tournamentPhase;
 		this.player0Id = 0;
 		this.player1Id = 0;
 	}

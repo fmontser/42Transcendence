@@ -10,7 +10,6 @@ export class PongTournament {
 	private matchMakerConnector!: MatchMakerConnector;
 	private gameFrame!: HTMLElement | null;
 	private tournamentFrame!: HTMLElement | null
-	private interactionFlag: boolean = false;
 	private userName!: string;
 
 	private tournamentState = {
@@ -41,6 +40,7 @@ export class PongTournament {
 
 	public updateState(data: any): void {
 		this.tournamentState = data;
+		this.hidePlayfield();
 		this.updateCards();
 	}
 
@@ -57,9 +57,6 @@ export class PongTournament {
 
 	private updateCards(): void {
 		for (const c of this.tournamentState.cards) {
-			if (c.name === "")
-				return;
-
 			const card: any = document.getElementById(c.id);
 			const avatar: any = card?.querySelector('.avatar');
 			const name: any = card?.querySelector('.name');
@@ -75,26 +72,22 @@ export class PongTournament {
 			if (btn) {
 				if (c.ready)
 					(btn as HTMLButtonElement).style.backgroundColor = "rgba(59, 218, 78, 0.268)";
-				else
+				else {
 					(btn as HTMLButtonElement).style.backgroundColor = "rgba(218, 59, 144, 0.159)";
+				}
 			}
 		}
 	}
 
 	public enableButtons(): void {
 		const buttons = document.querySelectorAll('.readyButton');
-		const cards = document.querySelector(".cards")
-		
-		if (this.tournamentState.phase == Phase.SEMIFINALS) {
-			this.interactionFlag = true;
-			buttons.forEach((btn, idx) => {
-				(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
-				(btn as HTMLButtonElement).disabled = true;
-				if (btn === this.getUserButton()) {
-					(btn as HTMLButtonElement).disabled = false;
-				}
-			});
-		}
+	
+		buttons.forEach((btn, idx) => {
+			(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
+			(btn as HTMLButtonElement).disabled = true;
+			if (btn === this.getUserButton())
+				(btn as HTMLButtonElement).disabled = false;
+		});
 	}
 
 	private injectGame(): void {
@@ -120,13 +113,40 @@ export class PongTournament {
 	}
 	
 	public displayPlayfield(): void {
+		this.gameFrame?.setAttribute("style", "display: block;")
 		this.tournamentFrame?.setAttribute("style", "display: none;");
-		this.gameFrame?.setAttribute("style", "display: flex;")
 	}
 
 	public hidePlayfield(): void {
 		this.gameFrame?.setAttribute("style", "display: none;")
-		this.tournamentFrame?.setAttribute("style", "display: flex;")
+		this.tournamentFrame?.setAttribute("style", "display: block;")
+		if (this.tournamentState.phase === Phase.FINALS) {
+			const pair3cd = document.getElementById("pair3cd");
+			if (pair3cd)
+				pair3cd.style.display = 'none';
+		}
+		else if (this.tournamentState.phase === Phase.COMPLETED){
+			
+			let selectElements: Set<HTMLElement | null> = new Set<HTMLElement | null>();
+			
+			selectElements.add(document.getElementById("card-3b"));
+			selectElements.add(document.getElementById("card-2b"));
+
+			let buttons = document.getElementsByClassName("readyButton");
+			for (const b of buttons) {
+				selectElements.add(b as HTMLElement);
+			}
+
+			let vsTags = document.getElementsByClassName("vs");
+			for (const t of vsTags) {
+				selectElements.add(t as HTMLElement);
+			}
+
+			for (const e of selectElements) {
+				if (e)
+					e.style.display = 'none';
+			}
+		}
 	}
 	
 	public setUserName(userName: string):  void {
