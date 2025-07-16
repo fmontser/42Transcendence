@@ -179,6 +179,7 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
+				console.log("/home request sent.");
 				if (response.ok)
 				{
 					let data: string = await response.text();
@@ -191,7 +192,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					window.location.href="/components/login"
+					window.location.href="/login";
 					console.log("Fetch failed.");
 				}
 				//import("");
@@ -221,6 +222,10 @@ const routes: Page[] = [
 				const root = document.getElementById('root');
 				if (root) {
 					root.innerHTML = data;
+				const newScript = document.createElement('script');
+				newScript.src = '/dist/login.js';
+				newScript.async = true;
+				document.body.appendChild(newScript);
 				} else {
 					console.error('Root element not found');
 				}
@@ -279,6 +284,54 @@ const routes: Page[] = [
 				});
 				let data: string = await response.text();
 				const root = document.getElementById('root');
+				let cookies = document.cookie.split(';');
+				for (const c of cookies)
+				{
+					const [key, value] = c.trim().split('=');
+					console.log("key-value: ", key, value);
+				}
+				if (root) {
+					root.innerHTML = data;
+				} else {
+					console.error('Root element not found');
+				}
+				//import("");
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+	{
+		path: "/logout",
+		view: async () => {
+			try {
+				let response: Response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/logout`, {
+					method: 'POST',
+					credentials: 'include'
+				  });
+				console.log(">>>>>>>>>>>>>>>>>>>");
+				console.log(response);
+				response = await fetch("/components/login", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				let data: string = await response.text();
+				const root = document.getElementById('root');
+				// let cookies = document.cookie.split(';');
+				// for (const c of cookies)
+				// {
+				// 	const [key, value] = c.trim().split('=');
+				// 	console.log("key-value: ", key, value);
+				// }
 				if (root) {
 					root.innerHTML = data;
 				} else {
