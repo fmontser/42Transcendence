@@ -14,6 +14,8 @@ const server = Fastify({
 	logger: false // It's good practice to enable logging
 });
 
+const staticPath = path.join(__dirname, '..', 'website');
+console.log(`[DEBUG] Serving static files from: ${staticPath}`);
 
 //    Serves files from the 'public' directory
 server.register(fastifyStatic, {
@@ -60,23 +62,23 @@ function setEndPoints(): void {
 async function start() {
 	try {
 		//console.log(path.dirname);
-		await server.register(fastifyCookie);
-		await server.register(fastifyJwt, {
-			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
-			cookie: {
-				cookieName: 'token',
-				signed: false
-			}
-		});
-		server.decorate("authenticate", async (request:any, reply:any) => {
-			try {
-				await request.jwtVerify();
-				console.log("User authenticated");
-			} catch (err) {
-				console.log(request.cookies.token);
-				reply.status(401).send({ error: 'Unauthorized' });
-			}
-		});
+		// await server.register(fastifyCookie);
+		// await server.register(fastifyJwt, {
+		// 	secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
+		// 	cookie: {
+		// 		cookieName: 'token',
+		// 		signed: false
+		// 	}
+		// });
+		// server.decorate("authenticate", async (request:any, reply:any) => {
+		// 	try {
+		// 		await request.jwtVerify();
+		// 		console.log("User authenticated");
+		// 	} catch (err) {
+		// 		console.log(request.cookies.token);
+		// 		reply.status(401).send({ error: 'Unauthorized' });
+		// 	}
+		// });
 
 		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });
