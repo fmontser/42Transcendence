@@ -26,6 +26,19 @@ export abstract class Endpoint {
 
 const pages: Array<string> = ["login", "signin", "profile", "home", "game", "gameFrame", "tournament"];
 
+export class AccessProfileEndpoint {
+	add(server: any): void {
+		server.get(this.path, async (request: any, reply: any) => {
+			// const response = await fetch();
+			// if (response.ok)
+			// 	data = await response()
+			//console.log('File found:', data);
+
+			reply.send(data);
+		});
+	}
+}
+
 export class AccessLoginEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
@@ -69,6 +82,37 @@ function parseCookies(cookieHeader: string | undefined): { [key: string]: string
     }
 
     return cookies;
+}
+
+function isAuthentified: Boolean (request: any)
+{
+	const cookies = parseCookies(request.headers.cookie);
+	const token: string | undefined = cookies.token;
+	let cred = 0
+	try
+	{
+		console.log("The token:");
+		console.log(token);
+		let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
+			method: 'GET',
+		});
+		let data = await response.json();
+		if (response.ok)
+		{
+			console.log(data.id)
+			cred = 1;
+		}
+	}
+	catch (error: unknown)
+	{
+		if (error instanceof Error)
+		{
+			console.error("Error:", error.message);
+		}
+		else
+			console.log("there's an error.");
+	}
+	return (cred);
 }
 
 export class AccessComponentEndpoint extends Endpoint {

@@ -175,7 +175,7 @@ const routes: Page[] = [
 				if (root) {
 					root.innerHTML = data;
 				const newScript = document.createElement('script');
-				newScript.src = '/dist/login.js';
+				newScript.src = './dist/login.js';
 				newScript.async = true;
 				document.body.appendChild(newScript);
 				} else {
@@ -244,10 +244,13 @@ const routes: Page[] = [
 				}
 				if (root) {
 					root.innerHTML = data;
+					const newScript = document.createElement('script');
+					newScript.src = './dist/profile.js';
+					newScript.async = true;
+					document.body.appendChild(newScript);
 				} else {
 					console.error('Root element not found');
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -265,31 +268,13 @@ const routes: Page[] = [
 	{
 		path: "/logout",
 		view: async () => {
-			try {
+			try
+			{
 				let response: Response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/logout`, {
 					method: 'POST',
 					credentials: 'include'
-				  });
-				console.log(">>>>>>>>>>>>>>>>>>>");
-				console.log(response);
-				response = await fetch("/components/login", {
-					method: 'GET',
-					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				// let cookies = document.cookie.split(';');
-				// for (const c of cookies)
-				// {
-				// 	const [key, value] = c.trim().split('=');
-				// 	console.log("key-value: ", key, value);
-				// }
-				if (root) {
-					root.innerHTML = data;
-				} else {
-					console.error('Root element not found');
-				}
-				//import("");
+				window.location.href="/login";
 			}
 			catch (error: unknown)
 			{
@@ -317,7 +302,7 @@ export const router = async () => {
 	}
 	else {
 
-		document.querySelector('#root')!.innerHTML = '<h1>404 - Page Not Found</h1>';
+		document.querySelector('#root')!.innerHTML = '<h1>404 - Page Not Found (dynamic)</h1>';
 	}
 }
 

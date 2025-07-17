@@ -1,33 +1,39 @@
-// console.log("login.js script has been loaded and is running!");
-
-// document.addEventListener('DOMContentLoaded', () => {
-// 	const loginForm = document.getElementById('login-form') as HTMLFormElement | null;
+const loginForm: HTMLFormElement = document.getElementById('login-form') as HTMLFormElement;
+if (loginForm)
+{
+	loginForm.addEventListener('submit', async (event: SubmitEvent) => {
+		event.preventDefault();
+		const formData = new FormData(loginForm);
+		const formProps = Object.fromEntries(formData) as { name: string, pass: string };
+		console.log("Username:", formProps.name);
+		console.log("Passwowrd:", formProps.pass);
+		try 
+		{
+			const response = await fetch("/userauthentication/front/post/login", {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body:	JSON.stringify(formProps),
+			});
   
-// 	if (loginForm) {
-// 	  loginForm.addEventListener('submit', async (event: SubmitEvent) => {
-// 		event.preventDefault(); // Prevent default form submission
-// 		console.log('Form submission intercepted by JavaScript.'); // Add this for debugging
-  
-// 		const formData = new FormData(loginForm);
-  
-// 		try {
-// 		  const response = await fetch(loginForm.action, {
-// 			method: 'POST',
-// 			body: formData,
-// 		  });
-  
-// 		  if (response.ok) {
-// 			console.log('Login successful, redirecting to /'); // Add for debugging
-// 			window.location.href = '/'; // Redirect on success
-// 		  } else {
-// 			console.error('Login failed:', response.status, response.statusText);
-// 		  }
-// 		} catch (error) {
-// 		  console.error('An error occurred during the login request:', error);
-// 		}
-// 	  });
-// 	} else {
-// 	  console.error('The form with ID "login-form" was not found.'); // Add for debugging
-// 	}
-//   });
-console.log("TEEEEEEEEEST");
+			if (response.ok) 
+			{
+				console.log('Login successful, redirecting to /');
+				window.location.href = '/';
+			} 
+		  	else 
+			{
+				console.error('Login failed:', response.status, response.statusText);
+			}
+		}
+		catch (error)
+		{
+		  console.error('An error occurred during the login request:', error);
+		}
+	});
+	}
+else
+{
+	console.error('The form with ID "login-form" was not found.'); // Add for debugging
+}
