@@ -1,12 +1,14 @@
 import Fastify from 'fastify';
 import * as EndPoints from './endpoint'
 import { MatchManager } from './matchManager';
+import { TournamentManager } from './tournamentManager';
 
 const server = Fastify({
 	logger: true 
 });
 
 export const matchManager = new MatchManager();
+export const tournamentManager = new TournamentManager();
 
 function setEndPoints(): void {
 	new EndPoints.PostMatchRequest(
@@ -14,9 +16,9 @@ function setEndPoints(): void {
 		'Error obtaining post match endpoint'
 	);
 
-/* 	new EndPoints.PostTournamentRequest(
+ 	new EndPoints.PostTournamentRequest(
 		'/matchmaker/front/post/tournament',
-		 'Error obtaining post tournament endpoint'); */
+		 'Error obtaining post tournament endpoint');
 
 	EndPoints.Endpoint.enableAll(server);
 }

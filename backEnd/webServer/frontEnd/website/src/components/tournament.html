@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Pong Tournament</title>
+	<style>
+		html, body {
+			background-color: #1a1a1a;
+			height: 100%;
+		}
+
+		p {
+			color: rgb(206, 253, 255);
+			text-shadow: 1px 1px rgb(10, 66, 208),
+						 -1px -1px rgba(126, 4, 108, 0.497);
+
+		}
+
+		.podium-header,.podium-section, .user-card {
+			border-color: rgb(49, 73, 93);
+			border-radius: 2px;
+			border-style: solid;
+		}
+
+		#gameFrame {
+			width: 100%;
+			height: 100%;
+		}
+
+		#tournamentFrame {
+			width: 100%;
+			height: 100%;
+		}
+
+		.podium-section {
+			display: flex;
+			align-items: center;
+			background: linear-gradient(to right, rgb(74, 129, 124),rgb(83, 74, 125));
+			border-style: outset;
+			width: 100%;
+			height: 33%;
+		}
+
+		.podium-header {
+			font-size: 3em;
+			font-family: Arial, Helvetica, sans-serif;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background: linear-gradient(to right, rgba(78, 186, 177, 0.234),rgba(131, 26, 155, 0.13));
+			border-style: solid;
+			border-top-color: rgb(0, 238, 255);
+			border-bottom-color: rgb(0, 0, 0);
+			border-right-width: 10px;
+			border-right-color: rgba(180, 91, 183, 0.642);
+			background-color: rgba(53, 59, 86, 0.242);
+			width: 15%;
+			height: 100%;
+		}
+
+		.podium-area {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			height: 100%;
+			gap: 10%;
+		}
+
+		.pairing-card {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap:5%;
+			border-radius: 10px;
+			border-top-color: rgb(0, 238, 255);
+			border-bottom-color: rgb(0, 0, 0);
+			border-right-color: rgba(160, 49, 175, 0.562);
+			background-color: rgba(52, 68, 157, 0.018);
+			box-shadow: 0px 1px 2px rgb(3, 255, 242);
+			padding: 1% 3% 1% 3%;
+		}
+
+		.user-card {
+			font-size: 1em;
+			text-align: center;
+			display: inline;
+			justify-content: center;
+			align-items: center;
+			border-radius: 10px;
+			border-top-color: rgb(0, 238, 255);
+			border-bottom-color: rgb(0, 0, 0);
+			border-right-color: rgba(160, 49, 175, 0.562);
+			background-color: rgba(53, 59, 86, 0.242);
+			padding: 10px;
+			margin: 3px;
+			box-shadow: -2px 2px 8px rgba(27, 11, 29, 0.848);
+		}
+
+		.avatar {
+			margin: 1%;
+			border-radius: 10%;
+			width: 100px;
+			height: 100px;
+			background-color: rgba(0, 0, 0, 0.408);
+			box-shadow: -1px 1px 5px rgb(27, 11, 29) inset;
+		}
+
+		.readyButton {
+			border-radius: 10%;
+			padding: 5% 15% 5% 15%;
+			color: rgb(206, 221, 255);
+			text-shadow: 1px 1px rgb(10, 66, 208),
+						 -1px -1px rgba(126, 4, 108, 0.497);
+			border-top-color: rgb(0, 238, 255);
+			border-bottom-color: rgb(0, 0, 0);
+			border-right-color: rgba(160, 49, 175, 0.562);
+			background-color: rgba(218, 59, 144, 0.159);
+
+		}
+
+	</style>
+</head>
+	<body>
+		<div id="gameFrame" style="display: none;"></div>
+		<div id="tournamentFrame" style="display: block;">
+
+			<div class="podium-section">
+
+				<div class="podium-header">
+					<p>1º</p>
+				</div>
+
+				<div class="podium-area">
+
+					<div id="pair1a" class="pairing-card">
+						<div id="card-1a" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+
+			<div class="podium-section">
+
+				<div class="podium-header">
+					<p>2º</p>
+				</div>
+
+				<div class="podium-area">
+
+					<div id="pair2ab" class="pairing-card">
+						<div id="card-2a" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+						<p class="vs">VS</p>
+						<div id="card-2b" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="podium-section">
+
+				<div class="podium-header">
+					<p>3º</p>
+				</div>
+
+				<div class="podium-area">
+
+					<div id="pair3ab" class="pairing-card">
+						<div id="card-3a" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+						<p class="vs">VS</p>
+						<div id="card-3b" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+					</div>
+
+					<div id="pair3cd" class="pairing-card">
+						<div id="card-3c" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+						<p class="vs">VS</p>
+						<div id="card-3d" class="user-card">
+							<div class="avatar">
+								<img style="display: none; border-radius: inherit;">
+							</div>
+							<p class="name">UserName</p>
+							<button class="readyButton" style="display: none;">Ready</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

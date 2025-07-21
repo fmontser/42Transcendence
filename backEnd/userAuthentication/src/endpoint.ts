@@ -226,7 +226,7 @@ export class LogInEndpoint extends Endpoint {
 						secure: true,
 						sameSite: 'lax',
 						path: '/',
-						maxAge: 3600       // 1h
+						maxAge: 3600 * 24 * 30 * 3       // 1h ..o..un trimestre...//TODO restablecer
 					})
 					.send({ success: true });
 				}

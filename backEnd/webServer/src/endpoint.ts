@@ -24,7 +24,7 @@ export abstract class Endpoint {
 	}
 }
 
-const pages: Array<string> = ["login", "signin", "profile", "home", "game"];
+const pages: Array<string> = ["login", "signin", "profile", "home", "game", "gameFrame", "tournament"];
 
 export class AccessLoginEndpoint extends Endpoint {
 	add(server: any): void {

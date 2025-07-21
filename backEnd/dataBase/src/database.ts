@@ -37,10 +37,12 @@ function setTables(): void {
 			bio TEXT DEFAULT '',
 			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			experience INTEGER DEFAULT 0,
-			avatar TEXT DEFAULT 'default_avatar.png',
+			avatar TEXT DEFAULT 'https://i.pravatar.cc/100',
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
-	
+
+		//TODO eliminar https://i.pravatar.cc/100
+
 		`CREATE TABLE IF NOT EXISTS friends (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,
@@ -99,6 +101,12 @@ function setEndPoints(): void {
 		"/get/username",
 		"SELECT name FROM users WHERE id = ?",
 		"Failed to get user name"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/avatar",
+		"SELECT avatar FROM profiles WHERE id = ?",
+		"Failed to get user avatar"
 	);
 
 	new EndPoints.getEndpoint(

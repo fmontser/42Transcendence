@@ -1,41 +1,84 @@
 import { PongGame } from "./pongGame.js";
+import { PongTournament } from "./pongTournament.js";
 
 export class MatchMakerConnector {
-	private game: PongGame;
+	private game!: PongGame;
+	private tournament!: PongTournament;
 	private ws: any;
 
-	constructor (gameContext: PongGame) {
-		this.game = gameContext;
-		this.connect();
-		this.setupEvents();
+	constructor(game: PongGame);
+	constructor(tournament: PongTournament);
+
+	constructor (context: PongGame | PongTournament) {
+		if (context instanceof PongGame)
+			this.game = context;
+		else if (context instanceof PongTournament)
+			this.tournament = context;
+
+		this.connect(context);
+		this.setupEvents(context);
 	}
 
-	private connect(): void {
+	private connect(context: PongGame | PongTournament): void {
 		try {
-			this.ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/match`);
+			if (context instanceof PongGame)
+				this.ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/match`);
+			else if (context instanceof PongTournament)
+				this.ws = new WebSocket(`wss://${window.location.hostname}:8443/matchmaker/front/post/tournament`);
 		} catch (error) {
 			console.log(`Error: connection to matchMaker failed: ${error}`)
 		}
 	}
 
-	private setupEvents(): void {
+	private setupEvents(context: PongGame | PongTournament): void {
 
-		this.ws.onmessage = (event: any) => {
-			const data = JSON.parse(event.data);
-			switch(data.type) {
-				case 'accepted':
-					this.sendMatchRequest();
-					break;
-				case 'matchResponse':
-					console.log("Info: Recieved match response from matchMaker");
-					this.handleMatchResponse(data);
-					break;
-				case 'error':
-					console.log(`Error: ${data.message}`);
-					//TODO inyectar web de error con el mensaje??
-					break;
-			}
-		};
+		if (context instanceof PongGame) {
+			this.ws.onmessage = (event: any) => {
+				const data = JSON.parse(event.data);
+				switch(data.type) {
+					case 'accepted':
+						this.sendMatchRequest();
+						break;
+					case 'matchResponse':
+						console.log("Info: Recieved match response from matchMaker");
+						this.handleMatchResponse(data);
+						break;
+					case 'error':
+						console.log(`Error: ${data.message}`);
+						//TODO inyectar web de error con el mensaje??
+						break;
+				}
+			};
+		}
+		else if (context instanceof PongTournament) {
+			this.ws.onmessage = (event: any) => {
+				const data = JSON.parse(event.data);
+				switch(data.type) {
+					case 'accepted':
+						this.sendTournamentRequest();
+						break;
+					case 'statusUpdate':
+						console.log(`Info: Recieved tournament status update from matchmaker`)
+						this.tournament.updateState(data);
+						break;
+					case 'readyRequest':
+						this.tournament.enableButtons();
+						break;
+					case 'matchResponse':
+						console.log("Info: Recieved match response from matchMaker");
+						this.handleTournamentMatchResponse(data);
+						break;
+					case 'setUserName':
+						console.log(`Info: Recieved userName: ${data.userName} from matchMaker`);
+						this.tournament.setUserName(data.userName);
+						break;
+					case 'error':
+						console.log(`Error: ${data.message}`);
+						//TODO inyectar web de error con el mensaje??
+						break;
+				}
+			};
+		}
 
 		this.ws.onclose = () => {
 			console.log('Disconected from match maker.');
@@ -54,18 +97,33 @@ export class MatchMakerConnector {
 		console.log("Info: Match request sent to matchMaker");
 	}
 
-	//TODO tournament
-/* 	private sendTournamentRequest(): void {
+
+	private handleMatchResponse(data: any) {
+		this.game.leftPlayerName = data.player0Name;
+		this.game.rightPlayerName = data.player1Name;
+		this.game.announceMatch();
+		this.ws.close();
+	}
+
+	private sendTournamentRequest(): void {
 		this.ws.send(JSON.stringify({
 			type: 'tournamentRequest'
 		}));
 		console.log("Info: Tournament request sent to matchMaker");
-	} */
+	}
 
-	private handleMatchResponse(data: any) {
- 		this.game.leftPlayerName = data.player0Name;
+	public sendReadyState(): void {
+		this.ws.send(JSON.stringify({
+			type: 'readyState'
+		}));
+		console.log("Info: player ready state sent to matchMaker");
+	}
+
+	private handleTournamentMatchResponse(data: any) {
+		this.game = new PongGame();
+		this.game.leftPlayerName = data.player0Name;
 		this.game.rightPlayerName = data.player1Name;
+		this.tournament.displayPlayfield();
 		this.game.announceMatch();
-		this.ws.close();
 	}
 }

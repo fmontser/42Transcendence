@@ -1,4 +1,4 @@
-import { matchManager } from './matchmaker'
+import { matchManager, tournamentManager } from './matchmaker'
 import { Tournament } from './tournament';
 
 export abstract class Endpoint {
@@ -6,8 +6,6 @@ export abstract class Endpoint {
 	protected static list: Set<Endpoint> = new Set();
 	protected path: string;
 	protected errorMsg: string;
-	protected sessionToken!: any;
-	protected userId!: number;
 
 	constructor(path: string, errorMsg: string	) {
 		this.path = path;
@@ -22,34 +20,31 @@ export abstract class Endpoint {
 	
 	protected abstract add(server: any): void;
 
-	protected async validateSession(): Promise<boolean> {
-		const reply = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${this.sessionToken}`, {
+	protected async validateSession(sessionToken: any): Promise<number | null> {
+		const reply = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${sessionToken}`, {
 			method: 'GET'
 		});
 		if (reply.ok) {
 			const data = await reply.json();
 			console.log(`Info: UserId ${data.id} session confirmed`);
-			this.userId = data.id;
-			return (true);
+			return data.id;
 		} else {
 			console.log('Info: Invalid user session');
-			return (false);
+			return (null);
 		}
 	}
 
 	protected retrieveSessionToken(request: any): any {
-			const cookieHeader = request.headers.cookie;
-			if (cookieHeader) {
-				const cookies = cookieHeader.split(';');
-				for (const c of cookies) {
-					const [name, value] = c.trim().split('=');
-					if (name === 'token') {
-						this.sessionToken = value;
-						break;
-					}
+		const cookieHeader = request.headers.cookie;
+		if (cookieHeader) {
+			const cookies = cookieHeader.split(';');
+			for (const c of cookies) {
+				const [name, value] = c.trim().split('=');
+				if (name === 'token') {
+					return value;
 				}
 			}
-			return (this.sessionToken);
+		}
 	}
 
 	protected replyAccepted(connection: any): void {
@@ -84,8 +79,12 @@ export class PostMatchRequest extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
 
-			const sessionToken = this.retrieveSessionToken(req);
-			if (sessionToken == null || !(await this.validateSession())) {
+			let sessionToken!: any;
+			let userId!: any;
+			
+			sessionToken = this.retrieveSessionToken(req);
+			userId = await this.validateSession(sessionToken);
+			if (sessionToken == null || userId == null) {
 				this.replyNotAllowed(connection);
 				return;
 			}
@@ -96,8 +95,8 @@ export class PostMatchRequest extends Endpoint {
 					const jsonData = JSON.parse(data.toString());
 					switch (jsonData.type) {
 						case 'matchRequest':
-							console.log(`Info: Recieved matchRequest from userId ${this.userId}`);
-							matchManager.requestMatch(connection, this.userId);
+							console.log(`Info: Recieved matchRequest from userId ${userId}`);
+							matchManager.requestMatch(connection, userId);
 							break;
 					}
 				} catch (error) {
@@ -114,23 +113,35 @@ export class PostMatchRequest extends Endpoint {
 	}
 }
 
-/* export class PostTournamentRequest extends Endpoint {
-
+export class PostTournamentRequest extends Endpoint {
+	
 	add(server: any): void {
-		server.get(this.path, { websocket: true }, (connection: any, req: any) => {
+		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
 			
-			connection.on('message', (data: any) => {
+			let sessionToken!: any;
+			let userId!: any;
+			let tournament!: Tournament;
+			
+			sessionToken = this.retrieveSessionToken(req);
+			userId = await this.validateSession(sessionToken);
+			if (sessionToken == null || userId == null) {
+				this.replyNotAllowed(connection);
+				return;
+			}
+			this.replyAccepted(connection);
+
+			connection.on('message', async (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
 
 					switch (jsonData.type) {
 						case 'tournamentRequest':
 							console.log("Info: Tournament request recieved");
-							matchManager.requestTournament(connection, jsonData.userId);
+							tournament = await tournamentManager.requestTournament(connection, userId);
 							break;
-						case 'tournamentPhaseEnd':
-							console.log("Info: Tournament phase request recieved");
-							matchManager.phaseTournament(jsonData.tournamentUID, jsonData.userId);
+						case 'readyState':
+							console.log(`Info: Recieved readyState from UserId ${userId}`);
+							tournament.setPlayerReady(userId);
 							break;
 					}
 				} catch (error) {
@@ -143,4 +154,4 @@ export class PostMatchRequest extends Endpoint {
 			});
 		});
 	}
-} */
+}
