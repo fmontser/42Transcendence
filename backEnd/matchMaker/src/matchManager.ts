@@ -1,7 +1,6 @@
-import { resolve } from "path";
 import { Match } from "./match";
-import { Tournament, Phase } from "./tournament";
 import WebSocket from 'ws';
+import { Tournament, Phase } from "./tournament";
 
 export enum Status {
 	PENDING, ONGOING, COMPLETED, DISCONNECTED
@@ -9,191 +8,38 @@ export enum Status {
 
 export class MatchManager {
 	matchList: Set<Match>;
-	tournamentList: Set<Tournament>;
-	hotSeatList: Set<Tournament>;
 
 	constructor() {
 		this.matchList = new Set<Match>();
-		this.tournamentList = new Set<Tournament>();
-		this.hotSeatList = new Set<Tournament>();
 	}
 
-	public async requestMatch(connection: any ,playerUID: number): Promise<void> {
+	public async requestMatch(connection: any ,userId: number): Promise<void> {
 		let newMatch: Match | null = this.findPendingMatch();
 
 		if (newMatch == null) {
 			newMatch = new Match();
 			this.matchList.add(newMatch);
 		}
-		newMatch.addPlayer(connection, playerUID);
+		await newMatch.addPlayer(connection, userId);
+		console.log(`Info: UserId ${userId} is waiting for a match...`);
 
-		if (this.checkPlayers(newMatch)){
-			await this.postMatchEntry(newMatch);
-			this.requestNewPongInstance(newMatch, false);
+		if (newMatch.checkMatchPlayers()){
+			console.log(`Info: match found!: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
+			this.requestNewPongInstance(newMatch);
 		}
 	}
 
-	public async requestTournament(connection: any ,playerUID: number): Promise<void> {
-		let newTournament: Tournament | null =  this.findPendingTournament(this.tournamentList);
+	public async requestPairedMatch(tournament: Tournament, connection: any[] ,userId: number[]): Promise<Match> {
+		let newMatch: Match = new Match(tournament, tournament.getPhase());
 
-		if (newTournament == null) {
-			newTournament = new Tournament(false);
-			this.tournamentList.add(newTournament);
-			console.log(`Info: New tournament is preparing...`);
-		}
-		console.log(`Info: Player ${playerUID} is attemping to join...`);
-		if (!newTournament.join(playerUID, connection)) {
-			this.rejectPlayerTournament(playerUID, connection);
-			return;
-		}
-		console.log(`Info: PlayerUID: ${playerUID} has joined a tournament`)
-		if (newTournament.getPhase() == Phase.SEMIFINALS){
-			await this.postTournamentEntry(newTournament);
-			newTournament.drawSemifinals();
+		for (let i = 0; i < connection.length; i++)
+			await newMatch.addPlayer(connection[i], userId[i]);
 
-			for(const match of newTournament.matches){
-				await this.postMatchEntry(match);
-				this.requestNewPongInstance(match, false);
-			}
-		}
+		console.log(`Info: Requesting Paired match to serverPong: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
+		this.requestNewPongInstance(newMatch);
+		return (newMatch);
 	}
 
-	public async requestHotSeatTournament(connection: any ,usersUIDs: number[]): Promise<void> {
-
-		let newTournament: Tournament = new Tournament(true);
-
-		this.hotSeatList.add(newTournament);
-		console.log(`Info: New hot seat tournament is preparing...`);
-		
-		for (const playerUID of  usersUIDs) {
-			newTournament.join(playerUID, connection);
-			console.log(`Info: PlayerUID: ${playerUID} has joined a tournament`)
-		}
-
-		if (newTournament.getPhase() == Phase.SEMIFINALS){
-			newTournament.drawSemifinals();
-			await this.sequenceHotSeatMatches(newTournament);
-		}
-	}
-
-	public async phaseTournament(tournamentUID: number, playerUID: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.tournamentList);
-		if (currentTournament != null) {
-			currentTournament.playersReady++;
-			console.log(`Info: Player ${playerUID} is ready to play next phase: playersReady ${currentTournament.playersReady}`);
-
-			if (currentTournament.playersReady < 4)
-				return;
-			if (currentTournament.getPhase() == Phase.SEMIFINALS){
-				currentTournament.drawFinals();
-				for(const match of currentTournament.matches){
-					await this.postMatchEntry(match);
-					this.requestNewPongInstance(match, false);
-				}
-			}
-			else if (currentTournament.getPhase() == Phase.FINALS) {
-				currentTournament.endTournament();
-				await this.patchTournamentEntry(currentTournament);
-				this.sendTournamentRanking(currentTournament);
-				this.closeTournament(currentTournament);
-			}
-		}
-	}
-
-	public async phaseHotSeatTournament(tournamentUID: number): Promise<void> {
-		let currentTournament: Tournament | null = this.findTournament(tournamentUID, this.hotSeatList);
-		
-		console.log(`DEBUG: ${currentTournament}`);
-
-		if (currentTournament != null) {
-			if (currentTournament.getPhase() == Phase.SEMIFINALS){
-				currentTournament.drawFinals();
-				await this.sequenceHotSeatMatches(currentTournament);
-			}
-			else if (currentTournament.getPhase() == Phase.FINALS) {
-				currentTournament.endTournament();
-				this.sendTournamentRanking(currentTournament);
-				this.closeTournament(currentTournament);
-			}
-		}
-	}
-
-	private findTournament(tournamentUID: number, tournamentList: Set<Tournament>): Tournament | null {
-		for(const tournament of tournamentList) {
-			if (tournament.tournamentUID == tournamentUID) {
-				return (tournament); 
-			}
-		}
-		return (null);
-	}
-
-	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {
-		for(const tournament of tournamentList) {
-			if (tournament.getPhase() == Phase.DRAW) {
-				return (tournament); 
-			}
-		}
-		return (null);
-	}
-
-	private async sequenceHotSeatMatches(newTournament: Tournament) {
-		for (const match of newTournament.matches) {
-			if (newTournament.getPhase() == Phase.CANCELED) {
-				this.hotSeatList.delete(newTournament);
-				break;
-			}
-			this.requestNewPongInstance(match, true);
-			while (true) {
-				if (match.status === Status.COMPLETED)
-					break;
-				else if (match.status === Status.DISCONNECTED) {
-					newTournament.cancel();
-					break;
-				}
-				await new Promise(r => setTimeout(r, 1000));
-			}
-		}
-	}
-
-	public cancelHotSeat(hotSeatTournamentUID: number): void {
-		let hotSeatTournament: Tournament | null = this.findTournament(hotSeatTournamentUID, this.hotSeatList);
-		if (hotSeatTournament != null){
-			hotSeatTournament.cancel();
-			this.hotSeatList.delete(hotSeatTournament);
-		}
-	}
-
-	private rejectPlayerTournament(playerUID: number, connection: any): void {
-			connection.send(JSON.stringify({
-				type: 'postTournamentReject'
-			}));
-			console.log(`Info: Player ${playerUID} has been rejected (full or duplicated)`);
-	}
-
-	private sendTournamentRanking(tournament: Tournament): void {
-		for (const player of tournament.getPlayers()){
-			player[1].send(JSON.stringify({
-				type: 'tournamentRanking',
-				p1: tournament.ranking.get(1),
-				p2: tournament.ranking.get(2),
-				p3: tournament.ranking.get(3),
-				p4: tournament.ranking.get(4)
-			}));
-			if (tournament.hotSeat)
-				break;
-		}
-		console.log(`Info: Tournament id ${tournament.tournamentUID} ranking sent to players`);
-	}
-
-	private closeTournament(tournament: Tournament): void {
-		setTimeout(() => {
-			for (const player of tournament.getPlayers())
-				player[1].close();
-		}, 1000);
-		this.tournamentList.delete(tournament);
-		console.log(`Info: Tournament id ${tournament.tournamentUID} has been closed`);
-	}
-	
 	private findPendingMatch(): Match | null {
 		for(const match of this.matchList) {
 			if (match.status == Status.PENDING) {
@@ -204,94 +50,55 @@ export class MatchManager {
 		return (null);
 	}
 
-	private checkPlayers(match: Match): boolean {
-		if (match.player0UID != 0 && match.player1UID != 0) {
-			return (true);
-		}
-		return (false);
-	}
-	
-	private async postMatchEntry(match: Match): Promise<void> {
+	private async postMatchEntry(match: Match, gameOverData: any): Promise<void> {
 		const response = await fetch("http://dataBase:3000/post/match", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({
 				tournament_id: match.tournamentUID,
-				player0_id: match.player0UID,
-				player0_score: 0,
-				player1_id: match.player1UID,
-				player1_score: 0,
-				winner_id: 0,
-				disconnected: false
+				player0_id: match.player0Id,
+				player0_score: gameOverData.score[0],
+				player1_id: match.player1Id,
+				player1_score: gameOverData.score[1],
+				winner_id: gameOverData.winnerId,
+				disconnected: match.status == Status.DISCONNECTED ? true : false
 			})
 		});
-		console.log("Info: New match entry request sent to database");
+		console.log(`Info: New match entry request sent to database`);
 		const data = await response.json();
 		match.matchUID = data.id;
-		console.log("Info: MatchUID recieved from database: " + data.id);
+		console.log(`Info: Database confirmed match entry with id: ${data.id}`);
 	}
-
-	private async patchMatchEntry(match: Match): Promise<void> {
-		const response = await fetch("http://dataBase:3000/patch/match", {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				player0_score: match.score[0],
-				player1_score: match.score[1],
-				winner_id: match.winnerUID,
-				disconnected: match.status == Status.DISCONNECTED ? true:false,
-				id: match.matchUID
-			})
-		});
-		console.log("Info: match patch request sent to database");
-		await response.json();
-		console.log("Info: Succesfully patched MatchUID: " + match.matchUID);
-	};
 	
-	private async postTournamentEntry(tournament: Tournament): Promise<void> {
-		const response = await fetch("http://dataBase:3000/post/tournament", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				ranking_1: 0,
-				ranking_2: 0,
-				ranking_3: 0,
-				ranking_4: 0,
-				status: Phase.DRAW
-			})
-		});
-		console.log("Info: New tournament entry request sent to database");
-		const data = await response.json();
-		tournament.tournamentUID = data.id;
-		console.log("Info: tournamentUID recieved from database: " + data.id);
+	private async sendMatchResponse(match: Match): Promise<void> {
+		let userMap: Map<string, any> = new Map<string, any>();
+
+		userMap.set(match.player0Name, match.player0Conn);
+		userMap.set(match.player1Name, match.player1Conn);
+
+		for (const [name, connection] of userMap){
+			connection.send(JSON.stringify({
+				type: 'matchResponse',
+				player0Name: match.player0Name,
+				player1Name: match.player1Name
+			}));
+			console.log(`Info: Announce sent to user ${name}`);
+		}
 	}
 
-	private async patchTournamentEntry(tournament: Tournament): Promise<void> {
-			const response = await fetch("http://dataBase:3000/patch/tournament", {
-			method: "PATCH",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				ranking_1: tournament.ranking.get(1),
-				ranking_2: tournament.ranking.get(2),
-				ranking_3: tournament.ranking.get(3),
-				ranking_4: tournament.ranking.get(4),
-				status: tournament.getPhase(),
-				id: tournament.tournamentUID,
-			})
-		});
-		console.log("Info: tournament patch request sent to database");
-		await response.json();
-		console.log("Info: Succesfully patched TournamentUID: " + tournament.tournamentUID);
-	};
+	private cleanMatch(match: Match): void {
+		match.status = Status.COMPLETED;
+		this.matchList.delete(match);
+	}
 
-	private async requestNewPongInstance(match: Match, isHotSeat: boolean): Promise<void> {
+	private async requestNewPongInstance(match: Match): Promise<void> {
 		const ws = new WebSocket('ws://serverpong:3000/post/match');
-		console.log("Info: Connection to serverPong");
 
 		ws.on('open', () => {
 			ws.send(JSON.stringify({
 				type: 'postMatchRequest',
-				gameUID: match.matchUID
+				player0Id: match.player0Id,
+				player1Id: match.player1Id,
 			}));
 			console.log("Info: New game request sent to serverPong");
 		});
@@ -301,43 +108,33 @@ export class MatchManager {
 
 			switch (data.type) {
 				case 'postMatchResponse':
-					console.log("Info: post match confirmation received from serverPong");
-					for (const connection of [match.player0Conn, match.player1Conn]){
-						connection.send(JSON.stringify({
-							type: 'matchAnnounce',
-							gameUID: match.matchUID,
-							tournamentUID: match.tournamentUID,
-							player0UID: match.player0UID,
-							player0Name: match.player0Name,
-							player1UID: match.player1UID,
-							player1Name: match.player1Name
-						}));
-						console.log("Info: match announce sent to client");
-						if (isHotSeat)
-							break;
-					}
+					console.log("Info: New game confirmation received from serverPong");
+					this.sendMatchResponse(match);
 					break;
 				case 'endGame':
+					console.log("Info: Game summary recieved from serverPong");
 					match.status = Status.COMPLETED;
-					recordDatabase(match, data, this);
+					match.score = data.score;
+					match.winnerId = data.winnerId;
+					this.postMatchEntry(match, data);
+					this.cleanMatch(match);
+					ws.close();
 					break;
 				case 'playerDisconnected':
+					console.log("Info: Game summary recieved from serverPong");
 					match.status = Status.DISCONNECTED;
-					recordDatabase(match, data, this);
+					match.score = data.score;
+					match.winnerId = data.winnerId;
+					this.postMatchEntry(match, data);
+					this.cleanMatch(match);
+					ws.close();
 					break;
 			}
 		});
 
 		ws.on('close', () => {
-			console.log("Info: connection to serverPong for match " + match.matchUID + " ended");
+			console.log("Info: Connection to serverPong for match ended");
+			//TODO manejar las desconecxiones....
 		});
-
-		function recordDatabase(match: Match, data: any, ctx: any): void {
-			console.log(`Info: ${Status[match.status]} summary recieved from serverPong for matchUID: ` + data.gameUID);
-			match.winnerUID = data.winnerUID;
-			match.score = [data.score[0], data.score[1]];
-			console.log("Info: matchUID: "  + data.gameUID + " winnerUID: " + data.winnerUID + " score: " + data.score[0] + " - " + data.score[1]);
-			ctx.patchMatchEntry(match);
-		}
 	}
 }
