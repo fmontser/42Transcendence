@@ -23,6 +23,80 @@ export abstract class Endpoint {
 	}
 }
 
+
+// User Status Management
+const connectedUsers = new Map<string, Set<any>>();
+
+async function broadcast(id: string, status: boolean): Promise<void> {
+  const response = await fetch(
+    `http://dataBase:3000/get/friends_user?id1=${id}&id2=${id}&id3=${id}&id4=${id}`,
+    { method: 'GET' }
+  );
+
+  if (!response.ok) {
+    console.error(`Failed to retrieve friends for user ${id}:`, response.statusText);
+    return;
+  }
+
+  const friends = await response.json();
+  const friendsIds = friends.map((friend: { id: string }) => friend.id);
+  console.log(`friends of ${id}: ${friendsIds}`);
+
+  if (friendsIds.length === 0) {
+    console.log(`No friends found for user ${id}`);
+    return;
+  }
+
+  for (const userId of friendsIds) {
+    const userSockets = connectedUsers.get(String(userId));
+    if (userSockets && userSockets.size > 0) {
+      for (const socket of userSockets) {
+        socket.send(JSON.stringify({ id, status }));
+        console.log(`Message envoyé à ${userId}`);
+      }
+    } else {
+      console.log(`Aucun socket trouvé pour l'utilisateur ${userId}`);
+    }
+  }
+}
+
+export class WebSocketStatusEndpoint extends Endpoint {
+  add(server: any): void {
+    server.get(this.path, { websocket: true }, async (socket: any, req: any) => {
+      const url = new URL(req.url, `http://${req.headers.host}`);
+      const userId = url.searchParams.get("userId");
+      if (!userId) {
+        socket.close(1008, "Missing userId parameter");
+        return;
+      }
+
+      if (!connectedUsers.has(userId)) {
+        connectedUsers.set(userId, new Set());
+        broadcast(userId, true);
+      }
+
+      connectedUsers.get(userId)!.add(socket);
+
+      console.log(`Nouvelle connexion WebSocket pour userId: ${userId} (total onglets: ${connectedUsers.get(userId)!.size})`);
+
+      socket.on('close', () => {
+        const userSockets = connectedUsers.get(userId);
+        if (userSockets) {
+          userSockets.delete(socket);
+
+          if (userSockets.size === 0) {
+            connectedUsers.delete(userId);
+            broadcast(userId, false);
+            console.log(`Dernier onglet fermé pour userId: ${userId} → Déconnecté`);
+          } else {
+            console.log(`Onglet fermé pour userId: ${userId} (reste ${userSockets.size} onglets)`);
+          }
+        }
+      });
+    });
+  }
+}
+
 export class ProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request:any, reply:any) => {
@@ -58,6 +132,7 @@ export class SeeAllUsersEndpoint extends Endpoint {
 	}
 }
 
+import { randomUUID } from "crypto";
 export class GoogleAuthEndpoint extends Endpoint {
 	private googleClient: OAuth2Client;
 
@@ -126,10 +201,11 @@ export class GoogleAuthEndpoint extends Endpoint {
 
 				if (created) {
 					// Crée un profil pour l'utilisateur
+					const defaultPseudo = "user-" + randomUUID().slice(0, 6); // user-a1b2c3
 					const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ id })
+						body: JSON.stringify({ id, pseudo: defaultPseudo })
 					});
 					if (!postProfileResponse.ok) {
 						server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postProfileResponse.statusText);
@@ -296,10 +372,11 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
+			const defaultPseudo = "user-" + randomUUID().slice(0, 6); // user-a1b2c3
 			const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id })
+				body: JSON.stringify({ id, pseudo: defaultPseudo })
 			});
 			if (!postProfileResponse.ok) {
 				server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postProfileResponse.statusText);

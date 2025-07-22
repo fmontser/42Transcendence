@@ -20,6 +20,84 @@ export abstract class Endpoint {
 	}
 }
 
+import sharp from 'sharp';
+
+export class ModifyAvatarEndpoint extends Endpoint {
+  add(server: any): void {
+    server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+      console.log(`ModifyAvatarEndpoint: ${this.path} called`);
+      const user = request.user;
+      const avatarBase64 = request.body.avatar; // envoyé par le front
+
+      if (!avatarBase64) {
+        reply.status(400).send({ error: 'Avatar is required' });
+        return;
+      }
+
+      try {
+        // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
+        const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
+        
+        // ✅ 2. Convertir en Buffer brut
+        const buffer = Buffer.from(cleanedBase64, 'base64');
+
+        // ✅ 3. Redimensionner + compresser avec Sharp
+        const resized = await sharp(buffer)
+          .resize(256, 256, { fit: 'cover' })  // carré 256×256
+          .webp({ quality: 80 })               // format WebP compressé
+          .toBuffer();
+
+        console.log(`Avatar compressé : ${resized.length} octets`);
+
+        // ✅ 4. Convertir le buffer compressé en base64 pour l’envoyer au microservice DB
+        const resizedBase64 = resized.toString('base64');
+
+        // ✅ 5. Envoyer à la BDD (toujours base64)
+        const response = await fetch('http://dataBase:3000/patch/avatar', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ avatar: resizedBase64, id: user.id })
+        });
+
+        if (!response.ok) {
+          server.log.error(`ModifyAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
+          reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+          return;
+        }
+
+        console.log(`✅ Avatar mis à jour et optimisé pour l’utilisateur ${user.id}`);
+        reply.send({ message: 'Avatar updated successfully' });
+
+      } catch (err) {
+        console.error('❌ Erreur traitement avatar:', err);
+        reply.status(500).send({ error: 'Failed to process avatar image' });
+      }
+    });
+  }
+}
+
+export class DeleteAvatarEndpoint extends Endpoint {
+	add(server: any): void {
+		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`DeleteAvatarEndpoint: ${this.path} called`);
+			const user = request.user;
+
+			const response = await fetch(`http://dataBase:3000/delete/avatar`, {
+				method: 'DELETE',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ id: user.id })
+			});
+			if (!response.ok) {
+				server.log.error(`DeleteAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			console.log(`Avatar deleted for user ${user.id}`);
+			reply.send({ message: 'Avatar deleted successfully' });
+		});
+	}
+}
+
 export class SeeAllUsersEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
@@ -476,6 +554,7 @@ export class ProfileEndpoint extends Endpoint {
 	}
 }
 
+import { randomUUID } from "crypto";
 export class CreateUserEndpoint extends Endpoint {
 	add(server: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
@@ -526,10 +605,11 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
+			const defaultPseudo = "user-" + randomUUID().slice(0, 6); // user-a1b2c3
 			const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id })
+				body: JSON.stringify({ id, pseudo: defaultPseudo })
 			});
 			if (!postProfileResponse.ok) {
 				server.log.error(`CreateUserEndpoint: ${this.errorMsg} - `, postProfileResponse.statusText);
