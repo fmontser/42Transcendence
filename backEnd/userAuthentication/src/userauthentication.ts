@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import fastifyWebsocket from '@fastify/websocket';
 
 const server = Fastify({
 	logger: true 
@@ -51,6 +52,11 @@ function setEndPoints(): void {
 		"Failed to retrieve users"
 	);
 
+	new EndPoints.WebSocketStatusEndpoint(
+    	"/userauthentication/front/ws/status",
+    	"Failed to handle websocket status"
+  	);
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
@@ -79,6 +85,8 @@ async function start() {
 				reply.status(401).send({ error: 'Unauthorized' });
 			}
 		});
+		
+		await server.register(fastifyWebsocket);
 
 		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });

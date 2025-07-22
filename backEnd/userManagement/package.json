@@ -17,12 +17,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fastify/formbody": "latest",
-    "@fastify/jwt": "latest",
     "@fastify/cookie": "latest",
     "@fastify/cors": "latest",
+    "@fastify/formbody": "latest",
+    "@fastify/jwt": "latest",
     "@fastify/multipart": "latest",
-    "fastify": "latest"
+    "fastify": "latest",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@types/node": "latest",

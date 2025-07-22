@@ -99,6 +99,15 @@ function setEndPoints(): void {
 		"Failed to modify user pseudo"
 	);
 
+	new EndPoints.ModifyAvatarEndpoint(
+		"/usermanagement/front/patch/modify_avatar",
+		"Failed to modify user avatar"
+	);
+
+	new EndPoints.DeleteAvatarEndpoint(
+		"/usermanagement/front/delete/delete_avatar",
+		"Failed to delete user avatar"
+	);
 
 	new EndPoints.DeleteUserEndpoint(
 		"/usermanagement/front/delete/user",

@@ -37,11 +37,9 @@ function setTables(): void {
 			bio TEXT DEFAULT '',
 			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			experience INTEGER DEFAULT 0,
-			avatar TEXT DEFAULT 'https://i.pravatar.cc/100',
+			avatar BLOB DEFAULT NULL,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
-
-		//TODO eliminar https://i.pravatar.cc/100
 
 		`CREATE TABLE IF NOT EXISTS friends (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -203,6 +201,26 @@ function setEndPoints(): void {
 		"Failed to get blocked friendships"
 	);
 
+	new EndPoints.getEndpoint(
+		"/get/friends_user",
+		`SELECT
+		CASE 	
+			WHEN f.user_id = ? THEN p2.pseudo
+			ELSE p1.pseudo
+		END AS pseudo,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.id
+			ELSE p1.id
+		END AS id
+		FROM friends f
+		JOIN profiles p1 ON p1.user_id = f.user_id
+		JOIN profiles p2 ON p2.user_id = f.friend_id
+		WHERE (f.user_id = ? OR f.friend_id = ?)
+  		AND f.status = 'accepted'
+		`,
+		"Failed to get accepted friendships"
+	);
+
 	new EndPoints.postEndpoint(
 		"/post/match",
 		"INSERT INTO matches (tournament_id, player0_id, player0_score, player1_id, player1_score, winner_id, disconnected) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -217,7 +235,7 @@ function setEndPoints(): void {
 
 	new EndPoints.postEndpoint(
 		"/post/profile",
-		"INSERT INTO profiles (user_id) VALUES (?)",
+		"INSERT INTO profiles (user_id, pseudo) VALUES (?, ?)",
 		"Data insertion error"
 	);
 
@@ -280,6 +298,12 @@ function setEndPoints(): void {
 		`UPDATE profiles SET avatar = ? WHERE user_id = ?`,
 		"Data update error"
 	);
+	
+	new EndPoints.deleteEndpoint(
+		"/delete/avatar",
+		`UPDATE profiles SET avatar = NULL WHERE user_id = ?`,
+		"Data removal error"
+	)
 
 	new EndPoints.deleteEndpoint(
 		"/delete/user",
