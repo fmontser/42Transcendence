@@ -135,7 +135,12 @@ async function start() {
 		});
 		server.decorate("authenticate", async (request:any, reply:any) => {
 			try {
-				await request.jwtVerify();
+				const payload = await request.jwtVerify();
+
+				if (payload.twofa) {
+					return reply.status(401).send({ error: "2FA verification required" });
+				}
+
 				console.log("User authenticated");
 			} catch (err) {
 				console.log(request.cookies.token);

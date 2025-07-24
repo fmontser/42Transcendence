@@ -26,47 +26,61 @@ Este directorio contiene el código fuente y la configuración para el servicio 
     }
     ```
 ---
-*   **API (Endpoints):**
-    *   Para cada endpoint expuesto para el servicio intentar dar la informacion mas completa posible:
-        *   Método HTTP (GET, POST, PUT, DELETE, etc.).
-        *   Ruta (path).
-        *   Descripción de lo que hace el endpoint.
-        *   Parámetros de ruta (si los hay).
-        *   Parámetros de consulta (query parameters, si los hay).
-        *   Cuerpo de la petición esperado (request body), incluyendo formato y campos obligatorios/opcionales.
-        *   Ejemplos de peticiones.
-        *   Respuestas posibles (códigos de estado HTTP y cuerpo de la respuesta esperado para cada caso, incluyendo errores).
-        *   Ejemplos de respuestas.
-        
-        **EndPoint para crear un user**  
-        * PATH:   "/userauthentication/front/post/create"  
-        METHOD: POST  
-        ARG:    'name' and 'pass' in body  
-        RETURN: Nada
+*   
+    **EndPoints para tener el user ID**     
+        PATH: "/userauthentication/front/get/profile_session_with_token"        
+        METHOD: GET   
+        ARG:    necesitar estar conectado      
+        RETURN: 'id'        
 
-        **EndPoint para log in**  
-        * PATH:   "/userauthentication/front/post/login"  
-        METHOD: POST  
-        ARG:    'name' and 'pass' in body  
-        RETURN: Nada
+*    **EndPoints para crear un perfil**     
+        PATH: "/userauthentication/front/post/create"       
+        METHOD: POST        
+        ARG:    'name' and 'pass' in body       
+        RETURN: sucess    
 
-        **EndPoint para log in con Google Auth**  
-        * PATH:   "/userauthentication/front/post/google_connect"  
-        METHOD: POST  
-        ARG:    response.credential (de la API google) en el body
-        RETURN: Nada
+*   **EndPoint para conectarse con google**       
+        PATH: "/userauthentication/front/post/google_connect"       
+        METHOD: POST        
+        ARG:    credential from google      
+        RETURN: sucess     
 
-        **EndPoint para log out**  
-        * PATH:   "/userauthentication/front/post/logout"  
-        METHOD: POST  
-        ARG:    Nada  
-        RETURN: Nada
+*   **EndPoint para conectarse**       
+        PATH: "/userauthentication/front/post/login"        
+        METHOD:  POST        
+        ARG:    'name' and 'pass' in body             
+        RETURN: sucess if no 2FA, otherwise 'token' el token para connectar con 2FA y 'twofaRequired=true'
 
-        **EndPoint para ver si el usuario esta connectado**  
-        * PATH:   "/userauthentication/front/get/profile_session"  
-        METHOD: GET  
-        ARG:    'user'  
-        RETURN: 'id' del user
+*   **EndPoint para disconectarse**     
+        PATH: "/userauthentication/front/post/logout"       
+        METHOD: POST        
+        ARG:    Nothing     
+        RETURN: sucess     
+
+*    **EndPoints para crear el 2FA**        
+        1: el para iniciar el setup :       
+        PATH:   "/userauthentication/front/post/2fa/setup"      
+        METHOD: POST     
+        ARG:    necesita estar conectado      
+        RETURN:     'qrCode' to display on the html page to make the user scan it, 'manualKey' to allow user to enter manualy the key if he cant scan the qrCode        
+
+        2:   el para enable el 2FA despues del scan     
+        PATH:   "/userauthentication/front/post/2fa/enable"     
+        METHOD:     POST        
+        ARG:     'userID' del user, 'google_token' code que da google en el mobil cuando haces el scan del qrCode       
+        RETURN:    sucess      
+
+*   **EndPoint para conectarse con 2FA**        
+        PATH:   "/userauthentication/front/post/2fa/login"      
+        METHOD: POST        
+        ARG:      'tempToken'  el token que return el normal login cuando 2FA esta activada y 'google_token' el codigo de 6 numeros que da google desde el mobil cuando conectaste      
+        RETURN: sucess     
+
+*   **EndPoint para suprimar el 2FA**       
+        PATH:   "/userauthentication/front/patch/2fa/delete"        
+        METHOD: PATCH       
+        ARG:     necesita estar conectado      
+        RETURN: sucess
 ---
 
 *   **Dependencias:** Descripcion de dependencias inter-servicios.
