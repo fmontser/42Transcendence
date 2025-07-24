@@ -27,6 +27,7 @@ function setTables(): void {
 			name TEXT UNIQUE NOT NULL,
 			pass TEXT NOT NULL,
 			two_fa BOOLEAN DEFAULT FALSE,
+			two_fa_secret TEXT DEFAULT NULL,
 			login_method TEXT DEFAULT 'local' -- local, google
 		)`,
 
@@ -99,6 +100,24 @@ function setEndPoints(): void {
 		"/get/username",
 		"SELECT name FROM users WHERE id = ?",
 		"Failed to get user name"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/userfa",
+		"SELECT two_fa, two_fa_secret FROM users WHERE id = ?",
+		"Failed to get user 2FA status"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/2fasecret",
+		`SELECT two_fa_secret FROM users WHERE id = ?`,
+		"Failed to get 2FA secret"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/2fastatus",
+		`SELECT two_fa FROM users WHERE id = ?`,
+		"Failed to get 2FA status"
 	);
 
 	new EndPoints.getEndpoint(
@@ -297,6 +316,18 @@ function setEndPoints(): void {
 		"/patch/avatar",
 		`UPDATE profiles SET avatar = ? WHERE user_id = ?`,
 		"Data update error"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/patch/2fa",
+		`UPDATE users SET two_fa = ?,two_fa_secret = ? WHERE id = ?`,
+		"Failed to set 2FA secret"
+	);
+
+	new EndPoints.deleteEndpoint(
+		"/delete/2fasecret",
+		`UPDATE users SET two_fa_secret = NULL WHERE id = ?`,
+		"Failed to delete 2FA secret"
 	);
 	
 	new EndPoints.deleteEndpoint(
