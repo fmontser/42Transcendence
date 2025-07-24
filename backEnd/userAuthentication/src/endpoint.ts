@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 
 import { OAuth2Client } from 'google-auth-library';
+import { randomUUID } from "crypto";
 
 
 export abstract class Endpoint {
@@ -97,6 +98,7 @@ export class WebSocketStatusEndpoint extends Endpoint {
   }
 }
 
+
 export class ProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request:any, reply:any) => {
@@ -132,7 +134,6 @@ export class SeeAllUsersEndpoint extends Endpoint {
 	}
 }
 
-import { randomUUID } from "crypto";
 export class GoogleAuthEndpoint extends Endpoint {
 	private googleClient: OAuth2Client;
 
@@ -162,8 +163,6 @@ export class GoogleAuthEndpoint extends Endpoint {
 				}
 
 				const userEmail = payload.email;
-				// const userName = payload.name || '';
-				// const userId = payload.sub;
 
 				// Vérifie si l'utilisateur existe déjà dans la base
 				const response = await fetch(`http://dataBase:3000/get/user?user=${userEmail}`);
@@ -200,8 +199,7 @@ export class GoogleAuthEndpoint extends Endpoint {
 				}
 
 				if (created) {
-					// Crée un profil pour l'utilisateur
-					const defaultPseudo = "user-" + randomUUID().slice(0, 6); // user-a1b2c3
+					const defaultPseudo =  "user-" + randomUUID().slice(0, 6);
 					const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
@@ -214,8 +212,15 @@ export class GoogleAuthEndpoint extends Endpoint {
 					}
 
 					console.log(`User ${userEmail} created successfully with ID ${id}`);
-					reply.send({ message: 'User created successfully'});
+					// reply.send({ message: 'User created successfully'});
+				} else if (data[0].two_fa) {
+					const token = server.jwt.sign({ id, twofa: true }, { expiresIn: '5m' });
+
+					console.log(`User ${id} requires 2FA verification`);
+					reply.send({ token, twofaRequired: true });
+					return;
 				}
+
 
 				const tokenJwt = server.jwt.sign({ id });
 
@@ -285,29 +290,32 @@ export class LogInEndpoint extends Endpoint {
 
 			const isValidPassword = await bcrypt.compare(pass, data[0].pass);
 
-			if (isValidPassword) {
-				const id = data[0].id;
-
-				const two_fa = data[0].two_fa;
-				if (two_fa) {
-					const token = server.jwt.sign({ id, twofa: true }, { expiresIn: '5m' });
-					reply.send({ token, twofaRequired: true });
-				}
-				else {
-					const token = server.jwt.sign({ id });
-
-					console.log(`User ${name} logged in successfully, token: ${token}`);
-					reply.setCookie('token', token, {
-						httpOnly: true,
-						secure: true,
-						sameSite: 'lax',
-						path: '/',
-						maxAge: 3600 * 24 * 30 * 3       // 1h ..o..un trimestre...//TODO restablecer
-					})
-					.send({ success: true });
-				}
-			} else {
+			if (!isValidPassword) {
 				reply.status(401).send({ error: 'Invalid credentials' });
+				return;
+			}
+
+			const id = data[0].id;
+			const two_fa = data[0].two_fa;
+		
+			if (two_fa) {
+				const token = server.jwt.sign({ id, twofa: true }, { expiresIn: '5m' });
+
+				console.log(`User ${name} requires 2FA verification`);
+				reply.send({ token, twofaRequired: true });
+			}
+			else {
+				const token = server.jwt.sign({ id });
+
+				console.log(`User ${name} logged in successfully, token: ${token}`);
+				reply.setCookie('token', token, {
+					httpOnly: true,
+					secure: true,
+					sameSite: 'lax',
+					path: '/',
+					maxAge: 3600 * 24 * 30 * 3       // 1h ..o..un trimestre...//TODO restablecer
+				})
+				.send({ success: true });
 			}
 		});
 	}
@@ -372,7 +380,8 @@ export class CreateUserEndpoint extends Endpoint {
 				return;
 			}
 
-			const defaultPseudo = "user-" + randomUUID().slice(0, 6); // user-a1b2c3
+
+			const defaultPseudo =  "user-" + randomUUID().slice(0, 6);
 			const postProfileResponse = await fetch('http://dataBase:3000/post/profile', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
@@ -390,53 +399,209 @@ export class CreateUserEndpoint extends Endpoint {
 	}
 }
 
-/*export class LogInEndpoint extends Endpoint {
+// 2FA
+import speakeasy from "speakeasy";
+import qrcode from "qrcode";
+
+const pending2FA: Record<string, string> = {};
+
+export class TwoFASetupEndpoint extends Endpoint {
 	add(server: any): void {
-		server.post(this.path, async (request:any, reply:any) => {
-			console.log(`LogInEndpoint: ${this.path} called`);
-			const name = request.body.name;
-			const pass = request.body.pass;
+		server.post(this.path, { preHandler: server.authenticate }, async (req: any, reply: any) => {
+			const user = req.user;
 
-			const response = await fetch(`http://dataBase:3000/get/user?user=${name}`, {
-				method: 'GET'});
+			if (pending2FA[user.id]) {
+				return reply.status(400).send({ error: "2FA setup already in progress" });
+			}
+
+			// Vérifier si l'utilisateur a déjà la 2FA activée
+			const response = await fetch(`http://dataBase:3000/get/userfa?id=${user.id}`);
 			if (!response.ok) {
-				server.log.error(`LogInEndpoint: ${this.errorMsg} - `, response.statusText);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-				return;
+				console.error(`Failed to fetch user data for 2FA setup: ${response.statusText}`);
+				return reply.status(500).send({ error: "Failed to fetch user data" });
 			}
-			const data = await response.json();
-
-			console.log(request.body);
-
-			console.log(data);
-			if (data.length === 0) {
-				reply.status(404).send({ error: 'User not found' });
-				return;
+			const userData = await response.json();
+			if (userData[0].two_fa) {
+				return reply.status(400).send({ error: "2FA is already enabled for this user" });
 			}
-			if (data[0].login_method !== 'local') {
-				reply.status(403).send({ error: 'User login method is not local' });
-				return;
-			}
-			console.log(data[0].pass, pass);
 
-			const isValidPassword = await bcrypt.compare(pass, data[0].pass);
+			// Générer un secret TOTP
+			const secret = speakeasy.generateSecret({
+				name: "Transcendence", // Nom affiché dans l’app Google Authenticator
+				length: 20
+			});
 
-			if (isValidPassword) {
-				const id = data[0].id;
-				const token = server.jwt.sign({ id });
+			pending2FA[user.id] = secret.base32;
 
-				console.log(`User ${name} logged in successfully, token: ${token}`);
-				reply.setCookie('token', token, {
-					httpOnly: true,
-					secure: true,
-					sameSite: 'lax',
-					path: '/',
-					maxAge: 3600       // 1h
-				})
-				.send({ success: true });
-			} else {
-				reply.status(401).send({ error: 'Invalid credentials' });
-			}
+			// Générer un QR code pour l’app Authenticator
+			const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url!);
+			console.log(`2FA setup initiated for user ${user.id}, secret: ${secret.base32}`);
+
+			reply.send({
+				message: "Scan this QR code with Google Authenticator",
+				qrCode: qrCodeDataURL,
+				manualKey: secret.base32
+			});
 		});
 	}
-} */
+}
+
+export class TwoFAEnableEndpoint extends Endpoint {
+	add(server: any): void {
+		server.post(this.path, { preHandler: server.authenticate }, async (req: any, reply: any) => {
+			const user = req.user;
+			const token = req.body.google_token;
+
+			const secret = pending2FA[user.id];
+			if (!secret) {
+				return reply.status(400).send({ error: "No 2FA setup in progress" });
+			}
+
+			const verified = speakeasy.totp.verify({
+				secret,
+				encoding: "base32",
+				token,
+				window: 1
+			});
+
+			if (!verified) {
+				console.error(`Invalid 2FA token for user ${user.id}`);
+				return reply.status(400).send({ error: "Invalid 2FA token" });
+			}
+
+			// ✅ Activer la 2FA dans la DB
+			const resUpdateStatus = await fetch(`http://dataBase:3000/patch/2fa`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ two_fa: true, two_fa_secret: secret, id: user.id })
+			});
+			if (!resUpdateStatus.ok) {
+				console.error(`Failed to update 2FA status for user ${user.id}`);
+				return reply.status(500).send({ error: "Failed to update DB" });
+			}
+
+			console.log(`2FA enabled for user ${user.id}`);
+
+			delete pending2FA[user.id];
+
+			reply.send({ success: true, message: "2FA enabled successfully" });
+		});
+	}
+}
+
+export class TwoFADeleteEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (req: any, reply: any) => {
+			const user = req.user;
+
+			// Vérifier si l'utilisateur a la 2FA activée
+			const response = await fetch(`http://dataBase:3000/get/userfa?id=${user.id}`);
+			if (!response.ok) {
+				console.error(`Failed to fetch user data for 2FA deletion: ${response.statusText}`);
+				return reply.status(500).send({ error: "Failed to fetch user data" });
+			}
+			const userData = await response.json();
+			if (!userData[0].two_fa){
+				console.error(`User ${user.id} does not have 2FA enabled`);
+				return reply.status(400).send({ error: "2FA is not enabled for this user" });
+			}
+
+			// Désactiver la 2FA dans la DB
+			const resUpdateStatus = await fetch(`http://dataBase:3000/patch/2fa`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ two_fa: false, two_fa_secret: null, id: user.id })
+			});
+			if (!resUpdateStatus.ok) {
+				console.error(`Failed to update 2FA status for user ${user.id}`);
+				return reply.status(500).send({ error: "Failed to update DB" });
+			}
+
+			console.log(`2FA disabled for user ${user.id}`);
+
+			reply.send({ success: true, message: "2FA disabled successfully" });
+		});
+	}
+}
+
+
+export class TwoFALoginEndpoint extends Endpoint {
+  add(server: any): void {
+    server.post(this.path, async (req: any, reply: any) => {
+      console.log(`LogIn2FAEndpoint: ${this.path} called`);
+      const { tempToken, google_token } = req.body;
+
+	  console.log(`tempToken: ${tempToken}, google_token: ${google_token}`);
+
+      if (!tempToken || !google_token) {
+        return reply.status(400).send({ error: "Missing tempToken or google_token" });
+      }
+
+      // ✅ Vérifie le token temporaire
+      let payload;
+      try {
+        payload = server.jwt.verify(tempToken);
+      } catch (err) {
+        console.error("Invalid or expired temp token", err);
+        return reply.status(401).send({ error: "Invalid or expired temp token" });
+      }
+
+      // ✅ Vérifie que c’est bien un token temporaire de 2FA
+      if (!payload.twofa || !payload.id) {
+        return reply.status(401).send({ error: "Invalid 2FA flow" });
+      }
+
+      const userId = payload.id;
+
+	  console.log(`2FA login for user ID: ${userId}`);
+
+      // ✅ Récupère l'utilisateur avec son secret TOTP
+      const response = await fetch(`http://dataBase:3000/get/userfa?id=${userId}`);
+      if (!response.ok) {
+        console.error(`Failed to fetch user ${userId} for 2FA login`);
+        return reply.status(500).send({ error: "Failed to fetch user data" });
+      }
+
+      const userData = await response.json();
+	  if (userData.length === 0) {
+		console.error(`User ${userId} not found for 2FA login`);
+		return reply.status(404).send({ error: "User not found" });
+	  }
+
+      const secret = userData[0].two_fa_secret;
+	  const two_fa = userData[0].two_fa;
+
+	  console.log(`2FA login for user ${userId}, secret: ${secret}, two_fa: ${two_fa}`);
+
+      if (!two_fa) {
+        return reply.status(400).send({ error: "2FA not enabled for this user" });
+      }
+
+      // ✅ Vérifie le code Google Authenticator
+      const verified = speakeasy.totp.verify({
+        secret,
+        encoding: "base32",
+        token: google_token,
+        window: 1
+      });
+
+      if (!verified) {
+        console.error(`Invalid 2FA token for user ${userId}`);
+        return reply.status(401).send({ error: "Invalid 2FA code" });
+      }
+
+      // ✅ Si correct → Génère un JWT final et le renvoie
+      const finalToken = server.jwt.sign({ id: userId });
+
+      console.log(`User ${userId} successfully completed 2FA login`);
+
+      reply.setCookie("token", finalToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 3600 * 24 * 30 * 3
+      }).send({ success: true });
+    });
+  }
+}

@@ -57,6 +57,26 @@ function setEndPoints(): void {
     	"Failed to handle websocket status"
   	);
 
+	new EndPoints.TwoFASetupEndpoint(
+		"/userauthentication/front/post/2fa/setup",
+		"Failed to setup 2FA"
+	);
+
+	new EndPoints.TwoFAEnableEndpoint(
+		"/userauthentication/front/post/2fa/enable",
+		"Failed to enable 2FA"
+	);
+
+	new EndPoints.TwoFADeleteEndpoint(
+		"/userauthentication/front/patch/2fa/delete",
+		"Failed to delete 2FA"
+	);
+
+	new EndPoints.TwoFALoginEndpoint(
+		"/userauthentication/front/post/2fa/login",
+		"Failed to log in with 2FA"
+	);
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
@@ -78,7 +98,12 @@ async function start() {
 		});
 		server.decorate("authenticate", async (request:any, reply:any) => {
 			try {
-				await request.jwtVerify();
+				const payload = await request.jwtVerify();
+
+				if (payload.twofa) {
+					return reply.status(401).send({ error: "2FA verification required" });
+				}
+
 				console.log("User authenticated");
 			} catch (err) {
 				console.log(request.cookies.token);
