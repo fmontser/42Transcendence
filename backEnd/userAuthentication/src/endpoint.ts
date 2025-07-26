@@ -29,36 +29,47 @@ export abstract class Endpoint {
 const connectedUsers = new Map<string, Set<any>>();
 
 async function broadcast(id: string, status: boolean): Promise<void> {
-  const response = await fetch(
-    `http://dataBase:3000/get/friends_user?id1=${id}&id2=${id}&id3=${id}&id4=${id}`,
-    { method: 'GET' }
-  );
 
-  if (!response.ok) {
-    console.error(`Failed to retrieve friends for user ${id}:`, response.statusText);
-    return;
-  }
+	const responseModifyStatus = await fetch(`http://dataBase:3000/patch/status`, {
+		method: 'PATCH',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ status, id })
+	});
+	if (!responseModifyStatus.ok) {
+		console.error(`Failed to update status for user ${id}:`, responseModifyStatus.statusText);
+		return;
+	}
 
-  const friends = await response.json();
-  const friendsIds = friends.map((friend: { id: string }) => friend.id);
-  console.log(`friends of ${id}: ${friendsIds}`);
+	const response = await fetch(
+		`http://dataBase:3000/get/friends_user?id1=${id}&id2=${id}&id3=${id}&id4=${id}`,
+		{ method: 'GET' }
+	);
 
-  if (friendsIds.length === 0) {
-    console.log(`No friends found for user ${id}`);
-    return;
-  }
+	if (!response.ok) {
+		console.error(`Failed to retrieve friends for user ${id}:`, response.statusText);
+		return;
+	}
 
-  for (const userId of friendsIds) {
-    const userSockets = connectedUsers.get(String(userId));
-    if (userSockets && userSockets.size > 0) {
-      for (const socket of userSockets) {
-        socket.send(JSON.stringify({ id, status }));
-        console.log(`Message envoyé à ${userId}`);
-      }
-    } else {
-      console.log(`Aucun socket trouvé pour l'utilisateur ${userId}`);
-    }
-  }
+	const friends = await response.json();
+	const friendsIds = friends.map((friend: { id: string }) => friend.id);
+	console.log(`friends of ${id}: ${friendsIds}`);
+
+	if (friendsIds.length === 0) {
+		console.log(`No friends found for user ${id}`);
+		return;
+	}
+
+	for (const userId of friendsIds) {
+		const userSockets = connectedUsers.get(String(userId));
+		if (userSockets && userSockets.size > 0) {
+		for (const socket of userSockets) {
+			socket.send(JSON.stringify({ id, status }));
+			console.log(`Message envoyé à ${userId}`);
+		}
+		} else {
+		console.log(`Aucun socket trouvé pour l'utilisateur ${userId}`);
+		}
+	}
 }
 
 export class WebSocketStatusEndpoint extends Endpoint {
