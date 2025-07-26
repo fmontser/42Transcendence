@@ -78,7 +78,7 @@ export class WebSocketStatusEndpoint extends Endpoint {
 
       connectedUsers.get(userId)!.add(socket);
 
-      console.log(`Nouvelle connexion WebSocket pour userId: ${userId} (total onglets: ${connectedUsers.get(userId)!.size})`);
+      console.log(`New connexion WebSocket for userId: ${userId} (total onglets: ${connectedUsers.get(userId)!.size})`);
 
       socket.on('close', () => {
         const userSockets = connectedUsers.get(userId);
@@ -88,9 +88,9 @@ export class WebSocketStatusEndpoint extends Endpoint {
           if (userSockets.size === 0) {
             connectedUsers.delete(userId);
             broadcast(userId, false);
-            console.log(`Dernier onglet fermé pour userId: ${userId} → Déconnecté`);
+            console.log(`Last close for userId: ${userId} → Disconnected`);
           } else {
-            console.log(`Onglet fermé pour userId: ${userId} (reste ${userSockets.size} onglets)`);
+            console.log(`Close for userId: ${userId} (remain ${userSockets.size} pages)`);
           }
         }
       });
