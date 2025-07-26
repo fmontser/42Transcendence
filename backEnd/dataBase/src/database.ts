@@ -38,7 +38,7 @@ function setTables(): void {
 			bio TEXT DEFAULT '',
 			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			experience INTEGER DEFAULT 0,
-			avatar TEXT DEFAULT default_avatar.jpg,
+			avatar TEXT DEFAULT 'public/avatars/default_avatar.jpg',
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 
@@ -332,7 +332,7 @@ function setEndPoints(): void {
 	
 	new EndPoints.deleteEndpoint(
 		"/delete/avatar",
-		`UPDATE profiles SET avatar = "default_avatar.jpg" WHERE user_id = ?`,
+		`UPDATE profiles SET avatar = 'public/avatars/default_avatar.jpg' WHERE user_id = ?`,
 		"Data removal error"
 	)
 
