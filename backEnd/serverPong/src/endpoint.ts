@@ -1,4 +1,4 @@
-import { StandardGame, Player } from './pongEngine'
+import { StandardGame, Player, PongGame } from './pongEngine'
 import { P1, P2, standardGameManager } from './serverpong';
 
 export abstract class Endpoint {
@@ -109,6 +109,37 @@ export class PostNewMatch extends Endpoint {
 		});
 	}
 }
+
+export class DeleteOngoingMatch extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
+
+			let targetMatch!: StandardGame | null;
+
+			connection.on('message', async (data: any) => {
+				try {
+					const jsonData = JSON.parse(data.toString());
+					switch (jsonData.type) {
+						case 'cancelMatch':
+							console.log("Info: Match cancel request recieved");
+							targetMatch = standardGameManager.getGamebyUserId(jsonData.userId);
+							if (targetMatch)
+								standardGameManager.deleteGame(targetMatch);
+							connection.close();
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
+
+			connection.on('close', () => {
+				console.log(`Info: Connection to user ended due to cancelation`);
+			});
+		});
+	}
+}
+
 
 export class GetNewGame extends Endpoint {
 	add(server: any): void {

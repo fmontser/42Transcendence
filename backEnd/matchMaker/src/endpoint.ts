@@ -150,7 +150,6 @@ export class PostTournamentRequest extends Endpoint {
 			});
 
 			connection.on('close', () => {
-				//TODO terminar desconexion del torneo
 				console.log("Client left the matchMaker");
 				if (tournament.getPhase() != Phase.COMPLETED)
 					tournament.cancel(userId);

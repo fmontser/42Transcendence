@@ -134,7 +134,6 @@ export class MatchManager {
 
 		ws.on('close', () => {
 			console.log("Info: Connection to serverPong for match ended");
-			//TODO manejar las desconecxiones....
 		});
 	}
 }

@@ -32,6 +32,7 @@ export class TournamentManager {
 						await t.endTournament();
 						await this.closeTournament(t);
 					} else if (t.getPhase() === Phase.CANCELED) {
+						await this.cancelTournamentMatches(t);
 						await this.closeTournament(t);
 					}
 				}
@@ -65,7 +66,7 @@ export class TournamentManager {
 		}
 		return (null);
 	}
-	
+
 	private async postTournamentEntry(tournament: Tournament): Promise<void> {
 		const response = await fetch("http://dataBase:3000/post/tournament", {
 			method: "POST",
@@ -79,7 +80,7 @@ export class TournamentManager {
 			})
 		});
 		console.log("Info: New tournament entry request sent to database");
- 		const data = await response.json();
+		const data = await response.json();
 		console.log("Info: Database confirmed tournament entry");
 	}
 
@@ -94,5 +95,18 @@ export class TournamentManager {
 
 		this.tournamentList.delete(tournament);
 		console.log(`Info: Tournament has been closed`);
+	}
+
+	private async cancelTournamentMatches(tournament: Tournament): Promise<void> {
+		for (const p of tournament.getPlayers()){
+			await fetch("http://serverPong:3000/delete/match", {
+				method: "DELETE",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					userId: p[1].id
+				})
+			});
+			console.log("Info: Sent match cancel signal to serverPong");
+		}
 	}
 }
