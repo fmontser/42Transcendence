@@ -6,6 +6,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
+import multipart from '@fastify/multipart';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -59,6 +60,11 @@ function setEndPoints(): void {
 	new EndPoints.AccessProfileEndpoint(
 		"/access/profile",
 		"Unknown error."
+	);
+
+	new EndPoints.PostAvatarEndpoint(
+		"/post/avatar",
+		"Failed to upload avatar"
 	);
 
 	EndPoints.Endpoint.enableAll(server);
