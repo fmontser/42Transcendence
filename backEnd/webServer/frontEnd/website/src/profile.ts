@@ -1,15 +1,3 @@
-import { request } from "http";
-
-interface UserProfile {
-	username: string;
-	bio: string;
-	creationDate: string;
-	experience: string;
-	friends: string[];
-	requests: string[];
-	blockedUsers: string[]
-}
-
 async function getProfile(): Promise<Response>
 {
 
@@ -240,3 +228,36 @@ function addBlockToList(name: string) {
 blockedUsers.forEach(user => {
 	addBlockToList(user);
 });
+
+
+//TODO mathis check!
+// Modify AVATAR
+const sendAvatarBtn = document.getElementById('sendAvatarBtn');
+if (sendAvatarBtn) {
+	sendAvatarBtn.addEventListener('click', async () => {
+		const input = document.getElementById('inputAvatar') as HTMLInputElement;
+		if (!input.files || input.files.length === 0) {
+			alert('Please select an image to upload.');
+			return;
+		}
+
+		const formData = new FormData();
+		formData.append('image', input.files[0]);
+
+		try {
+
+			console.log(`DEBUG: about to send image to usermanagement.....`)
+
+			await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
+				method: 'PATCH',
+				credentials: 'include',
+				body: formData,
+			});
+
+			console.log(`DEBUG: ...sent.`)
+
+		} catch (error) {
+			console.error('Error uploading avatar:', error);
+		}
+	});
+}
