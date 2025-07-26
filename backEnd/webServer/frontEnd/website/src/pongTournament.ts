@@ -8,6 +8,7 @@ export enum Phase {
 
 export class PongTournament {
 	private matchMakerConnector!: MatchMakerConnector;
+	private messageFrame!: HTMLElement | null;
 	private gameFrame!: HTMLElement | null;
 	private tournamentFrame!: HTMLElement | null
 	private userName!: string;
@@ -28,6 +29,7 @@ export class PongTournament {
 	};
 
 	constructor () {
+		this.messageFrame = document.getElementById("messageFrame");
 		this.gameFrame = document.getElementById("gameFrame");
 		this.tournamentFrame = document.getElementById("tournamentFrame");
 		this.injectGame();
@@ -113,11 +115,13 @@ export class PongTournament {
 	}
 	
 	public displayPlayfield(): void {
+		this.messageFrame?.setAttribute("style", "display: none");
 		this.gameFrame?.setAttribute("style", "display: block;")
 		this.tournamentFrame?.setAttribute("style", "display: none;");
 	}
 
 	public hidePlayfield(): void {
+		this.messageFrame?.setAttribute("style", "display: none");
 		this.gameFrame?.setAttribute("style", "display: none;")
 		this.tournamentFrame?.setAttribute("style", "display: block;")
 		if (this.tournamentState.phase === Phase.FINALS) {
@@ -149,7 +153,20 @@ export class PongTournament {
 		}
 	}
 	
-	public setUserName(userName: string):  void {
+	public setUserName(userName: string): void {
 		this.userName = userName;
+	}
+
+	public cancelTournament(userName: string): void {
+		//TODO mostrar pantalla de cancelacion....
+		console.log(`Info: User ${userName} disconnected. Tournament was cancelled`);
+		this.messageFrame?.setAttribute("style", "display: flex");
+		this.gameFrame?.setAttribute("style", "display: none;")
+		this.tournamentFrame?.setAttribute("style", "display: none;");
+
+		if (this.messageFrame) {
+			this.messageFrame.innerHTML = `User ${userName} disconnected. Tournament was cancelled`;
+		}
+
 	}
 }

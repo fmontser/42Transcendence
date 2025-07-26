@@ -72,6 +72,10 @@ export class MatchMakerConnector {
 						console.log(`Info: Recieved userName: ${data.userName} from matchMaker`);
 						this.tournament.setUserName(data.userName);
 						break;
+					case 'tournamentCancel':
+						console.log(`Info: Tournament was cancelled`);
+						this.tournament.cancelTournament(data.userName);
+						break;
 					case 'error':
 						console.log(`Error: ${data.message}`);
 						//TODO inyectar web de error con el mensaje??

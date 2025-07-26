@@ -31,6 +31,8 @@ export class TournamentManager {
 					} else if (t.getPhase() === Phase.COMPLETED) {
 						await t.endTournament();
 						await this.closeTournament(t);
+					} else if (t.getPhase() === Phase.CANCELED) {
+						await this.closeTournament(t);
 					}
 				}
 			}

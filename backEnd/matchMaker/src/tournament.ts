@@ -188,8 +188,6 @@ export class Tournament {
 		console.log(`Info: Tournament finals phase has been drawn`);
 	}
 
-
-
 	public async endTournament(): Promise<void> {
 		this.previousPhase = Phase.COMPLETED;
 
@@ -234,11 +232,17 @@ export class Tournament {
 		console.log(`Info: Tournament ended`);
 	}
 
-	public cancel(): void {
+	public async cancel(userId: number): Promise<void> {
 		console.log(`Info: Tournament canceled`);
-		this.phase = Phase.CANCELED;
-		this.matches.clear();
-		this.players.clear();
+		let disconnectedName = await this.getPlayerName(userId);
+		
+		for (const p of this.players) {
+			await (p[1] as Player).connection.send(JSON.stringify({
+				type: 'tournamentCancel',
+				userName: disconnectedName
+			}));
+		}
+		this.changePhase(Phase.CANCELED);
 	}
 
 	public getPlayers(): Map<number, Player> { return (this.players); }
