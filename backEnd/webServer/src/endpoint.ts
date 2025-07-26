@@ -1,4 +1,5 @@
 import path from 'node:path';
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 //import { fileURLToPath } from 'url';
 import { promises as fs } from 'node:fs';
 
@@ -26,6 +27,38 @@ export abstract class Endpoint {
 
 const pages: Array<string> = ["login", "signin", "profile", "home", "game", "gameFrame", "tournament"];
 
+interface UserProfile {
+	username: string;
+	bio: string;
+	creationDate: string;
+	experience: string;
+	friends: string[];
+	requests: string[];
+	blockedUsers: string[];
+
+}
+
+export class AccessProfileEndpoint extends Endpoint {
+	add(server: FastifyInstance): void {
+		server.get(this.path, async (request: FastifyRequest, reply: FastifyReply) => {
+			console.log("check 1");
+			const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (!response.ok) {
+				console.log("something went wrong with profile_session fetch.");
+			}
+			console.log("check");
+			const sessionData = await response.json();
+			reply.type('application/json');
+			console.log("second check");
+			reply.send(sessionData);
+			console.log("third check");
+		});
+	}
+}
+
 export class AccessLoginEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
@@ -33,6 +66,8 @@ export class AccessLoginEndpoint extends Endpoint {
 			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');
 			//console.log('File found:', data);
+			reply.header('Content-Disposition', 'filename="login.html"');
+			reply.type('text/html; charset=utf-8');
 			reply.send(data);
 		});
 	}
@@ -45,30 +80,83 @@ export class AccessSigninEndpoint extends Endpoint {
 			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');
 			//console.log('File found:', data);
+			reply.type('text/html; charset=utf-8')
 			reply.send(data);
 		});
 	}
 }
 
+// A simple function to parse a cookie header string into an object
+function parseCookies(cookieHeader: string | undefined): { [key: string]: string } {
+	const cookies: { [key: string]: string } = {};
 
+	if (cookieHeader) {
+		cookieHeader.split(';').forEach(cookie => {
+			const parts = cookie.match(/(.*?)=(.*)$/)
+			if (parts) {
+				const key = parts[1].trim();
+				const value = (parts[2] || '').trim();
+				cookies[key] = value;
+			}
+		});
+	}
 
+	return cookies;
+}
+
+async function isAuthentified (request: any): Promise<boolean>
+{
+	const cookies = parseCookies(request.headers.cookie);
+	const token: string | undefined = cookies.token;
+	let cred = false;
+	try
+	{
+		console.log("The token:");
+		console.log(token);
+		let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
+			method: 'GET',
+		});
+		let data = await response.json();
+		if (response.ok)
+		{
+			console.log(data.id)
+			cred = true;
+		}
+	}
+	catch (error: unknown)
+	{
+		if (error instanceof Error)
+		{
+			console.error("Error:", error.message);
+		}
+		else
+			console.log("there's an error.");
+	}
+	return (cred);
+}
 
 export class AccessComponentEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
 			//console.log(`AccessComponent endpoint: ${this.path} called`);
 			const requestedFile = request.params.name;
-			const token = request.cookies.token;
-			console.log(token)
+			console.log("raw cookie:");
+			console.log(request.headers.cookie);
+			const cookies = parseCookies(request.headers.cookie);
+			const token: string | undefined = cookies.token;
 			let cred = 0
 			try {
+				console.log("The token:");
+				console.log(token);
 				let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
 					method: 'GET',
 				});
 				let data = await response.json();
 				if (response.ok)
+				{
 					console.log(data.id)
 					cred = 1;
+				}
 			} catch (error: unknown){
 				if (error instanceof Error)
 					{
@@ -88,6 +176,7 @@ export class AccessComponentEndpoint extends Endpoint {
 					try {
 						const data = await fs.readFile(filePath, 'utf-8');
 						//console.log('File found:', data);
+						reply.type('text/html; charset=utf-8')
 						reply.send(data);
 					}
 					catch (error: unknown)
@@ -114,13 +203,14 @@ export class AccessComponentEndpoint extends Endpoint {
 			{
 				console.log('User doesnt have credentials.');
 				console.log('File:', requestedFile);
-				if (pages.includes(requestedFile))
+				if (requestedFile == "login" || requestedFile == "signin")
 				{
 					const filePath = path.join('website/dist/components', `${requestedFile}.html`);
 					console.log("The file path:", filePath)
 					try {
 						const data = await fs.readFile(filePath, 'utf-8');
 						//console.log('File found:', data);
+						reply.type('text/html; charset=utf-8')
 						reply.send(data);
 					}
 					catch (error: unknown)
