@@ -237,3 +237,31 @@ export class AccessComponentEndpoint extends Endpoint {
 		});
 	}
 }
+
+export class PostAvatarEndpoint extends Endpoint {//TODO FRAN AVATAR
+	add (server: any): void {
+		server.post(this.path, async (request: any, reply: any) => {
+			console.log("PostAvatar endpoint called");
+			const formData = request.body;
+			const file = formData.image;
+			const name = formData.name;
+
+			if (!file || !name) {
+				reply.status(400).send({ error: "Missing avatar or name" });
+				return;
+			}
+
+			try {
+				
+				const filePath = "../frontEnd/website/src/public/avatars/" + name;
+
+				fs.writeFile(filePath, file)
+
+			} catch (error) {
+				console.error("Error uploading avatar:", error);
+				reply.status(500).send({ error: "Internal Server Error" });
+			}
+		}
+		);
+	};
+}
