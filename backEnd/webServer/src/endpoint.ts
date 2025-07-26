@@ -1,4 +1,5 @@
 import path from 'node:path';
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 //import { fileURLToPath } from 'url';
 import { promises as fs } from 'node:fs';
 
@@ -26,15 +27,34 @@ export abstract class Endpoint {
 
 const pages: Array<string> = ["login", "signin", "profile", "home", "localGame", "onlineGame-1", "onlineGame-2"];
 
-export class AccessProfileEndpoint {
-	add(server: any): void {
-		server.get(this.path, async (request: any, reply: any) => {
-			// const response = await fetch();
-			// if (response.ok)
-			// 	data = await response()
-			//console.log('File found:', data);
+interface UserProfile {
+	username: string;
+	bio: string;
+	creationDate: string;
+	experience: string;
+	friends: string[];
+	requests: string[];
+	blockedUsers: string[];
 
-			reply.send(data);
+}
+
+export class AccessProfileEndpoint extends Endpoint {
+	add(server: FastifyInstance): void {
+		server.get(this.path, async (request: FastifyRequest, reply: FastifyReply) => {
+			console.log("check 1");
+			const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (!response.ok) {
+				console.log("something went wrong with profile_session fetch.");
+			}
+			console.log("check");
+			const sessionData = await response.json();
+			reply.type('application/json');
+			console.log("second check");
+			reply.send(sessionData);
+			console.log("third check");
 		});
 	}
 }
@@ -68,27 +88,27 @@ export class AccessSigninEndpoint extends Endpoint {
 
 // A simple function to parse a cookie header string into an object
 function parseCookies(cookieHeader: string | undefined): { [key: string]: string } {
-    const cookies: { [key: string]: string } = {};
+	const cookies: { [key: string]: string } = {};
 
-    if (cookieHeader) {
-        cookieHeader.split(';').forEach(cookie => {
-            const parts = cookie.match(/(.*?)=(.*)$/)
-            if (parts) {
-                const key = parts[1].trim();
-                const value = (parts[2] || '').trim();
-                cookies[key] = value;
-            }
-        });
-    }
+	if (cookieHeader) {
+		cookieHeader.split(';').forEach(cookie => {
+			const parts = cookie.match(/(.*?)=(.*)$/)
+			if (parts) {
+				const key = parts[1].trim();
+				const value = (parts[2] || '').trim();
+				cookies[key] = value;
+			}
+		});
+	}
 
-    return cookies;
+	return cookies;
 }
 
-function isAuthentified: Boolean (request: any)
+async function isAuthentified (request: any): Promise<boolean>
 {
 	const cookies = parseCookies(request.headers.cookie);
 	const token: string | undefined = cookies.token;
-	let cred = 0
+	let cred = false;
 	try
 	{
 		console.log("The token:");
@@ -100,7 +120,7 @@ function isAuthentified: Boolean (request: any)
 		if (response.ok)
 		{
 			console.log(data.id)
-			cred = 1;
+			cred = true;
 		}
 	}
 	catch (error: unknown)
