@@ -49,7 +49,7 @@ export class ModifyAvatarEndpoint extends Endpoint {
 
         // console.log(`Avatar compressé : ${resized.length} octets`);
 
-		const nameAvatar = user.id + '.jpg';
+		const nameAvatar = 'public/avatars/' + user.id + '.jpg';
 
         const response = await fetch('http://dataBase:3000/patch/avatar', {
           method: 'PATCH',
