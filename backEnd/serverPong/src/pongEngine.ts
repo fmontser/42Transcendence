@@ -55,8 +55,19 @@ export class StandardGameManager {
 		return (pongGame);
 	}
 
+	public getGamebyUserId(userId: number): StandardGame | null {
+		let game!: StandardGame;
+
+		for (const g of this.StandardGameList){
+			if (g.player0Id === userId || g.player1Id === userId)
+				return (g);
+		}
+		return (null);
+	}
+
 	public deleteGame(game: StandardGame): void {
 		this.StandardGameList.delete(game);
+		game.cancel();
 	}
 
 }
@@ -246,5 +257,10 @@ export class StandardGame extends PongGame {
 		for (const player of this.players){
 			player.connection.close();
 		}
+	}
+
+	public cancel(): void {
+		console.log(`Info: game was canceled`);
+		this.broadcastClose();
 	}
 }

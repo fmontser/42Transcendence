@@ -1,5 +1,5 @@
 import { matchManager, tournamentManager } from './matchmaker'
-import { Tournament } from './tournament';
+import { Phase, Tournament } from './tournament';
 
 export abstract class Endpoint {
 
@@ -151,6 +151,8 @@ export class PostTournamentRequest extends Endpoint {
 
 			connection.on('close', () => {
 				console.log("Client left the matchMaker");
+				if (tournament.getPhase() != Phase.COMPLETED)
+					tournament.cancel(userId);
 			});
 		});
 	}
