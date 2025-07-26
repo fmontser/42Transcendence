@@ -22,11 +22,12 @@ export abstract class Endpoint {
 
 import sharp from 'sharp';
 
-export class ModifyAvatarEndpoint extends Endpoint {
+export class ModifyAvatarEndpoint extends Endpoint {//TODO FRAN AVATAR
   add(server: any): void {
     server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
       console.log(`ModifyAvatarEndpoint: ${this.path} called`);
       const user = request.user;
+	  const imageAvatar = request.body.image;
     //   const avatarBase64 = request.body.avatar; // envoyé par le front
 
     //   if (!avatarBase64) {
@@ -34,6 +35,7 @@ export class ModifyAvatarEndpoint extends Endpoint {
     //     return;
     //   }
 
+	const nameAvatar = 'public/avatars/' + user.id + '.jpg';
       try {
         // // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
         // const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -49,7 +51,6 @@ export class ModifyAvatarEndpoint extends Endpoint {
 
         // console.log(`Avatar compressé : ${resized.length} octets`);
 
-		const nameAvatar = 'public/avatars/' + user.id + '.jpg';
 
         const response = await fetch('http://dataBase:3000/patch/avatar', {
           method: 'PATCH',
@@ -64,10 +65,19 @@ export class ModifyAvatarEndpoint extends Endpoint {
         }
         reply.send({ message: 'Avatar updated successfully' });
 
+		fetch('http://webServ:3000/post/avatar', {
+			method: 'POST',
+			headers: { 'Content-Type': 'image/jpeg' },
+			body: JSON.stringify({ image: imageAvatar, name: nameAvatar })
+		});
+
       } catch (err) {
         console.error('Erreor changing avatar:', err);
         reply.status(500).send({ error: 'Failed to process avatar image' });
       }
+
+
+
     });
   }
 }

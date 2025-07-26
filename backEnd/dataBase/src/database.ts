@@ -39,6 +39,7 @@ function setTables(): void {
 			date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 			experience INTEGER DEFAULT 0,
 			avatar TEXT DEFAULT 'public/avatars/default_avatar.jpg',
+			status BOOLEAN NOT NULL DEFAULT 0,
 			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 
@@ -74,7 +75,6 @@ function setTables(): void {
 			status INTEGER
 		)`
 
-	
 		//Add tables here, comma separated.
 	
 	];
@@ -230,7 +230,11 @@ function setEndPoints(): void {
 		CASE 	
 			WHEN f.user_id = ? THEN p2.id
 			ELSE p1.id
-		END AS id
+		END AS id,
+		CASE 	
+			WHEN f.user_id = ? THEN p2.status
+			ELSE p1.status
+		END AS status
 		FROM friends f
 		JOIN profiles p1 ON p1.user_id = f.user_id
 		JOIN profiles p2 ON p2.user_id = f.friend_id
@@ -268,6 +272,12 @@ function setEndPoints(): void {
 		"/post/friendship",
 		`INSERT INTO friends (user_id, friend_id, sender_id) VALUES (?, ?, ?)`,
 		"Failed to create friendship"
+	);
+
+	new EndPoints.patchEndpoint(
+		"/path/status",
+		"UPDATE profiles SET status = ? WHERE user_id = ?",
+		"Status update error"
 	);
 
 	new EndPoints.patchEndpoint(
