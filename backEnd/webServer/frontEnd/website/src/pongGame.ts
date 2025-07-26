@@ -148,4 +148,5 @@ export class PongGame {
 		this.gameState.paddles = data.paddlesPos;
 		this.gameState.score = data.score;
 	}
+
 }

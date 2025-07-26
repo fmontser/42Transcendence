@@ -158,7 +158,6 @@ export class PongTournament {
 	}
 
 	public cancelTournament(userName: string): void {
-		//TODO mostrar pantalla de cancelacion....
 		console.log(`Info: User ${userName} disconnected. Tournament was cancelled`);
 		this.messageFrame?.setAttribute("style", "display: flex");
 		this.gameFrame?.setAttribute("style", "display: none;")
@@ -167,6 +166,5 @@ export class PongTournament {
 		if (this.messageFrame) {
 			this.messageFrame.innerHTML = `User ${userName} disconnected. Tournament was cancelled`;
 		}
-
 	}
 }

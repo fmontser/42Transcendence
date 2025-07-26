@@ -29,6 +29,8 @@ function setEndPoints(): void {
 
 	new EndPoints.GetNewGame('/serverpong/front/get/game', 'Error obtaining online pong endpoint');
 
+	new EndPoints.DeleteOngoingMatch('/delete/match', 'Error deleting ongoing match');
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
