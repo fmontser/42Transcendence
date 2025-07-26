@@ -27,36 +27,34 @@ export class ModifyAvatarEndpoint extends Endpoint {
     server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
       console.log(`ModifyAvatarEndpoint: ${this.path} called`);
       const user = request.user;
-      const avatarBase64 = request.body.avatar; // envoyé par le front
+    //   const avatarBase64 = request.body.avatar; // envoyé par le front
 
-      if (!avatarBase64) {
-        reply.status(400).send({ error: 'Avatar is required' });
-        return;
-      }
+    //   if (!avatarBase64) {
+    //     reply.status(400).send({ error: 'Avatar is required' });
+    //     return;
+    //   }
 
       try {
-        // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
-        const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
+        // // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
+        // const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
         
-        // ✅ 2. Convertir en Buffer brut
-        const buffer = Buffer.from(cleanedBase64, 'base64');
+        // // ✅ 2. Convertir en Buffer brut
+        // const buffer = Buffer.from(cleanedBase64, 'base64');
 
-        // ✅ 3. Redimensionner + compresser avec Sharp
-        const resized = await sharp(buffer)
-          .resize(256, 256, { fit: 'cover' })  // carré 256×256
-          .webp({ quality: 80 })               // format WebP compressé
-          .toBuffer();
+        // // ✅ 3. Redimensionner + compresser avec Sharp
+        // const resized = await sharp(buffer)
+        //   .resize(256, 256, { fit: 'cover' })  // carré 256×256
+        //   .webp({ quality: 80 })               // format WebP compressé
+        //   .toBuffer();
 
-        console.log(`Avatar compressé : ${resized.length} octets`);
+        // console.log(`Avatar compressé : ${resized.length} octets`);
 
-        // ✅ 4. Convertir le buffer compressé en base64 pour l’envoyer au microservice DB
-        const resizedBase64 = resized.toString('base64');
+		const nameAvatar = user.id + '.jpg';
 
-        // ✅ 5. Envoyer à la BDD (toujours base64)
         const response = await fetch('http://dataBase:3000/patch/avatar', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatar: resizedBase64, id: user.id })
+          body: JSON.stringify({ avatar: nameAvatar, id: user.id })
         });
 
         if (!response.ok) {
@@ -64,12 +62,10 @@ export class ModifyAvatarEndpoint extends Endpoint {
           reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
           return;
         }
-
-        console.log(`✅ Avatar mis à jour et optimisé pour l’utilisateur ${user.id}`);
         reply.send({ message: 'Avatar updated successfully' });
 
       } catch (err) {
-        console.error('❌ Erreur traitement avatar:', err);
+        console.error('Erreor changing avatar:', err);
         reply.status(500).send({ error: 'Failed to process avatar image' });
       }
     });
