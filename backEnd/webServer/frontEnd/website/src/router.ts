@@ -176,6 +176,7 @@ const routes: Page[] = [
 					root.innerHTML = data;
 				const newScript = document.createElement('script');
 				newScript.src = './dist/login.js';
+				newScript.type = 'module';
 				newScript.async = true;
 				document.body.appendChild(newScript);
 				} else {

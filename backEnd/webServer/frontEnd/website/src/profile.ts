@@ -1,5 +1,3 @@
-import { request } from "http";
-
 interface UserProfile {
 	username: string;
 	bio: string;
@@ -138,28 +136,95 @@ if (response.ok) {
 	(document.getElementById('savePseudoBtn')!).style.display = 'none';
   });
 
+(document.getElementById('showPseudosBtn')!).addEventListener('click', async () => {
+const list = document.getElementById('pseudoList');
+(list!).innerHTML = ''; // Réinitialise la liste
+
+const response = await fetch('/usermanagement/front/get/pseudos', {
+  method: 'GET',
+  credentials: 'include'
+});
+
+if (!response.ok) {
+  (list!).innerHTML = '<li>Erreur lors de la récupération des pseudos.</li>';
+  return;
+}
+
+const pseudos = await response.json(); // attend [{ pseudo: 'alice' }, { pseudo: 'bob' }]
+
+if (Array.isArray(pseudos) && pseudos.length > 0) {
+  pseudos.forEach(({ pseudo }) => {
+	const li = document.createElement('li');
+	li.style.marginBottom = '10px';
+	li.style.display = 'flex';
+	li.style.justifyContent = 'space-between';
+	li.style.alignItems = 'center';
+	li.style.gap = '10px';
+
+	const span = document.createElement('span');
+	span.textContent = pseudo || 'Inconnu';
+	const button = document.createElement('button');
+	button.textContent = 'Add';
+	button.addEventListener('click', async () => {
+	  const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
+		method: 'POST',
+		credentials: 'include',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ targetPseudo: pseudo })
+	  });
+
+	  const message = document.getElementById('message');
+	  if (res.ok) {
+		(message!).textContent = `Requête d'amitié envoyée à ${pseudo}`;
+		(message!).style.color = 'green';
+	  } else {
+		(message!).textContent = `Erreur lors de l'ajout de ${pseudo}`;
+		(message!).style.color = 'red';
+	  }
+	});
+
+	li.appendChild(span);
+	li.appendChild(button);
+	(list!).appendChild(li);
+  });
+} else {
+	(list!).innerHTML = '<li>Aucun pseudo trouvé.</li>';
+}
+
+});
+
 
 //Friend requests
 
-async function fetchPendingFriends() {
+fetchPendingFriends() 
 
+async function fetchPendingFriends() {
+	try {
 	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_pending`, {
 		method: 'GET',
 		credentials: 'include'
 	  });
 
 	  if (!response.ok) {
-		console.log("no se");
+		console.log("error");
 	  }
-	  const requests: any = await response.json();
-	  console.log(requests);
-	  requests.forEach((request: any) => {
-		addRequest(request.pseudo);
-	});
 
+	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+	  console.log(data)
+	  data.forEach((friend: any) => {
+		console.log(friend.pseudo);
+		addRequest(friend.pseudo);
+
+	});
+	} catch (error) {
+	  //(document.getElementById('friend-list')!).innerText = 'Erreur lors du chargement.';
+	  console.error('Erreur:', error);
+	}
 }
 
-fetchPendingFriends();
+
 //const requests: string[] = ['Alice', 'Bob', 'Charlie'];
 
 const requestListContainer = document.getElementById('friend-requests-list') as HTMLDivElement | null;
@@ -182,6 +247,10 @@ function addRequest(name: string) {
 		}
 	}
 }
+
+// requests.forEach(request => {
+// 	addRequest(request);
+// });
 
 
 //Friends
@@ -240,3 +309,33 @@ function addBlockToList(name: string) {
 blockedUsers.forEach(user => {
 	addBlockToList(user);
 });
+
+
+let deleteAccountId = document.getElementById("delete-account");
+if (deleteAccountId)
+{
+	deleteAccountId.addEventListener("click", () => {
+		deleteAccount();
+	});
+}
+else {
+	console.log("Unknown error");
+}
+
+
+
+async function deleteAccount() {
+	if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/user`, {
+		method: 'DELETE',
+		credentials: 'include'
+	  });
+
+	  if (response.ok) {
+		alert('Votre compte a été supprimé avec succès.');
+		window.location.href = '/login';
+	  } else {
+		alert('Erreur lors de la suppression du compte.');
+	  }
+	}
+  }

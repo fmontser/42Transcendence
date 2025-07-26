@@ -132,6 +132,12 @@
       const sessionData = await sessionResponse.json();
       id = sessionData.name;
 
+      type BoolDictionary = {
+        [key: string]: boolean;
+      };
+
+      let dictionary: BoolDictionary;
+
       const ws = new WebSocket(`wss://${window.location.hostname}:8443/userauthentication/front/ws/status?userId=${id}`);
 
       ws.onopen = () => {
@@ -140,15 +146,16 @@
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
+        dictionary[data.id] = data.status;
         if (data.status) {
-          console.log(`Utilisateur ${data.id} est en ligne`);
+          console.log(`User ${data.id} online`);
         } else {
-          console.log(`Utilisateur ${data.id} est hors ligne`);
+          console.log(`User ${data.id} ofline`);
         }
       };
 
       ws.onclose = () => {
-        console.log("❌ WebSocket fermée → utilisateur hors ligne");
+        console.log("WebSocket fermée → utilisateur hors ligne");
       };
 
 
