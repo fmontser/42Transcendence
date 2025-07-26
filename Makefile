@@ -61,7 +61,22 @@ build:
 
 	@docker compose -f $(COMPOSE_FILE) build
 
+build_nc:
+	@echo "Building docker images..."
+	@mkdir -p volumes/dataBase-volume/
+	@make -C $(DB_DIR) install
+	@make -C $(MM_DIR) install
+	@make -C $(SP_DIR) install
+	@make -C $(UM_DIR) install
+	@make -C $(WS_DIR) install
+
+	@docker compose -f $(COMPOSE_FILE) build --no-cache
+
 up: down build
+	@echo "Setting services online..."
+	@docker compose -f $(COMPOSE_FILE) up -d
+
+upnc: down build_nc
 	@echo "Setting services online..."
 	@docker compose -f $(COMPOSE_FILE) up -d
 

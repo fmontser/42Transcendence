@@ -1,17 +1,17 @@
 import { GameObject, Pos, Rect, Bounds } from './gameObject';
-import { Game } from './pongEngine';
+import { PongGame } from './pongEngine';
 import { Paddle } from './paddle';
 import { Ball } from './ball';
 
 export class PlayField extends GameObject {
 	rect: Rect;
 	bounds: Bounds;
-	game: Game;
+	game: PongGame;
 	paddle0!: Paddle;
 	paddle1!: Paddle;
 	ball!: Ball;
 
-	constructor(game: Game, rect: Rect, pos: Pos) {
+	constructor(game: PongGame, rect: Rect, pos: Pos) {
 		super(pos);
 		this.rect = rect;
 		this.game = game;

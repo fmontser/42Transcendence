@@ -1,7 +1,5 @@
-import { OnlineGame } from './gameScripts/onlineGame.js'
-import { LocalGame } from './gameScripts/localGame.js'
-//import { HotSeatGame } from './gameScripts/hotSeatGame.js';
-
+import { PongGame } from './pongGame.js';
+import { PongTournament } from './pongTournament.js';
 
 interface Page {
 	path: string;
@@ -11,10 +9,10 @@ interface Page {
 const routes: Page[] = [
 
 	{
-		path: "/localGame",
+		path: "/game",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html", {
+				let response: Response = await fetch("/components/game", {
 					method: 'GET',
 					credentials: 'include'
 				});
@@ -25,7 +23,7 @@ const routes: Page[] = [
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						let newGame = new LocalGame("Fran-temp", "Dario-temp");
+						let newGame = new PongGame();
 						newGame.start()
 					} else {
 						console.error('Root element not found');
@@ -34,7 +32,6 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -51,31 +48,27 @@ const routes: Page[] = [
 	},
 
 	{
-		path: "/onlineGame-1",
+		path: "/gameFrame",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html", {
+				let response: Response = await fetch("/components/game", {
 					method: 'GET',
 					credentials: 'include'
 				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
-
 					console.log("html:", data);
-					const root = document.getElementById('root');
-					if (root) {
-						root.innerHTML = data;
-						let newGame = new OnlineGame(1);
-						newGame.start()
+					const gameFrame = document.getElementById('gameFrame');
+					if (gameFrame) {
+						gameFrame.innerHTML = data;
 					} else {
-						console.error('Root element not found');
+						console.error('gameFrame element not found');
 					}
 				}
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -92,23 +85,22 @@ const routes: Page[] = [
 	},
 
 	{
-		path: "/onlineGame-2",
+		path: "/tournament",
 		view: async () => {
 			try {
-				let response: Response = await fetch("src/pongGame.html", {
+				let response: Response = await fetch("/components/tournament", {
 					method: 'GET',
 					credentials: 'include'
 				});
 				if (response.ok)
 				{
 					let data: string = await response.text();
-
 					console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
-						let newGame = new OnlineGame(2);
-						newGame.start()
+						let newTournament = new PongTournament();
+						newTournament.start()
 					} else {
 						console.error('Root element not found');
 					}
@@ -116,7 +108,6 @@ const routes: Page[] = [
 				else {
 					console.log("Fetch failed.");
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -131,45 +122,6 @@ const routes: Page[] = [
 			}
 		}
 	},
-
-/* 	{
-		path: "/hotSeat",
-		view: async () => {
-			try {
-				let response: Response = await fetch("src/pongGame.html");
-				if (response.ok)
-				{
-					let data: string = await response.text();
-
-					console.log("html 1:", data);
-					const root = document.getElementById('root');
-					if (root) {
-						root.innerHTML = data;
-						console.log("html 2 :", data);
-						let newGame = new HotSeatGame([1,2,3,4]);
-						newGame.start()
-					} else {
-						console.error('Root element not found');
-					}
-				}
-				else {
-					console.log("Fetch failed.");
-				}
-				//import("");
-			}
-			catch (error: unknown)
-			{
-				if (error instanceof Error)
-				{
-					console.error("Error:", error.message);
-				}
-				else
-				{
-					console.error("Unknown error.");
-				}
-			}
-		}
-	}, */
 
 	{
 		path: "/",
@@ -339,8 +291,7 @@ const routes: Page[] = [
 	}
 ]
 
-
-const router = async () => {
+export const router = async () => {
 	const path = location.pathname;
 	const match = routes.find(route => route.path == path);
 	if (match)
