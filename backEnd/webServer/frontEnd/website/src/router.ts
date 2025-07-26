@@ -1,6 +1,9 @@
 import { PongGame } from './pongGame.js';
 import { PongTournament } from './pongTournament.js';
 
+console.log('SPA loaded');
+history.pushState(null, '', window.location.href);
+
 interface Page {
 	path: string;
 	view: () => Promise<void>;
@@ -176,6 +179,7 @@ const routes: Page[] = [
 					root.innerHTML = data;
 				const newScript = document.createElement('script');
 				newScript.src = './dist/login.js';
+				newScript.type = 'module';
 				newScript.async = true;
 				document.body.appendChild(newScript);
 				} else {
@@ -306,18 +310,21 @@ export const router = async () => {
 	}
 }
 
+document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', e => {
+	console.log(">>>>>>>>>>>>> click listener called");
 	const target = e.target as HTMLElement;
 	if (target.matches('.nav-link')) {
+		console.log(">>>>>>>>>>>>> nav-link found");
 		e.preventDefault();
-		const href = target.getAttribute('href')!;
+		const href = target.getAttribute('data-path')!;
 
 		history.pushState(null, '', href);
 
 		router();
 	}
 });
-
+});
 window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
