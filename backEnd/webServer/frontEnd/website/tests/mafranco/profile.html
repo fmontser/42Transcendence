@@ -522,12 +522,12 @@
       }
       // Vérification stricte du type MIME
       if (file.type !== 'image/jpeg') {
-        alert("⚠️ Seuls les fichiers JPG sont autorisés !");
+        alert("Seuls les fichiers JPG sont autorisés !");
         return;
       }
 
       if (file.size >  (2 * 1024 * 1024)) {
-        alert(`⚠️ L'image est trop lourde (${(file.size / 1024 / 1024).toFixed(2)} Mo). Max autorisé : 2 Mo`);
+        alert(`L'image est trop lourde (${(file.size / 1024 / 1024).toFixed(2)} Mo). Max autorisé : 2 Mo`);
         return;
       }
 
