@@ -1,3 +1,5 @@
+import { request } from "http";
+
 interface UserProfile {
 	username: string;
 	bio: string;
@@ -40,20 +42,125 @@ getProfile().then(async profileResponse => {
 	}
 });
 
-//console.log(profile);
-// const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
-// 	method: 'GET',
-// 	credentials: 'include',
-// });
-// if (!response.ok) {
-// 	console.log("something went wrong with profile_session fetch.");
-// 	window.location.href = "/login";
-// 	return;
-// }
-// const sessionData = await response.json();
+
+async function loadProfile() {
+	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+	  method: 'GET',
+	  credentials: 'include'
+	});
+
+	if (!sessionResponse.ok) {
+	  window.location.href = 'login.html';
+	  return;
+	}
+
+	const sessionData = await sessionResponse.json();
+	let id = sessionData.name;
+
+	const profileResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile?id=${id}`, {
+	  method: 'GET',
+	  credentials: 'include'
+	});
+
+	if (profileResponse.ok) {
+	  const profile = (await profileResponse.json())[0];
+	  (document.getElementById('pseudo')!).textContent = profile.pseudo || 'Inconnu';
+	  (document.getElementById('pseudoInput')! as HTMLTextAreaElement).value = profile.pseudo || '';
+	  (document.getElementById('bio')!).textContent = profile.bio || 'Inconnu';
+	  (document.getElementById('bioInput')! as HTMLTextAreaElement).value = profile.bio || '';
+	  (document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
+	  (document.getElementById('experience')!).textContent = profile.experience || '0';
+	} else {
+	  console.error('Erreur lors du chargement du profil');
+	}
+  }
+
+loadProfile();
+
+(document.getElementById('editBioBtn')!).addEventListener('click', () => {
+	(document.getElementById('bio')!).style.display = 'none';
+	(document.getElementById('bioInput')!).style.display = 'inline';
+	(document.getElementById('editBioBtn')!).style.display = 'none';
+	(document.getElementById('saveBioBtn')!).style.display = 'inline';
+});
+
+(document.getElementById('saveBioBtn')!).addEventListener('click', async () => {
+	const newBio: string = (document.getElementById('bioInput')! as HTMLTextAreaElement).value;
+
+	const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/put/modify_bio`, {
+	  method: 'PATCH',
+	  credentials: 'include',
+	  headers: { 'Content-Type': 'application/json' },
+	  body: JSON.stringify({ bio: newBio })
+});
+
+if (response.ok) {
+	(document.getElementById('bio')!).textContent = newBio;
+	(document.getElementById('message')!).textContent = 'Bio mise à jour.';
+  } else {
+	(document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour de la bio.';
+  }
+
+  (document.getElementById('bio')!).style.display = 'inline';
+  (document.getElementById('bioInput')!).style.display = 'none';
+  (document.getElementById('editBioBtn')!).style.display = 'inline';
+  (document.getElementById('saveBioBtn')!).style.display = 'none';
+});
+
+//pseudo
+(document.getElementById('editPseudoBtn')!).addEventListener('click', () => {
+	(document.getElementById('pseudo')!).style.display = 'none';
+	(document.getElementById('pseudoInput')!).style.display = 'inline';
+	(document.getElementById('editPseudoBtn')!).style.display = 'none';
+	(document.getElementById('savePseudoBtn')!).style.display = 'inline';
+  });
+
+(document.getElementById('savePseudoBtn')!).addEventListener('click', async () => {
+	const newPseudo = (document.getElementById('pseudoInput')! as HTMLTextAreaElement).value;
+
+	const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/put/modify_pseudo`, {
+	  method: 'PATCH',
+	  credentials: 'include',
+	  headers: { 'Content-Type': 'application/json' },
+	  body: JSON.stringify({ pseudo: newPseudo })
+	});
+
+	if (response.ok) {
+	  (document.getElementById('pseudo')!).textContent = newPseudo;
+	  (document.getElementById('message')!).textContent = 'Pseudo mis à jour.';
+	} else {
+	  (document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour du pseudo.';
+	}
+
+	(document.getElementById('pseudo')!).style.display = 'inline';
+	(document.getElementById('pseudoInput')!).style.display = 'none';
+	(document.getElementById('editPseudoBtn')!).style.display = 'inline';
+	(document.getElementById('savePseudoBtn')!).style.display = 'none';
+  });
+
 
 //Friend requests
-const requests: string[] = ['Alice', 'Bob', 'Charlie'];
+
+async function fetchPendingFriends() {
+
+	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_pending`, {
+		method: 'GET',
+		credentials: 'include'
+	  });
+
+	  if (!response.ok) {
+		console.log("no se");
+	  }
+	  const requests: any = await response.json();
+	  console.log(requests);
+	  requests.forEach((request: any) => {
+		addRequest(request.pseudo);
+	});
+
+}
+
+fetchPendingFriends();
+//const requests: string[] = ['Alice', 'Bob', 'Charlie'];
 
 const requestListContainer = document.getElementById('friend-requests-list') as HTMLDivElement | null;
 const templateRequest = document.getElementById('friend-request-template') as HTMLTemplateElement | null;
@@ -75,10 +182,6 @@ function addRequest(name: string) {
 		}
 	}
 }
-
-requests.forEach(request => {
-	addRequest(request);
-});
 
 
 //Friends
