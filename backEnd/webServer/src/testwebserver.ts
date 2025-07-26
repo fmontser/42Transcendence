@@ -6,7 +6,7 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
-//import multipart from '@fastify/multipart';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

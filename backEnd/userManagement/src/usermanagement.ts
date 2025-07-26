@@ -4,6 +4,8 @@ import Fastify from 'fastify';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
 import cors from '@fastify/cors';
+import multipart from '@fastify/multipart';
+
 
 // import bcrypt from 'bcrypt';
 
@@ -120,6 +122,7 @@ function setEndPoints(): void {
 async function start() {
 
 	try {
+		await server.register(multipart);
 		await server.register(FormBodyPlugin);
 		await server.register(cors, {
 			origin: 'https://localhost',

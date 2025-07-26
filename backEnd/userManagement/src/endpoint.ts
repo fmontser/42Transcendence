@@ -20,67 +20,151 @@ export abstract class Endpoint {
 	}
 }
 
-import sharp from 'sharp';
+/* export class ModifyAvatarEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+		console.log(`ModifyAvatarEndpoint: ${this.path} called`);
+		const user = request.user;
+		const imageAvatar = request.body.image;
 
-export class ModifyAvatarEndpoint extends Endpoint {//TODO FRAN AVATAR
-  add(server: any): void {
-    server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
-      console.log(`ModifyAvatarEndpoint: ${this.path} called`);
-      const user = request.user;
-	  const imageAvatar = request.body.image;
-    //   const avatarBase64 = request.body.avatar; // envoyé par le front
+	//   const avatarBase64 = request.body.avatar; // envoyé par le front
 
-    //   if (!avatarBase64) {
-    //     reply.status(400).send({ error: 'Avatar is required' });
-    //     return;
-    //   }
+	//   if (!avatarBase64) {
+	//     reply.status(400).send({ error: 'Avatar is required' });
+	//     return;
+	//   }
 
-	const nameAvatar = 'public/avatars/' + user.id + '.jpg';
-      try {
-        // // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
-        // const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
-        
-        // // ✅ 2. Convertir en Buffer brut
-        // const buffer = Buffer.from(cleanedBase64, 'base64');
+		const nameAvatar = 'public/avatars/' + user.id + '.jpg';
+		try {
+			// // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
+			// const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
+			
+			// // ✅ 2. Convertir en Buffer brut
+			// const buffer = Buffer.from(cleanedBase64, 'base64');
 
-        // // ✅ 3. Redimensionner + compresser avec Sharp
-        // const resized = await sharp(buffer)
-        //   .resize(256, 256, { fit: 'cover' })  // carré 256×256
-        //   .webp({ quality: 80 })               // format WebP compressé
-        //   .toBuffer();
+			// // ✅ 3. Redimensionner + compresser avec Sharp
+			// const resized = await sharp(buffer)
+			//   .resize(256, 256, { fit: 'cover' })  // carré 256×256
+			//   .webp({ quality: 80 })               // format WebP compressé
+			//   .toBuffer();
 
-        // console.log(`Avatar compressé : ${resized.length} octets`);
-
-
-        const response = await fetch('http://dataBase:3000/patch/avatar', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatar: nameAvatar, id: user.id })
-        });
-
-        if (!response.ok) {
-          server.log.error(`ModifyAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
-          reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-          return;
-        }
-        reply.send({ message: 'Avatar updated successfully' });
-
-		fetch('http://webServ:3000/post/avatar', {
-			method: 'POST',
-			headers: { 'Content-Type': 'image/jpeg' },
-			body: JSON.stringify({ image: imageAvatar, name: nameAvatar })
-		});
-
-      } catch (err) {
-        console.error('Erreor changing avatar:', err);
-        reply.status(500).send({ error: 'Failed to process avatar image' });
-      }
+			// console.log(`Avatar compressé : ${resized.length} octets`);
 
 
+			const response = await fetch('http://dataBase:3000/patch/avatar', {
+			method: 'PATCH',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ avatar: nameAvatar, id: user.id })
+			});
 
-    });
-  }
+			if (!response.ok) {
+			server.log.error(`ModifyAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
+			reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+			return;
+			}
+			reply.send({ message: 'Avatar updated successfully' });
+
+			fetch('http://webServ:3000/post/avatar', {
+				method: 'POST',
+				headers: { 'Content-Type': 'image/jpeg' },
+				body: JSON.stringify({ image: imageAvatar, name: nameAvatar })
+			});
+
+		} catch (err) {
+			console.error('Erreor changing avatar:', err);
+			reply.status(500).send({ error: 'Failed to process avatar image' });
+		}
+
+
+
+	});
 }
+}
+ */
+
+
+
+
+/* 
+
+const file = await request.file(); // si solo hay un archivo llamado 'image'
+
+if (!file) {
+  reply.status(400).send({ error: 'No file uploaded' });
+  return;
+}
+
+const buffers = [];
+for await (const chunk of file.file) {
+  buffers.push(chunk);
+}
+const imageBuffer = Buffer.concat(buffers);
+
+// Aquí ya tienes el buffer con la imagen
+// Si necesitas enviarlo a otro servidor, no JSON.stringify, sino usar directamente el buffer o FormData
+
+// ejemplo para enviar al webServer:
+await fetch('http://webServer:3000/post/avatar', {
+  method: 'POST',
+  headers: { 'Content-Type': file.mimetype },
+  body: imageBuffer
+});
+
+*/
+
+
+
+
+//TODO mathis check!
+export class ModifyAvatarEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			
+			console.log(`ModifyAvatarEndpoint: ${this.path} called`);
+			const user = request.user;
+			const file = await request.file();
+
+			if (!file) {
+				reply.status(400).send({ error: 'No file uploaded' });
+				return;
+			}
+
+			const imageBuffer = await file.toBuffer();
+
+			try {
+				await fetch('http://webServer:3000/post/avatar', {
+					method: 'POST',
+					headers: {
+						'Content-Type': file.mimetype,
+						'X-User-ID': user.id
+					},
+					body: imageBuffer,
+				});
+
+				console.log(`DEBUG: Avatar sent to webserver...`);
+
+			} catch (err) {
+				console.error('Error changing avatar:', err);
+				reply.status(500).send({ error: 'Failed to process avatar image' });
+			}
+		});
+	}
+}
+
+
+				//TODO patch dataBase
+/* 				const response = await fetch('http://dataBase:3000/patch/avatar', {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ avatar: nameAvatar, id: user.id })
+				});
+
+				if (!response.ok) {
+					server.log.error(`ModifyAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
+					reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+					return;
+				}
+				 */
 
 export class DeleteAvatarEndpoint extends Endpoint {
 	add(server: any): void {
