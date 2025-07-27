@@ -138,7 +138,7 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
-					console.log("html:", data);
+					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -177,8 +177,16 @@ const routes: Page[] = [
 				const root = document.getElementById('root');
 				if (root) {
 					root.innerHTML = data;
+
+				const existingScript = document.querySelector("script[src*='/dist/login.js']");
+				console.log(existingScript);
+				if (existingScript) {
+					console.log('Found and removed existing script:', existingScript);
+					existingScript.remove();
+				}
+
 				const newScript = document.createElement('script');
-				newScript.src = './dist/login.js';
+				newScript.src = `./dist/login.js?cb=${Date.now()}`;
 				newScript.type = 'module';
 				newScript.async = true;
 				document.body.appendChild(newScript);
@@ -212,6 +220,11 @@ const routes: Page[] = [
 				const root = document.getElementById('root');
 				if (root) {
 					root.innerHTML = data;
+				const newScript = document.createElement('script');
+				newScript.src = './dist/signin.js?cb=${Date.now()}';
+				newScript.type = 'module';
+				newScript.async = true;
+				document.body.appendChild(newScript);
 				} else {
 					console.error('Root element not found');
 				}
@@ -278,7 +291,12 @@ const routes: Page[] = [
 					method: 'POST',
 					credentials: 'include'
 				});
-				window.location.href="/login";
+				//window.location.href="/login";
+				console.log("go login");
+				history.pushState(null, '', "/login");
+				console.log("before router");
+				router();
+				console.log("After router");
 			}
 			catch (error: unknown)
 			{
@@ -318,20 +336,6 @@ document.addEventListener('click', e => {
 		console.log(">>>>>>>>>>>>> nav-link found");
 		e.preventDefault();
 		const href = target.getAttribute('data-path')!;
-
-		history.pushState(null, '', href);
-
-		router();
-	}
-});
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-document.addEventListener('submit', e => {
-	const target = e.target as HTMLElement;
-	if (target.matches('.nav-link')) {
-		e.preventDefault();
-		const href = target.getAttribute('href')!;
 
 		history.pushState(null, '', href);
 
