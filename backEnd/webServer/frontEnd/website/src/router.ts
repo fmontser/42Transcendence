@@ -325,6 +325,21 @@ document.addEventListener('click', e => {
 	}
 });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('submit', e => {
+	const target = e.target as HTMLElement;
+	if (target.matches('.nav-link')) {
+		e.preventDefault();
+		const href = target.getAttribute('href')!;
+
+		history.pushState(null, '', href);
+
+		router();
+	}
+});
+});
+
 window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);

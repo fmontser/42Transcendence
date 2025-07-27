@@ -20,7 +20,7 @@ if (loginForm)
 			if (response.ok) 
 			{
 				console.log('Login successful, redirecting to /');
-				window.location.href = '/';
+				//window.location.href = '/';
 			} 
 		  	else 
 			{
