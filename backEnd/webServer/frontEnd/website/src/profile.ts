@@ -300,8 +300,6 @@ blockedUsers.forEach(user => {
 	addBlockToList(user);
 });
 
-
-//TODO mathis check!
 // Modify AVATAR
 const sendAvatarBtn = document.getElementById('sendAvatarBtn');
 if (sendAvatarBtn) {
@@ -316,19 +314,37 @@ if (sendAvatarBtn) {
 		formData.append('image', input.files[0]);
 
 		try {
-
-			console.log(`DEBUG: about to send image to usermanagement.....`)
-
-			await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
+			const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
 				method: 'PATCH',
 				credentials: 'include',
 				body: formData,
 			});
 
-			console.log(`DEBUG: ...sent.`)
+			//TODO dario, manejar la respuesta de archivo invalido en el frontend (manejar el codigo 422, mostrar mensaje ....)
+			if (reply.status == 422)
+			{
+				//TODO archivo invalido  imagenes de 100x100 jpg max 30000 bytes (30kb)
+				console.log("Invalid file format. 100x100 jpg max 30kb")
+			}
 
 		} catch (error) {
 			console.error('Error uploading avatar:', error);
+		}
+	});
+}
+
+const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+if (deleteAvatarBtn) {
+	deleteAvatarBtn.addEventListener('click', async () => {
+
+		try {
+			const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_avatar`, {
+				method: 'DELETE',
+				credentials: 'include',
+			});
+
+		} catch (error) {
+			console.error('Error deleting avatar:', error);
 		}
 	});
 }
