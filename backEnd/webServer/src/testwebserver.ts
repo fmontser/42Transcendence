@@ -6,7 +6,8 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fastifyJwt from '@fastify/jwt';
 import fastifyCookie from '@fastify/cookie';
-//import multipart from '@fastify/multipart';
+import multipart from '@fastify/multipart';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -67,6 +68,11 @@ function setEndPoints(): void {
 		"Failed to upload avatar"
 	);
 
+	new EndPoints.DeleteAvatarEndpoint(
+		"/delete/avatar",
+		"Failed to delete avatar"
+	);
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
@@ -90,7 +96,7 @@ async function start() {
 		// 		reply.status(401).send({ error: 'Unauthorized' });
 		// 	}
 		// });
-
+		await server.register(multipart);
 		setEndPoints();
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {

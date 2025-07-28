@@ -238,30 +238,74 @@ export class AccessComponentEndpoint extends Endpoint {
 	}
 }
 
-export class PostAvatarEndpoint extends Endpoint {//TODO FRAN AVATAR
+export class PostAvatarEndpoint extends Endpoint {
 	add (server: any): void {
 		server.post(this.path, async (request: any, reply: any) => {
-			console.log("PostAvatar endpoint called");
-			const formData = request.body;
-			const file = formData.image;
-			const name = formData.name;
-
-			if (!file || !name) {
-				reply.status(400).send({ error: "Missing avatar or name" });
-				return;
-			}
+			let hashedId: string | null = null;
+			let imageBuffer: Buffer | null = null;
 
 			try {
-				
-				const filePath = "../frontEnd/website/src/public/avatars/" + name;
+				const parts = request.parts();
+				for await (const part of parts) {
+					if (part.type === 'field' && part.fieldname === 'hashedId')
+						hashedId = part.value as string;
+					if (part.type === 'file' && part.fieldname === 'avatar')
+						imageBuffer = await part.toBuffer();
+				}
 
-				fs.writeFile(filePath, file)
+				if (!hashedId || !imageBuffer) {
+					console.error("Missing hashedId or imageBuffer after processing parts.");
+					return reply.status(400).send({ error: "Incomplete form data: hashedId and avatar file are required." });
+				}
+				
+				const avatarsDir = path.join('website', 'public', 'avatars');
+				const filePath = path.join(avatarsDir, hashedId + ".jpg");
+
+				console.log(`Writing avatar for hash ${hashedId} to ${filePath}`);
+
+				await fs.mkdir(avatarsDir, { recursive: true });
+				await fs.writeFile(filePath, imageBuffer);
+
+				reply.send({ message: "Avatar uploaded successfully" });
 
 			} catch (error) {
-				console.error("Error uploading avatar:", error);
+				console.error("Error during multipart processing or file writing:", error);
 				reply.status(500).send({ error: "Internal Server Error" });
 			}
-		}
-		);
+		});
+	};
+}
+
+export class DeleteAvatarEndpoint extends Endpoint {
+	add (server: any): void {
+		server.post(this.path, async (request: any, reply: any) => {
+			try {
+				const { filePath } = request.body;
+
+				if (!filePath || typeof filePath !== 'string') {
+					return reply.status(400).send({ error: "filePath is missing or invalid" });
+				}
+
+				const fullPath = path.join('website', filePath);
+				const normalizedPath = path.normalize(fullPath);
+				const allowedDir = path.normalize(path.join('website', 'public', 'avatars'));
+
+				if (!normalizedPath.startsWith(allowedDir) || path.basename(normalizedPath) === 'default_avatar.jpg') {
+					return reply.status(403).send({ error: "Forbidden" });
+				}
+				
+				await fs.unlink(normalizedPath);
+				
+				reply.send({ message: "Avatar deleted successfully" });
+
+			} catch (error: any) {
+				if (error.code === 'ENOENT') {
+					return reply.status(404).send({ error: "File not found" });
+				}
+				
+				console.error("Error deleting avatar:", error);
+				reply.status(500).send({ error: "Internal Server Error" });
+			}
+		});
 	};
 }

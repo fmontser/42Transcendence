@@ -31,11 +31,14 @@ COPY package*.json ./
 RUN npm install --omit=dev --legacy-peer-deps
 
 RUN mkdir -p /var/www/html/website
+RUN mkdir -p /var/www/html/website/public/avatars
 
 COPY --from=builder /usr/src/app/dist ./var/www/html/dist/
 COPY --from=builder /usr/src/app/frontEnd/website/dist ./var/www/html/website/dist
 COPY --from=builder /usr/src/app/frontEnd/website/index.html ./var/www/html/website
 COPY --from=builder /usr/src/app/frontEnd/website/src/components/ ./var/www/html/website/dist/components/
+COPY --from=builder /usr/src/app/frontEnd/website/public/avatars ./var/www/html/website/public/avatars
+
 
 WORKDIR /var/www/html
 

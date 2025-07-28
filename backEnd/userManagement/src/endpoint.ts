@@ -1,3 +1,4 @@
+import { ImageValidator } from "./imageValidator";
 // import bcrypt from 'bcryptjs';
 
 export abstract class Endpoint {
@@ -20,86 +21,82 @@ export abstract class Endpoint {
 	}
 }
 
-import sharp from 'sharp';
+export class ModifyAvatarEndpoint extends Endpoint {
+	add(server: any): void {
+		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			
+			console.log(`ModifyAvatarEndpoint: ${this.path} called`);
 
-export class ModifyAvatarEndpoint extends Endpoint {//TODO FRAN AVATAR
-  add(server: any): void {
-    server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
-      console.log(`ModifyAvatarEndpoint: ${this.path} called`);
-      const user = request.user;
-	  const imageAvatar = request.body.image;
-    //   const avatarBase64 = request.body.avatar; // envoyé par le front
+			const file = await request.file();
+			const userId = request.user.id;
 
-    //   if (!avatarBase64) {
-    //     reply.status(400).send({ error: 'Avatar is required' });
-    //     return;
-    //   }
+			//TODO mathis, hashear el userId
+			let hashedId: string = userId;
 
-	const nameAvatar = 'public/avatars/' + user.id + '.jpg';
-      try {
-        // // ✅ 1. Nettoyer la chaîne base64 (supprimer "data:image/png;base64," si présent)
-        // const cleanedBase64 = avatarBase64.replace(/^data:image\/\w+;base64,/, '');
-        
-        // // ✅ 2. Convertir en Buffer brut
-        // const buffer = Buffer.from(cleanedBase64, 'base64');
+			let avatarLink: string = `public/avatars/${hashedId}.jpg`
 
-        // // ✅ 3. Redimensionner + compresser avec Sharp
-        // const resized = await sharp(buffer)
-        //   .resize(256, 256, { fit: 'cover' })  // carré 256×256
-        //   .webp({ quality: 80 })               // format WebP compressé
-        //   .toBuffer();
+			if (!file || await ImageValidator.validate(file, 100, 100, 30000) === false) {
+				reply.status(422).send({ error: 'Invalid file format' });
+				return;
+			}
 
-        // console.log(`Avatar compressé : ${resized.length} octets`);
+			const imageBuffer = await file.toBuffer();
 
+			try {
+				const formData = new FormData();
 
-        const response = await fetch('http://dataBase:3000/patch/avatar', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ avatar: nameAvatar, id: user.id })
-        });
+				formData.append('avatar', new Blob([imageBuffer], { type: file.mimetype }), file.filename);
+				formData.append('hashedId', hashedId);
 
-        if (!response.ok) {
-          server.log.error(`ModifyAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
-          reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-          return;
-        }
-        reply.send({ message: 'Avatar updated successfully' });
+				await fetch('http://webServer:3000/post/avatar', {
+					method: 'POST',
+					body: formData,
+				});
 
-		fetch('http://webServ:3000/post/avatar', {
-			method: 'POST',
-			headers: { 'Content-Type': 'image/jpeg' },
-			body: JSON.stringify({ image: imageAvatar, name: nameAvatar })
+ 				await fetch('http://dataBase:3000/patch/avatar', {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ avatar: avatarLink, id: userId })
+				});
+
+			} catch (err) {
+				console.error('Error changing avatar:', err);
+				reply.status(500).send({ error: 'Failed to process avatar image' });
+			}
 		});
-
-      } catch (err) {
-        console.error('Erreor changing avatar:', err);
-        reply.status(500).send({ error: 'Failed to process avatar image' });
-      }
-
-
-
-    });
-  }
+	}
 }
 
 export class DeleteAvatarEndpoint extends Endpoint {
 	add(server: any): void {
 		server.delete(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`DeleteAvatarEndpoint: ${this.path} called`);
-			const user = request.user;
+			const userId = request.user.id;
+			const defaultLink: string = "public/avatars/default_avatar.jpg";
+			let avatarLink!:string;
 
-			const response = await fetch(`http://dataBase:3000/delete/avatar`, {
-				method: 'DELETE',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ id: user.id })
-			});
-			if (!response.ok) {
-				server.log.error(`DeleteAvatarEndpoint: ${this.errorMsg} - `, response.statusText);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-				return;
+			try {
+				const response = await fetch(`http://dataBase:3000/get/avatar?id=${userId}`);
+				const data = await response.json();
+				avatarLink = data[0].avatar;
+	
+				await fetch('http://webServer:3000/delete/avatar', {
+					method: 'POST',
+					body: avatarLink
+				});
+
+				await fetch('http://dataBase:3000/patch/avatar', {
+					method: 'PATCH',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ avatar: defaultLink, id: userId })
+				});
+
+				console.log(`Avatar deleted for user ${userId}`);
+				reply.send({ message: 'Avatar deleted successfully' });
+			} catch (err) {
+				console.error('Error deleting avatar:', err);
+				reply.status(500).send({ error: 'Failed to delete avatar image' });
 			}
-			console.log(`Avatar deleted for user ${user.id}`);
-			reply.send({ message: 'Avatar deleted successfully' });
 		});
 	}
 }
