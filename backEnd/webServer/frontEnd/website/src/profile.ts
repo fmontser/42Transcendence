@@ -435,8 +435,6 @@ if (deleteAvatarBtn) {
 		}
 	});
 }
-<<<<<<< HEAD
-=======
 
 
 
@@ -457,4 +455,3 @@ async function deleteAccount() {
   }
 
   export {};
->>>>>>> 37b195c (profile changed.)
