@@ -32,6 +32,7 @@ getProfile().then(async profileResponse => {
 
 
 async function loadProfile() {
+	console.log("profile is being loaded.");
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
 	  method: 'GET',
 	  credentials: 'include'
@@ -187,13 +188,13 @@ if (Array.isArray(pseudos) && pseudos.length > 0) {
 
 //Friend requests
 
-fetchPendingFriends('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
+fetchList('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
 
-fetchPendingFriends('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
+fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
 
-fetchPendingFriends('friend-requests-list', 'friend-request-template','/usermanagement/front/get/friendships_pending');
+fetchList('friend-requests-list', 'friend-request-template','/usermanagement/front/get/friendships_pending');
 
-async function fetchPendingFriends(containerElement: string, templateElement: string, url: string) {
+async function fetchList(containerElement: string, templateElement: string, url: string) {
 	try {
 	  const response = await fetch(`https://${window.location.hostname}:8443${url}`, {
 		method: 'GET',
@@ -224,18 +225,30 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 	if (templateRequest)
 	{
 		const Clone = templateRequest.content.cloneNode(true) as DocumentFragment;
+		const divToUse = Clone.querySelector('#entry');
+		if (divToUse)
+		{
+			divToUse.id = `friend-${friend.id}`;
+		}
+
+		console.log("divToUse: ", divToUse);
 
 		const span = Clone.querySelector('span');
-		console.log("clone creation log");
+		console.log("span selection log: ", span);
+
 		//friends
 		if (span) {
-			span.textContent = friend.psuedo;
+			span.textContent = friend.pseudo;
 		}
 		if (containerElement == 'friend-list-accepted')
 		{
 			const button = Clone.querySelector('button');
 			(button!).onclick = () => {
-				deleteFriendship(friend.id, Clone);
+				if (divToUse)
+				{
+					//Clone.id = `friend-${friend.id}`;
+					deleteFriendship(friend.id);
+				}
 			  };
 		}
 		//requests
@@ -243,7 +256,10 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 		{
 			const button = Clone.querySelector('#accept-button') as HTMLButtonElement;
 			(button!).onclick = () => {
-				acceptFriendship(friend.id, Clone);
+				if (divToUse)
+				{
+					acceptFriendship(friend.id);
+				}
 			};
 			
 		}
@@ -262,7 +278,7 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 	}
 }
 
-const deleteFriendship = async (ID: number, Clone: DocumentFragment) => {
+const deleteFriendship = async (ID: number) => {
 	console.log("Friendship removed");
 	try {
 	  const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
@@ -273,22 +289,22 @@ const deleteFriendship = async (ID: number, Clone: DocumentFragment) => {
 		},
 		body: JSON.stringify({ id: ID })
 	  });
-
 	  if (!postResponse.ok) {
 		throw new Error('Erreur lors du delete');
 	  }
 
-	  (Clone.querySelector('#entry')!).remove();
+	  const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+	  (element).remove()
+	
 	} catch (error: any) {
 	  alert('yo Erreur : ' + error.message);
 	}
   };
 
-const acceptFriendship = async (ID: number, Clone: DocumentFragment) => {
+const acceptFriendship = async (ID: number) => {
 	console.log("Friendship accepted");
 	try {
 		console.log("the id:", ID);
-		console.log("the clone: ", Clone);
 		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
 		method: 'PATCH',
 		credentials: 'include',
@@ -297,22 +313,13 @@ const acceptFriendship = async (ID: number, Clone: DocumentFragment) => {
 		},
 		body: JSON.stringify({ id: ID })
 	});
-
 	if (!postResponse.ok) {
 		throw new Error('Erreur lors de l\'acceptation');
 	}
+	const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+	(element).remove();
+	
 
-	  // Retirer l’élément de la liste
-	let test = Clone.querySelector('#entry');
-	if (test)
-	{
-		console.log("si existe")
-	  	test.remove();
-	}
-	else {
-		console.log("no existe")
-		console.log(test);
-	}
 	} catch (error: any) {
 	  alert('yo Erreur : ' + error.message);
 	}
@@ -428,3 +435,26 @@ if (deleteAvatarBtn) {
 		}
 	});
 }
+<<<<<<< HEAD
+=======
+
+
+
+async function deleteAccount() {
+	if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/user`, {
+		method: 'DELETE',
+		credentials: 'include'
+	  });
+
+	  if (response.ok) {
+		alert('Votre compte a été supprimé avec succès.');
+		window.location.href = '/login';
+	  } else {
+		alert('Erreur lors de la suppression du compte.');
+	  }
+	}
+  }
+
+  export {};
+>>>>>>> 37b195c (profile changed.)

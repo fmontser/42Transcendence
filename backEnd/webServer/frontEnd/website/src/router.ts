@@ -261,10 +261,27 @@ const routes: Page[] = [
 				}
 				if (root) {
 					root.innerHTML = data;
-					const newScript = document.createElement('script');
-					newScript.src = './dist/profile.js';
-					newScript.async = true;
-					document.body.appendChild(newScript);
+					
+					// const existingScript = Array.from(document.scripts).find(script =>
+					// 	script.src.includes('profile.js')
+					// );
+					// console.log("Existing script: ", existingScript);
+					// if (existingScript)
+					// 	existingScript.remove();
+					// const newScript = document.createElement('script');
+					// newScript.src = `./dist/profile.js?cb=${Date.now()}`;
+					// newScript.async = true;
+					// document.body.appendChild(newScript);
+					import(`./profile.js`)
+    				.then((module) => {				
+       	 // Use the exports from the module here.
+        // For example, if the module has a default export:
+        // module.default.someFunction();
+   					 });
+    				// .catch((err) => {
+        			// 	console.error("Failed to load the module:", err);
+   					//  });
+
 				} else {
 					console.error('Root element not found');
 				}
