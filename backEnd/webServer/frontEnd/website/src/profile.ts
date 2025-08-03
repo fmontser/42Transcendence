@@ -481,4 +481,110 @@ async function deleteAccount() {
 	}
   }
 
-  export {};
+
+
+const enable2FAButton =  document.getElementById('enable2FAButton')
+if (enable2FAButton) {
+	enable2FAButton.addEventListener('click', async () => {
+		const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+			method: 'GET',
+			credentials: 'include'
+		});
+	
+		if (!sessionResponse.ok) {
+		window.location.href = 'login.html';
+		return;
+		}
+	
+		const sessionData = await sessionResponse.json();
+		let id = sessionData.name;
+
+		const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/2fa/setup`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ userId: id })
+		});
+
+		if (!response.ok) {
+		alert("Erreur lors de la génération du QR code 2FA");
+		return;
+		}
+
+		const data = await response.json();
+
+		// ✅ Affiche le QR code et la clé manuelle
+		(document.getElementById('qrCodeImage')! as HTMLImageElement).src = data.qrCode;
+		(document.getElementById('manualKey')!).textContent = data.manualKey;
+		(document.getElementById('qrCodeContainer')!).style.display = 'block';
+	});
+
+	// ✅ 2) Quand l'utilisateur entre le code de Google Authenticator et clique sur "Vérifier"
+	const verify2FAButton = document.getElementById('verify2FAButton')
+	if (verify2FAButton) {
+		verify2FAButton.addEventListener('click', async () => {
+			const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include'
+			});
+		
+			if (!sessionResponse.ok) {
+			window.location.href = 'login.html';
+			return;
+			}
+		
+			const sessionData = await sessionResponse.json();
+			let id = sessionData.name;
+
+			const code = (document.getElementById('verify2FACode')! as HTMLTextAreaElement).value.trim();
+
+			if (!code || code.length !== 6) {
+				alert("Enter a 6 length digit code");
+				return;
+			}
+
+			const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/2fa/enable`, {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ userId: id, google_token: code })
+			});
+
+			const msg = document.getElementById('twoFAStatusMessage') as HTMLParagraphElement;
+
+			if (response.ok) {
+				msg.style.color = "green";
+				msg.textContent = "✅ 2FA activée avec succès !";
+			} else {
+				msg.style.color = "red";
+				msg.textContent = "❌ Code invalide, réessayez.";
+			}
+		});
+	}
+}
+
+const disable2FAbutton = document.getElementById('disable2FAButton');
+if (disable2FAbutton) {
+ 	disable2FAbutton.addEventListener('click', async () => {
+		if (!confirm("Êtes-vous sûr de vouloir désactiver la 2FA ?")) return;
+
+		const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/patch/2fa/delete`, {
+		method: 'PATCH',
+		credentials: 'include'
+		});
+
+		const msg = document.getElementById('twoFAStatusMessage') as HTMLParagraphElement;
+
+		if (response.ok) {
+		msg.style.color = "green";
+		msg.textContent = "✅ 2FA désactivée avec succès.";
+		alert("La 2FA a été désactivée.");
+		} else {
+		msg.style.color = "red";
+		msg.textContent = "❌ Erreur lors de la désactivation de la 2FA.";
+		alert("Erreur lors de la désactivation.");
+		}
+	});
+}
+
+export {};
