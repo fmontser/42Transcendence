@@ -3,65 +3,66 @@ import { router } from './router.js';
 export async function init()
 {
 const signinForm: HTMLFormElement = document.getElementById('signin-form') as HTMLFormElement;
-if (signinForm)
-{
-	console.log("script called");
-	signinForm.addEventListener('submit', async (event: SubmitEvent) => {
-		const target = event.target as HTMLElement;
-		const href = target.getAttribute('data-path')!;
-		console.log("target", target, "ref", href)
+	if (signinForm)
+	{
+		console.log("script called");
+		signinForm.addEventListener('submit', async (event: SubmitEvent) => {
+			const target = event.target as HTMLElement;
+			const href = target.getAttribute('data-path')!;
+			console.log("target", target, "ref", href)
 
-		event.preventDefault();
-		const formData = new FormData(signinForm);
-		const formProps = Object.fromEntries(formData) as { name: string, pass: string };
-		console.log("Username:", formProps.name);
-		console.log("Passwowrd:", formProps.pass);
-		try 
-		{
-			const response = await fetch("/userauthentication/front/post/create", {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body:	JSON.stringify(formProps),
-			});
-			
-			if (response.ok) 
+			event.preventDefault();
+			const formData = new FormData(signinForm);
+			const formProps = Object.fromEntries(formData) as { name: string, pass: string };
+			console.log("Username:", formProps.name);
+			console.log("Passwowrd:", formProps.pass);
+			try 
 			{
-				const loginResponse = await fetch("/userauthentication/front/post/login", {
+				const response = await fetch("/userauthentication/front/post/create", {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					body:	JSON.stringify(formProps),
 				});
-	  
-				if (loginResponse.ok) 
+				
+				if (response.ok) 
 				{
-					console.log("loginResponse ok");
-					if (target.matches('.spa-form')) {
-						console.log(">>>>>>>>>>>>> nav-link found");
-						history.pushState(null, '', href);
-						router();
+					const loginResponse = await fetch("/userauthentication/front/post/login", {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						body:	JSON.stringify(formProps),
+					});
+		
+					if (loginResponse.ok) 
+					{
+						console.log("loginResponse ok");
+						if (target.matches('.spa-form')) {
+							console.log(">>>>>>>>>>>>> nav-link found");
+							history.pushState(null, '', href);
+							router();
+						}
 					}
+				} 
+				else 
+				{
+					console.error('Signin failed:', response.status, response.statusText);
 				}
-			} 
-		  	else 
-			{
-				console.error('Signin failed:', response.status, response.statusText);
 			}
+			catch (error)
+			{
+			console.error('An error occurred during the sigin request:', error);
+			}
+		});
 		}
-		catch (error)
-		{
-		  console.error('An error occurred during the sigin request:', error);
-		}
-	});
+	else
+	{
+		console.error('The form with ID "login-form" was not found.'); // Add for debugging
 	}
-else
-{
-	console.error('The form with ID "login-form" was not found.'); // Add for debugging
+	initialize()
 }
-
 declare namespace google {
 	namespace accounts {
 	  namespace id {
@@ -151,6 +152,3 @@ async function initialize() {
 		console.error("Error initializing Google Sign-In :", error);
 	}
 }
-
-initialize()
-	  
