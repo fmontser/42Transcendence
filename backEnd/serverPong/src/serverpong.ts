@@ -31,6 +31,8 @@ function setEndPoints(): void {
 
 	new EndPoints.DeleteOngoingMatch('/delete/match', 'Error deleting ongoing match');
 
+	new EndPoints.GetLocalGame('/serverpong/front/get/local', 'Error creating local game');
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
