@@ -1,5 +1,7 @@
 import { router } from './router.js';
 
+export async function init()
+{
 const signinForm: HTMLFormElement = document.getElementById('signin-form') as HTMLFormElement;
 if (signinForm)
 {
@@ -59,8 +61,6 @@ else
 {
 	console.error('The form with ID "login-form" was not found.'); // Add for debugging
 }
-
-
 
 declare namespace google {
 	namespace accounts {

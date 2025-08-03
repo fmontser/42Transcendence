@@ -220,15 +220,20 @@ const routes: Page[] = [
 				const root = document.getElementById('root');
 				if (root) {
 					root.innerHTML = data;
-				const newScript = document.createElement('script');
-				newScript.src = './dist/signin.js?cb=${Date.now()}';
-				newScript.type = 'module';
-				newScript.async = true;
-				document.body.appendChild(newScript);
-				} else {
-					console.error('Root element not found');
-				}
+				// const newScript = document.createElement('script');
+				// newScript.src = './dist/signin.js?cb=${Date.now()}';
+				// newScript.type = 'module';
+				// newScript.async = true;
+				// document.body.appendChild(newScript);
+				// } else {
+				// 	console.error('Root element not found');
+				// }
 				//import("");
+				import(`./signin.js`)
+    				.then((module) => {		
+						module.init();
+					});
+				}
 			}
 			catch (error: unknown)
 			{
@@ -273,7 +278,8 @@ const routes: Page[] = [
 					// newScript.async = true;
 					// document.body.appendChild(newScript);
 					import(`./profile.js`)
-    				.then((module) => {				
+    				.then((module) => {		
+						module.loadProfile();
        	 // Use the exports from the module here.
         // For example, if the module has a default export:
         // module.default.someFunction();
