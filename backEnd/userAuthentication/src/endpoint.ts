@@ -41,7 +41,7 @@ async function broadcast(id: string, status: boolean): Promise<void> {
 	}
 
 	const response = await fetch(
-		`http://dataBase:3000/get/friends_user?id1=${id}&id2=${id}&id3=${id}&id4=${id}`,
+		`http://dataBase:3000/get/friends_user?id1=${id}&id2=${id}&id3=${id}&id4=${id}&id5=${id}`,
 		{ method: 'GET' }
 	);
 
@@ -64,10 +64,10 @@ async function broadcast(id: string, status: boolean): Promise<void> {
 		if (userSockets && userSockets.size > 0) {
 		for (const socket of userSockets) {
 			socket.send(JSON.stringify({ id, status }));
-			console.log(`Message envoyé à ${userId}`);
+			console.log(`Message sent to ${userId}`);
 		}
 		} else {
-		console.log(`Aucun socket trouvé pour l'utilisateur ${userId}`);
+		console.log(`No socket found for user ${userId}`);
 		}
 	}
 }

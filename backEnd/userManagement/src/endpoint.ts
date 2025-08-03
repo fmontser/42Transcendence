@@ -252,6 +252,53 @@ export class CreateFriendshipEndpoint extends Endpoint {
 	}
 }
 
+export class SeeUserFriendshihpsEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeUserFriendshihpsEndpoint: ${this.path} called`);
+			const user = request.user;
+			const response = await fetch(
+				`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
+				{ method: 'GET' }
+			);
+			if (!response.ok) {
+				server.log.error(`SeeUserFriendshihpsEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			console.log('SeeUserFriendshihpsEndpoint: Data received:', data);
+
+			
+			reply.send(data);
+		});
+	}
+}
+
+export class SeeFriendIdEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeFriendIdEndpoint: ${this.path} called`);
+			const user = request.user;
+			const id = request.query.id;
+			const response = await fetch(
+				`http://dataBase:3000/get/friend_id?id1=${user.id}&id2=${id}`,
+				{ method: 'GET' }
+			);
+			if (!response.ok) {
+				server.log.error(`SeeFriendIdEndpoint: ${this.errorMsg} - `, response.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response.json();
+			console.log('SeeFriendIdEndpoint: Data received:', data);
+
+			
+			reply.send(data);
+		});
+	}
+}
+
 export class SeeFriendshihpsPendingEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
@@ -306,7 +353,7 @@ export class SeeFriendshihpsAcceptedEndpoint extends Endpoint {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`SeeFriendshihpsAcceptedEndpoint: ${this.path} called`);
 			const user = request.user;
-			const response = await fetch(`http://dataBase:3000/get/friendships_accepted?id1=${user.id}&id2=${user.id}&id3=${user.id}`, {
+			const response = await fetch(`http://dataBase:3000/get/friendships_accepted?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeFriendshihpsAcceptedEndpoint: ${this.errorMsg} - `, response.statusText);

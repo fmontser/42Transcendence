@@ -1,4 +1,5 @@
 import { router } from './router.js';
+import {createWebSocket, closeWebSocket, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
 // async function getProfile(): Promise<Response>
 // {
 
@@ -51,6 +52,50 @@ export async function loadProfile() {
 
 	const sessionData = await sessionResponse.json();
 	let id = sessionData.name;
+
+	createWebSocket(id);
+
+	// if (ws) {
+	// 	ws.onmessage = (event) => {
+	// 		const data = JSON.parse(event.data);
+	// 		// dictionaryWs[data.id] = data.status;
+	// 		if (data.status) {
+	// 			console.log(`User ${data.id} online`);
+	// 		} else {
+	// 			console.log(`User ${data.id} ofline`);
+	// 		}
+	// 	}
+	// }
+	
+
+	// // friend status
+	// type BoolDictionary = {
+	// 	[key: string]: boolean;
+	// };
+
+	// let dictionary: BoolDictionary = {};
+
+	// ws = new WebSocket(`wss://${window.location.hostname}:8443/userauthentication/front/ws/status?userId=${id}`);
+
+	// ws.onopen = () => {
+	// 	console.log("✅ WebSocket connectée → utilisateur en ligne");
+	// };
+
+	// ws.onmessage = (event) => {
+	// 	const data = JSON.parse(event.data);
+	// 	dictionary[data.id] = data.status;
+	// 	if (data.status) {
+	// 		console.log(`User ${data.id} online`);
+	// 	} else {
+	// 		console.log(`User ${data.id} ofline`);
+	// 	}
+	// };
+
+	// ws.onclose = () => {
+	// 	console.log("WebSocket fermée → utilisateur hors ligne");
+	// };
+	// end friend status
+
 
 	const profileResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile?id=${id}`, {
 	  method: 'GET',
@@ -223,7 +268,7 @@ async function fetchList(containerElement: string, templateElement: string, url:
 	  }
 	  console.log("fetch succesful");
 
-	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
+	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2}]
 	  console.log(data)
 	  data.forEach((friend: any) => {
 		console.log(friend.pseudo);
@@ -263,10 +308,22 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			(button!).onclick = () => {
 				if (divToUse)
 				{
-					//Clone.id = `friend-${friend.id}`;
 					deleteFriendship(friend.id);
 				}
-			  };
+			};
+			
+			const friendStatus = WsFriendStatus(friend.friend_id);
+			console.log("Friend status:", friendStatus);
+
+			const statusElement = document.createElement('span');
+			statusElement.textContent = friendStatus ? 'connected' : 'disconnected';
+			statusElement.style.color = friendStatus ? 'green' : 'red';
+			statusElement.style.marginLeft = '8px';
+			statusElement.style.fontWeight = 'bold';
+
+			// Insérer le statut avant le premier bouton
+			button?.parentElement?.insertBefore(statusElement, button);
+
 		}
 		//requests
 		if (containerElement == 'friend-requests-list')
@@ -276,16 +333,24 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 				if (divToUse)
 				{
 					acceptFriendship(friend.id);
+
 				}
 			};
 			
 		}
 		//blocked
-		// if (containerElement == 'friend-list-blocked')
-		// {
+		if (containerElement == 'friend-list-blocked')
+		{
+			const button = Clone.querySelector('button') as HTMLButtonElement;
+			(button!).onclick = () => {
+				if (divToUse)
+				{
+					unblockFriendship(friend.id);
+				}
+			};
 		// 	const button = Clone.querySelector('#accept-button');
 		// 	button.onclick = acceptFriendship(friend.id);
-		// }
+		}
 
 		// Check if the span element inside the template exists
 		console.log("clone append log");
@@ -293,6 +358,28 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			requestListContainer.appendChild(Clone);
 		}
 	}
+}
+
+const blockFriendship = async (ID: number) => {
+	console.log("Friendship blocked");
+	try {
+		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/block_friendship`, {
+			method: 'PATCH',
+			credentials: 'include',
+			headers: {
+			  'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: ID })
+		});
+		if (!postResponse.ok) {
+			throw new Error('Erreur blocking friendship');
+		}
+		// const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+	  	// (element).remove()
+		// fetchList('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
+	} catch (error: any) {
+		alert('Error : ' + error.message);
+	};
 }
 
 const deleteFriendship = async (ID: number) => {
@@ -307,14 +394,14 @@ const deleteFriendship = async (ID: number) => {
 		body: JSON.stringify({ id: ID })
 	  });
 	  if (!postResponse.ok) {
-		throw new Error('Erreur lors du delete');
+		throw new Error('Erreur deleting friendship');
 	  }
 
 	  const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
 	  (element).remove()
 	
 	} catch (error: any) {
-	  alert('yo Erreur : ' + error.message);
+	  alert('Error : ' + error.message);
 	}
   };
 
@@ -323,30 +410,54 @@ const acceptFriendship = async (ID: number) => {
 	try {
 		console.log("the id:", ID);
 		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
-		method: 'PATCH',
-		credentials: 'include',
-		headers: {
-		  'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({ id: ID })
-	});
-	if (!postResponse.ok) {
-		throw new Error('Erreur lors de l\'acceptation');
-	}
-	//console.log("1");
-	const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
-	//console.log("2");
-	(element).remove();
-	//console.log("3");
-	fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
-	//console.log("4");
-	
+			method: 'PATCH',
+			credentials: 'include',
+			headers: {
+			'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: ID })
+		});
+		if (!postResponse.ok) {
+			throw new Error('Error accepting friendship');
+		}
+		//console.log("1");
+		const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+		//console.log("2");
+		(element).remove();
+
+		resetDictionaryWs();
+		//console.log("3");
+		fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
+		//console.log("4");
+		
 
 	} catch (error: any) {
-	  alert('yo Erreur : ' + error.message);
+	  alert('Error : ' + error.message);
 	}
 
   };
+
+const unblockFriendship = async (ID: number) => {
+	console.log("Friendship unblocked");
+	try {
+		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
+			method: 'DELETE',
+			credentials: 'include',
+			headers: {
+			  'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ id: ID })
+		});
+		if (!postResponse.ok) {
+			throw new Error('Error unblocking friendship');
+		}
+		const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+		//console.log("2");
+		(element).remove();
+	} catch (error: any) {
+		alert('Error : ' + error.message);
+	}
+}
 
 // requests.forEach(request => {
 // 	addRequest(request);
