@@ -59,9 +59,20 @@ async function loadProfile() {
 	  (document.getElementById('bioInput')! as HTMLTextAreaElement).value = profile.bio || '';
 	  (document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
 	  (document.getElementById('experience')!).textContent = profile.experience || '0';
+	  (document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
 	} else {
 	  console.error('Erreur lors du chargement du profil');
 	}
+
+	// const img = document.createElement('img');
+	// 		img.src = `public/avatars/${id}.jpg`;
+	// 		//console.log("file name: ", input.files[0].name);
+	// 		img.alt = 'My Avatar';
+	// 		//img.width = 300; // optional
+	// 		let avatarBox = document.getElementById("avatar-box");
+	// 		if (avatarBox)
+	// 			avatarBox.appendChild(img);
+
   }
 
 loadProfile();
@@ -146,16 +157,13 @@ const pseudos = await response.json(); // attend [{ pseudo: 'alice' }, { pseudo:
 if (Array.isArray(pseudos) && pseudos.length > 0) {
   pseudos.forEach(({ pseudo }) => {
 	const li = document.createElement('li');
-	li.style.marginBottom = '10px';
-	li.style.display = 'flex';
-	li.style.justifyContent = 'space-between';
-	li.style.alignItems = 'center';
-	li.style.gap = '10px';
+	li.classList.add('text-white', 'mb-2.5', 'flex', 'justify-between', 'items-center', 'gap-2.5', 'font-bold');
 
 	const span = document.createElement('span');
 	span.textContent = pseudo || 'Inconnu';
 	const button = document.createElement('button');
 	button.textContent = 'Add';
+	button.classList.add('bg-green-600', 'rounded', 'py-1', 'px-3', 'hover:bg-green-700', 'text-white', 'font-bold');//, 'hover:bg-green-700', 'text-white font-bold', 'py-1', 'px-3');
 	button.addEventListener('click', async () => {
 	  const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
 		method: 'POST',
@@ -414,6 +422,25 @@ if (sendAvatarBtn) {
 				console.log("Invalid file format. 100x100 jpg max 30kb")
 			}
 
+			const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (!response.ok)
+			{
+				console.log("Erroooor!");
+			}
+			let session = await response.json();
+			const id = session.name;
+
+			const img = document.createElement('img');
+			img.src = `public/avatars/${id}.jpg`;
+			//console.log("file name: ", input.files[0].name);
+			img.alt = 'My Avatar';
+			//img.width = 300; // optional
+			let avatarBox = document.getElementById("avatar-box");
+			if (avatarBox)
+				avatarBox.appendChild(img);
 		} catch (error) {
 			console.error('Error uploading avatar:', error);
 		}
