@@ -11,11 +11,13 @@
 </div>
 <form id="formAvatar" class="max-w-md mx-auto flex flex-col gap-4" onsubmit="return false;">
 	<input type="file" id="inputAvatar" name="image" accept="image/*" required class="bg-gray-700 border border-gray-600 text-white rounded-lg p-2" />
-	<button type="button" id="sendAvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Send</button>
+	<button type="button" id="sendAvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+    Send</button>
 </form>
 
 <!-- TODO dario ajustar la estetica -->
-<button type="button" id="deleteAvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">Delete</button>
+<button type="button" id="deleteAvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+  Delete</button>
 <!--Alias-->
     <div class="space-y-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:gap-4">
@@ -24,7 +26,7 @@
         <div class="flex-grow flex items-center gap-4 mt-2 sm:mt-0">
           <span id="pseudo" class="text-lg text-indigo-400 font-medium">
             ...</span>
-          <input type="text" id="pseudoInput" class="hidden bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5">
+          <input type="text" id="pseudoInput" maxlength="20" class="hidden bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5">
           <button id="editPseudoBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
             Modify alias</button>
           <button id="savePseudoBtn" class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
@@ -33,24 +35,34 @@
       </div>
 
 <!--2Auth-->
-<div id="twoFA-section" style="margin-top:20px;">
-  <h3>Authentification à deux facteurs</h3>
-  <button id="enable2FAButton">Activer la 2FA</button>
-  <button id="disable2FAButton" style="margin-left:10px; color:red;">
-    Désactiver la 2FA
-  </button>
-  
-  <div id="qrCodeContainer" style="margin-top:15px; display:none;">
-    <p>Scan this QR code with Google Authenticator :</p>
-    <img id="qrCodeImage" src="" alt="QR Code 2FA" style="max-width:200px; display:block;">
-    <p>Or enter the key manually : <span id="manualKey"></span></p>
+<div id="twoFA-section">
+  <p class="text-lg font-semibold text-white w-35 shrink-0">
+    Two Factor Authentication:</p>
+  <div class="flex gap-4 mt-4 sm:mt-0">
+    <button id="enable2FAButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+      Activer la 2FA</button>
+    <button id="disable2FAButton" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+      Désactiver la 2FA
+    </button>
+  </div>
+    
+  <div id="qrCodeContainer" class="hidden mt-6 space-y-4">
+    <p class="text-white">
+      Scan this QR code with Google Authenticator :</p>
+    <img id="qrCodeImage" src="" alt="QR Code 2FA" class="w-40 h-40 mx-auto rounded-md border border-gray-700 shadow-lg">
+    <p class="text-white">
+      Or enter the key manually : <span id="manualKey"></span></p>
 
-    <div style="margin-top:10px;">
-      <label for="verify2FACode">6 digits code :</label>
-      <input type="text" id="verify2FACode" maxlength="6" style="width:80px;">
-      <button id="verify2FAButton">Verify</button>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex-1">
+        <label for="verify2FACode" class="block text-sm font-medium text-gray-300 mb-1">
+          6 digits code :</label>
+        <input type="text" id="verify2FACode" maxlength="6" class="bg-gray-700 border border-gray-600 text-white rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500" >
+      </div>
+      <button id="verify2FAButton" class="mt-4 sm:mt-0 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
+        Verify</button>
     </div>
-    <p id="twoFAStatusMessage" style="margin-top:10px; color:green;"></p>
+    <p id="twoFAStatusMessage" class="text-sm font-semibold h-6 text-center text-green-400"></p>
   </div>
 </div>
 <!--Bio-->
@@ -59,7 +71,7 @@
           Bio :
           <div class="flex-grow mt-2 sm:mt-0">
             <span id="bio" class="text-lg text-indigo-400 font-medium">...</span>
-            <textarea id="bioInput" style="display:none;"></textarea>
+            <textarea id="bioInput" maxlength="50" class="hidden"></textarea>
           </div>
           <div class="shrink-0 mt-2 sm:mt-0">
             <button id="editBioBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
