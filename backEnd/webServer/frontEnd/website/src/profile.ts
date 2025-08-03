@@ -31,7 +31,12 @@ getProfile().then(async profileResponse => {
 });
 
 
-async function loadProfile() {
+export async function loadProfile() {
+
+	const deleteAccountButton = document.getElementById('delete-account');
+	if (deleteAccountButton)
+		deleteAccountButton.addEventListener('click', deleteAccount);
+
 	console.log("profile is being loaded.");
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
 	  method: 'GET',
@@ -74,8 +79,6 @@ async function loadProfile() {
 	// 			avatarBox.appendChild(img);
 
   }
-
-loadProfile();
 
 (document.getElementById('editBioBtn')!).addEventListener('click', () => {
 	(document.getElementById('bio')!).style.display = 'none';
@@ -474,14 +477,12 @@ async function deleteAccount() {
 
 	  if (response.ok) {
 		alert('Votre compte a été supprimé avec succès.');
-		window.location.href = '/login';
+		//window.location.href = '/login';
 	  } else {
 		alert('Erreur lors de la suppression du compte.');
 	  }
 	}
   }
-
-
 
 const enable2FAButton =  document.getElementById('enable2FAButton')
 if (enable2FAButton) {
