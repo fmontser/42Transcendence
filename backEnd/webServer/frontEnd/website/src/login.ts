@@ -91,3 +91,97 @@ if (verify2FABtn){
 		}
 	});
 }
+
+
+declare namespace google {
+	namespace accounts {
+	  namespace id {
+		function initialize(config: {
+		  client_id: string;
+		  callback: (response: CredentialResponse) => void;
+		}): void;
+  
+		function renderButton(
+		  parent: HTMLElement,
+		  options: {
+			theme?: string;
+			size?: string;
+			text?: string;
+			shape?: string;
+			logo_alignment?: string;
+		  }
+		): void;
+  
+		interface CredentialResponse {
+		  credential: string;
+		  select_by: string;
+		}
+	  }
+	}
+  }
+  
+
+function loadGoogleScript(): Promise<void> {
+	return new Promise((resolve, reject) => {
+		const existingScript = document.getElementById('google-client');
+		if (existingScript) {
+			resolve();
+			return;
+		}
+
+		const script = document.createElement('script');
+		script.src = 'https://accounts.google.com/gsi/client';
+		script.id = 'google-client';
+		script.async = true;
+		script.defer = true;
+
+		script.onload = () => resolve();
+		script.onerror = () => reject(new Error("Error loading Google scipt"));
+
+		document.body.appendChild(script);
+	});
+}
+
+function initializeGoogleSignIn() {
+	google.accounts.id.initialize({
+		client_id: "826866714242-u7rb76no703g0n8vauoq926n9cdkfgv3.apps.googleusercontent.com",
+		callback: handleCredentialResponse
+	});
+
+	google.accounts.id.renderButton(
+		document.getElementById("googleSignInDiv")!,
+		{ theme: "outline", size: "large" }
+	);
+}
+  
+async function handleCredentialResponse(response: google.accounts.id.CredentialResponse) {
+	const response2 = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/google_connect`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ credential: response.credential })
+	});
+
+	const data = await response2.json();
+
+	if (response2.ok && data.success) {
+		console.log("response ok");
+		history.pushState(null, '', '/');
+		router();
+	} else {
+		(document.getElementById('error')! as HTMLParagraphElement).textContent = data.error || "Error during Google Sign-In, please try again.";
+	}
+}
+async function initialize() {
+	try {
+		console.log("loading Google Sign-In script...");
+		await loadGoogleScript();
+
+		console.log("Google Sign-In script loaded, initializing...");
+		initializeGoogleSignIn();
+	} catch (error) {
+		console.error("Error initializing Google Sign-In :", error);
+	}
+}
+
+initialize()
+	  
