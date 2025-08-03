@@ -84,6 +84,8 @@ if (verify2FABtn){
 
 		if (response.ok && data.success) {
 			console.log("response ok");
+			history.pushState(null, '', '/');
+			router();
 		} else {
 			(document.getElementById('twoFAError')! as HTMLParagraphElement).textContent = data.error || "Wrong code, please try again.";
 		}
