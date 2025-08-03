@@ -98,6 +98,14 @@ async function start() {
 		// });
 		await server.register(multipart);
 		setEndPoints();
+		// Supprime les headers problématiques pour Google Sign-In
+		// server.addHook('onSend', async (request, reply, payload) => {
+		// 	reply.header('Cross-Origin-Opener-Policy', 'unsafe-none'); // Ou reply.removeHeader('...')
+		// 	reply.header('Cross-Origin-Embedder-Policy', 'unsafe-none');
+		// 	return payload;
+		// });
+
+
 		await server.listen({ port: 3000, host: '0.0.0.0' });
 	} catch (err) {
 		//server.log.error(err);

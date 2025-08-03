@@ -50,6 +50,16 @@ function setEndPoints(): void {
 		"Failed to create friendship"
 	);
 
+	new EndPoints.SeeFriendIdEndpoint(
+		"/usermanagement/front/get/friend_id",
+		"Failed to retrieve friendship status"
+	);
+
+	new EndPoints.SeeUserFriendshihpsEndpoint(
+		"/usermanagement/front/get/userfriendships",
+		"Failed to retrieve user friendships"
+	);
+
 	new EndPoints.SeeFriendshihpsPendingEndpoint(
 		"/usermanagement/front/get/friendships_pending",
 		"Failed to retrieve pending friendships"

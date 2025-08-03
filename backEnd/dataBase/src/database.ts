@@ -16,6 +16,13 @@ function connect(): void {
 			console.error("SQLite error: Database file error - ", err.message);
 	});
 	console.log("Connected to 'backendDatabase'");
+
+	db.run("UPDATE profiles SET status = 0", (err) => {
+		if (err)
+			console.error("SQLite error: Failed to reset profile status -", err.message);
+		else
+			console.log("All profile statuses reset to 0 at startup");
+	});
 }
 
 function setTables(): void {
@@ -169,6 +176,19 @@ function setEndPoints(): void {
 	);
 
 	new EndPoints.getEndpoint(
+		"/get/friend_id",
+		`SELECT 
+			CASE
+				WHEN f.user_id = ? THEN f.friend_id
+				ELSE f.user_id
+			END AS friend_id
+		FROM friends f
+		WHERE f.id = ?;
+				`,
+		"Failed to get friendship status"
+	);
+
+	new EndPoints.getEndpoint(
 		"/get/friendships_pending",
 		`SELECT 
 		f.id AS id,
@@ -193,7 +213,11 @@ function setEndPoints(): void {
 		CASE 	
 			WHEN f.user_id = ? THEN p2.pseudo
 			ELSE p1.pseudo
-		END AS pseudo
+		END AS pseudo,
+		CASE
+			WHEN  f.user_id = ? THEN p2.id
+			ELSE p1.id
+		END AS friend_id
 		FROM friends f
 		JOIN profiles p1 ON p1.user_id = f.user_id
 		JOIN profiles p2 ON p2.user_id = f.friend_id
@@ -275,7 +299,7 @@ function setEndPoints(): void {
 	);
 
 	new EndPoints.patchEndpoint(
-		"/path/status",
+		"/patch/status",
 		"UPDATE profiles SET status = ? WHERE user_id = ?",
 		"Status update error"
 	);

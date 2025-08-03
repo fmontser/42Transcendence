@@ -1,5 +1,6 @@
 import { PongGame } from './pongGame.js';
 import { PongTournament } from './pongTournament.js';
+import {createWebSocket, closeWebSocket} from './websocket.js';
 
 console.log('SPA loaded');
 history.pushState(null, '', window.location.href);
@@ -150,7 +151,10 @@ const routes: Page[] = [
 					window.location.href="/login";
 					console.log("Fetch failed.");
 				}
-				//import("");
+				import(`./home.js`)
+    				.then((module) => {		
+						module.loadWebSocket();
+					});
 			}
 			catch (error: unknown)
 			{
@@ -314,6 +318,9 @@ const routes: Page[] = [
 					method: 'POST',
 					credentials: 'include'
 				});
+				
+				closeWebSocket();
+
 				//window.location.href="/login";
 				console.log("go login");
 				history.pushState(null, '', "/login");
