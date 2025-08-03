@@ -32,6 +32,27 @@
         </div>
       </div>
 
+<!--2Auth-->
+<div id="twoFA-section" style="margin-top:20px;">
+  <h3>Authentification à deux facteurs</h3>
+  <button id="enable2FAButton">Activer la 2FA</button>
+  <button id="disable2FAButton" style="margin-left:10px; color:red;">
+    Désactiver la 2FA
+  </button>
+  
+  <div id="qrCodeContainer" style="margin-top:15px; display:none;">
+    <p>Scan this QR code with Google Authenticator :</p>
+    <img id="qrCodeImage" src="" alt="QR Code 2FA" style="max-width:200px; display:block;">
+    <p>Or enter the key manually : <span id="manualKey"></span></p>
+
+    <div style="margin-top:10px;">
+      <label for="verify2FACode">6 digits code :</label>
+      <input type="text" id="verify2FACode" maxlength="6" style="width:80px;">
+      <button id="verify2FAButton">Verify</button>
+    </div>
+    <p id="twoFAStatusMessage" style="margin-top:10px; color:green;"></p>
+  </div>
+</div>
 <!--Bio-->
       <div class="flex flex-col sm:flex-row sm:items-start sm:gap-4">
         <p class="text-lg font-semibold text-white w-28 shrink-0 pt-2">
