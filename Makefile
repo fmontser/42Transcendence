@@ -98,6 +98,10 @@ fclean: clean
 	@docker system prune -a -f
 	@rm -rf volumes
 
+server:
+	@make -C $(WS_DIR) clean
+	@make -C $(WS_DIR) install
+
 
 re: fclean build up
 

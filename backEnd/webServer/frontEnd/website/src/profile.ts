@@ -32,6 +32,7 @@ getProfile().then(async profileResponse => {
 
 
 async function loadProfile() {
+	console.log("profile is being loaded.");
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
 	  method: 'GET',
 	  credentials: 'include'
@@ -58,9 +59,20 @@ async function loadProfile() {
 	  (document.getElementById('bioInput')! as HTMLTextAreaElement).value = profile.bio || '';
 	  (document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
 	  (document.getElementById('experience')!).textContent = profile.experience || '0';
+	  (document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
 	} else {
 	  console.error('Erreur lors du chargement du profil');
 	}
+
+	// const img = document.createElement('img');
+	// 		img.src = `public/avatars/${id}.jpg`;
+	// 		//console.log("file name: ", input.files[0].name);
+	// 		img.alt = 'My Avatar';
+	// 		//img.width = 300; // optional
+	// 		let avatarBox = document.getElementById("avatar-box");
+	// 		if (avatarBox)
+	// 			avatarBox.appendChild(img);
+
   }
 
 loadProfile();
@@ -145,16 +157,13 @@ const pseudos = await response.json(); // attend [{ pseudo: 'alice' }, { pseudo:
 if (Array.isArray(pseudos) && pseudos.length > 0) {
   pseudos.forEach(({ pseudo }) => {
 	const li = document.createElement('li');
-	li.style.marginBottom = '10px';
-	li.style.display = 'flex';
-	li.style.justifyContent = 'space-between';
-	li.style.alignItems = 'center';
-	li.style.gap = '10px';
+	li.classList.add('text-white', 'mb-2.5', 'flex', 'justify-between', 'items-center', 'gap-2.5', 'font-bold');
 
 	const span = document.createElement('span');
 	span.textContent = pseudo || 'Inconnu';
 	const button = document.createElement('button');
 	button.textContent = 'Add';
+	button.classList.add('bg-green-600', 'rounded', 'py-1', 'px-3', 'hover:bg-green-700', 'text-white', 'font-bold');//, 'hover:bg-green-700', 'text-white font-bold', 'py-1', 'px-3');
 	button.addEventListener('click', async () => {
 	  const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
 		method: 'POST',
@@ -185,58 +194,144 @@ if (Array.isArray(pseudos) && pseudos.length > 0) {
 
 });
 
-
 //Friend requests
 
-fetchPendingFriends() 
+fetchList('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
 
-async function fetchPendingFriends() {
+fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
+
+fetchList('friend-requests-list', 'friend-request-template','/usermanagement/front/get/friendships_pending');
+
+async function fetchList(containerElement: string, templateElement: string, url: string) {
 	try {
-	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friendships_pending`, {
+	  const response = await fetch(`https://${window.location.hostname}:8443${url}`, {
 		method: 'GET',
 		credentials: 'include'
 	  });
 
 	  if (!response.ok) {
-		console.log("error");
+		console.log("Error");
 	  }
+	  console.log("fetch succesful");
 
 	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2 }]
 	  console.log(data)
 	  data.forEach((friend: any) => {
 		console.log(friend.pseudo);
-		addRequest(friend.pseudo);
+		addElement(friend, containerElement, templateElement);
 
 	});
 	} catch (error) {
-	  //(document.getElementById('friend-list')!).innerText = 'Erreur lors du chargement.';
-	  console.error('Erreur:', error);
+		console.error('Error:', error);
 	}
 }
 
+function addElement(friend: any, containerElement: string, templateElement: string) {
+	const requestListContainer = document.getElementById(containerElement) as HTMLDivElement | null;
+	const templateRequest = document.getElementById(templateElement) as HTMLTemplateElement | null;
 
-//const requests: string[] = ['Alice', 'Bob', 'Charlie'];
-
-const requestListContainer = document.getElementById('friend-requests-list') as HTMLDivElement | null;
-const templateRequest = document.getElementById('friend-request-template') as HTMLTemplateElement | null;
-
-function addRequest(name: string) {
 	if (templateRequest)
 	{
 		const Clone = templateRequest.content.cloneNode(true) as DocumentFragment;
-
-		const span = Clone.querySelector('span');
-
-		// Check if the span element inside the template exists
-		if (span) {
-			span.textContent = name;
+		const divToUse = Clone.querySelector('#entry');
+		if (divToUse)
+		{
+			divToUse.id = `friend-${friend.id}`;
 		}
 
+		console.log("divToUse: ", divToUse);
+
+		const span = Clone.querySelector('span');
+		console.log("span selection log: ", span);
+
+		//friends
+		if (span) {
+			span.textContent = friend.pseudo;
+		}
+		if (containerElement == 'friend-list-accepted')
+		{
+			const button = Clone.querySelector('button');
+			(button!).onclick = () => {
+				if (divToUse)
+				{
+					//Clone.id = `friend-${friend.id}`;
+					deleteFriendship(friend.id);
+				}
+			  };
+		}
+		//requests
+		if (containerElement == 'friend-requests-list')
+		{
+			const button = Clone.querySelector('#accept-button') as HTMLButtonElement;
+			(button!).onclick = () => {
+				if (divToUse)
+				{
+					acceptFriendship(friend.id);
+				}
+			};
+			
+		}
+		//blocked
+		// if (containerElement == 'friend-list-blocked')
+		// {
+		// 	const button = Clone.querySelector('#accept-button');
+		// 	button.onclick = acceptFriendship(friend.id);
+		// }
+
+		// Check if the span element inside the template exists
+		console.log("clone append log");
 		if (requestListContainer) {
 			requestListContainer.appendChild(Clone);
 		}
 	}
 }
+
+const deleteFriendship = async (ID: number) => {
+	console.log("Friendship removed");
+	try {
+	  const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
+		method: 'DELETE',
+		credentials: 'include',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ id: ID })
+	  });
+	  if (!postResponse.ok) {
+		throw new Error('Erreur lors du delete');
+	  }
+
+	  const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+	  (element).remove()
+	
+	} catch (error: any) {
+	  alert('yo Erreur : ' + error.message);
+	}
+  };
+
+const acceptFriendship = async (ID: number) => {
+	console.log("Friendship accepted");
+	try {
+		console.log("the id:", ID);
+		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
+		method: 'PATCH',
+		credentials: 'include',
+		headers: {
+		  'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ id: ID })
+	});
+	if (!postResponse.ok) {
+		throw new Error('Erreur lors de l\'acceptation');
+	}
+	const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
+	(element).remove();
+	
+
+	} catch (error: any) {
+	  alert('yo Erreur : ' + error.message);
+	}
+  };
 
 // requests.forEach(request => {
 // 	addRequest(request);
@@ -244,61 +339,61 @@ function addRequest(name: string) {
 
 
 //Friends
-const friends: string[] = [];
+// const friends: string[] = [];
 
-const friendListContainer = document.getElementById('friend-list-accepted') as HTMLDivElement | null;
-const template = document.getElementById('friend-template') as HTMLTemplateElement | null;
+// const friendListContainer = document.getElementById('friend-list-accepted') as HTMLDivElement | null;
+// const template = document.getElementById('friend-template') as HTMLTemplateElement | null;
 
-function addFriendToList(name: string) {
-	if (template)
-	{
-		const friendClone = template.content.cloneNode(true) as DocumentFragment;
+// function addFriendToList(name: string) {
+// 	if (template)
+// 	{
+// 		const friendClone = template.content.cloneNode(true) as DocumentFragment;
 
-		const span = friendClone.querySelector('span');
+// 		const span = friendClone.querySelector('span');
 
-		// Check if the span element inside the template exists
-		if (span) {
-			span.textContent = name;
-		}
+// 		// Check if the span element inside the template exists
+// 		if (span) {
+// 			span.textContent = name;
+// 		}
 
-		if (friendListContainer) {
-			friendListContainer.appendChild(friendClone);
-		}
-	}
-}
+// 		if (friendListContainer) {
+// 			friendListContainer.appendChild(friendClone);
+// 		}
+// 	}
+// }
 
-friends.forEach(friend => {
-	addFriendToList(friend);
-});
+// friends.forEach(friend => {
+// 	addFriendToList(friend);
+// });
 
 
 //Blocked Users
-const blockedUsers: string[] = ['Mathis'];
+// const blockedUsers: string[] = ['Mathis'];
 
-const blockedListContainer = document.getElementById('friend-list-blocked') as HTMLDivElement | null;
-const templateBlocked = document.getElementById('blocked-user-template') as HTMLTemplateElement | null;
+// const blockedListContainer = document.getElementById('friend-list-blocked') as HTMLDivElement | null;
+// const templateBlocked = document.getElementById('blocked-user-template') as HTMLTemplateElement | null;
 
-function addBlockToList(name: string) {
-	if (templateBlocked)
-	{
-		const Clone = templateBlocked.content.cloneNode(true) as DocumentFragment;
+// function addBlockToList(name: string) {
+// 	if (templateBlocked)
+// 	{
+// 		const Clone = templateBlocked.content.cloneNode(true) as DocumentFragment;
 
-		const span = Clone.querySelector('span');
+// 		const span = Clone.querySelector('span');
 
-		// Check if the span element inside the template exists
-		if (span) {
-			span.textContent = name;
-		}
+// 		// Check if the span element inside the template exists
+// 		if (span) {
+// 			span.textContent = name;
+// 		}
 
-		if (blockedListContainer) {
-			blockedListContainer.appendChild(Clone);
-		}
-	}
-}
+// 		if (blockedListContainer) {
+// 			blockedListContainer.appendChild(Clone);
+// 		}
+// 	}
+// }
 
-blockedUsers.forEach(user => {
-	addBlockToList(user);
-});
+// blockedUsers.forEach(user => {
+// 	addBlockToList(user);
+// });
 
 // Modify AVATAR
 const sendAvatarBtn = document.getElementById('sendAvatarBtn');
@@ -327,6 +422,25 @@ if (sendAvatarBtn) {
 				console.log("Invalid file format. 100x100 jpg max 30kb")
 			}
 
+			const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (!response.ok)
+			{
+				console.log("Erroooor!");
+			}
+			let session = await response.json();
+			const id = session.name;
+
+			const img = document.createElement('img');
+			img.src = `public/avatars/${id}.jpg`;
+			//console.log("file name: ", input.files[0].name);
+			img.alt = 'My Avatar';
+			//img.width = 300; // optional
+			let avatarBox = document.getElementById("avatar-box");
+			if (avatarBox)
+				avatarBox.appendChild(img);
 		} catch (error) {
 			console.error('Error uploading avatar:', error);
 		}
@@ -348,3 +462,23 @@ if (deleteAvatarBtn) {
 		}
 	});
 }
+
+
+
+async function deleteAccount() {
+	if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/user`, {
+		method: 'DELETE',
+		credentials: 'include'
+	  });
+
+	  if (response.ok) {
+		alert('Votre compte a été supprimé avec succès.');
+		window.location.href = '/login';
+	  } else {
+		alert('Erreur lors de la suppression du compte.');
+	  }
+	}
+  }
+
+  export {};
