@@ -3,7 +3,8 @@ import { PongTournament } from './pongTournament.js';
 import {createWebSocket, closeWebSocket} from './websocket.js';
 
 console.log('SPA loaded');
-history.pushState(null, '', window.location.href);
+//history.pushState(null, '', window.location.href);
+customPushState(null, '', window.location.href);
 
 interface Page {
 	path: string;
@@ -408,7 +409,8 @@ document.addEventListener('click', e => {
 		e.preventDefault();
 		const href = target.getAttribute('data-path')!;
 
-		history.pushState(null, '', href);
+		//history.pushState(null, '', href);
+		customPushState(null, '', href);
 
 		router();
 	}
@@ -418,3 +420,24 @@ document.addEventListener('click', e => {
 window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
+
+function customPushState(state: any, title: string, url: string) {
+	history.pushState(state, title, url);
+	
+	// Save custom history stack to sessionStorage
+	let stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
+	stack.push({ state, title, url });
+	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
+	console.log("custom push state called");
+}
+
+window.addEventListener('load', () => {
+	const stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
+	console.log("page has been reloaded");
+	// Optionally replay the history to simulate back/forward
+	for (let item of stack) {
+	  history.pushState(item.state, item.title, item.url);
+	  console.log("previous routes: ", item.url);
+	}
+	router();
+  });
