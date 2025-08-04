@@ -31,8 +31,8 @@ if (loginForm)
 
 			if (response.ok && data.twofaRequired){
 				tempTokenFor2FA = data.token;
-				(document.getElementById('loginForm')!).style.display = 'none';
-				(document.getElementById('twoFASection')!).style.display = 'block';
+				(document.getElementById('login-form')!).classList.add('hidden');
+				(document.getElementById('twoFASection')!).classList.remove('hidden');
 			}
 			else if (response.ok) 
 			{
@@ -165,8 +165,8 @@ async function handleCredentialResponse(response: google.accounts.id.CredentialR
 
 	if (response2.ok && data.twofaRequired){
 		tempTokenFor2FA = data.token;
-		(document.getElementById('loginForm')!).style.display = 'none';
-		(document.getElementById('twoFASection')!).style.display = 'block';
+		(document.getElementById('login-form')!).classList.add('hidden');
+  		(document.getElementById('twoFASection')!).classList.remove('hidden');
 	}
 	else if (response2.ok) {
 		console.log("response ok");

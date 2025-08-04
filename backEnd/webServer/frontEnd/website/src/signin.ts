@@ -1,5 +1,7 @@
 import { router } from './router.js';
 
+let tempTokenFor2FA: string | null = null;
+
 export async function init()
 {
 const signinForm: HTMLFormElement = document.getElementById('signin-form') as HTMLFormElement;
@@ -63,6 +65,41 @@ const signinForm: HTMLFormElement = document.getElementById('signin-form') as HT
 	}
 	initialize()
 }
+
+
+const verify2FABtn = document.getElementById('verify2FABtn');
+
+if (verify2FABtn){
+	verify2FABtn.addEventListener('click', async function () {
+		const code = (document.getElementById('twoFACode')! as HTMLInputElement).value.trim();
+
+		if (!code || code.length !== 6) {
+			(document.getElementById('twoFAError')! as HTMLParagraphElement).textContent = "Enter a 6 digit code.";
+			return;
+		}
+
+		const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/post/2fa/login`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			body: JSON.stringify({
+				tempToken: tempTokenFor2FA,
+				google_token: code
+			})
+		});
+
+		const data = await response.json();
+
+		if (response.ok && data.success) {
+			console.log("response ok");
+			history.pushState(null, '', '/');
+			router();
+		} else {
+			(document.getElementById('twoFAError')! as HTMLParagraphElement).textContent = data.error || "Wrong code, please try again.";
+		}
+	});
+}
+
 declare namespace google {
 	namespace accounts {
 	  namespace id {
@@ -133,7 +170,12 @@ async function handleCredentialResponse(response: google.accounts.id.CredentialR
 
 	const data = await response2.json();
 
-	if (response2.ok && data.success) {
+	if (response2.ok && data.twofaRequired){
+		tempTokenFor2FA = data.token;
+		(document.getElementById('signin-form')!).classList.add('hidden');
+  		(document.getElementById('twoFASection')!).classList.remove('hidden');
+	}
+	else if (response2.ok) {
 		console.log("response ok");
 		history.pushState(null, '', '/');
 		router();
