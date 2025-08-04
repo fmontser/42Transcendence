@@ -40,7 +40,7 @@ export async function loadProfile() {
 	if (deleteAccountButton)
 		deleteAccountButton.addEventListener('click', deleteAccount);
 
-	console.log("profile is being loaded.");
+	//console.log("profile is being loaded.");
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
 	  method: 'GET',
 	  credentials: 'include'
@@ -291,12 +291,12 @@ async function fetchList(containerElement: string, templateElement: string, url:
 	  if (!response.ok) {
 		console.log("Error");
 	  }
-	  console.log("fetch succesful");
+	  //console.log("fetch succesful");
 
 	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2}]
-	  console.log(data)
+	  //console.log(data)
 	  data.forEach((friend: any) => {
-		console.log(friend.pseudo);
+		//console.log(friend.pseudo);
 		addElement(friend, containerElement, templateElement);
 
 	});
@@ -339,8 +339,9 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			//span.setAttribute('data-path', "friend_profile");
 			span.addEventListener("click", () => {
 
-				 console.log("friend id before sessionStorage:", friend.friend_id);
-				 customPushState(null, '', "friend_profile");
+				 //console.log("friend id before sessionStorage:", friend.friend_id);
+				 //customPushState(null, '', "friend_profile");
+				 history.pushState(null, '', "friend_profile");
 				 changeFriendIDProfile(friend.friend_id)
 				 router();
 
@@ -357,7 +358,7 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			};
 			
 			const friendStatus = WsFriendStatus(friend.friend_id);
-			console.log("Friend status:", friendStatus);
+			//console.log("Friend status:", friendStatus);
 
 			const statusElement = document.createElement('span');
 			statusElement.textContent = friendStatus ? 'connected' : 'disconnected';
@@ -397,7 +398,7 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 		// }
 
 		// Check if the span element inside the template exists
-		console.log("clone append log");
+		//console.log("clone append log");
 		if (requestListContainer) {
 			requestListContainer.appendChild(Clone);
 		}
@@ -405,7 +406,7 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 }
 
 const blockFriendship = async (ID: number) => {
-	console.log("Friendship blocked");
+	//console.log("Friendship blocked");
 	try {
 		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/block_friendship`, {
 			method: 'PATCH',
@@ -427,7 +428,7 @@ const blockFriendship = async (ID: number) => {
 }
 
 const deleteFriendship = async (ID: number) => {
-	console.log("Friendship removed");
+	//console.log("Friendship removed");
 	try {
 	  const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
 		method: 'DELETE',
@@ -450,9 +451,9 @@ const deleteFriendship = async (ID: number) => {
   };
 
 const acceptFriendship = async (ID: number) => {
-	console.log("Friendship accepted");
+	//console.log("Friendship accepted");
 	try {
-		console.log("the id:", ID);
+		//console.log("the id:", ID);
 		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/accept_friendship`, {
 			method: 'PATCH',
 			credentials: 'include',
@@ -482,7 +483,7 @@ const acceptFriendship = async (ID: number) => {
   };
 
 const unblockFriendship = async (ID: number) => {
-	console.log("Friendship unblocked");
+	//console.log("Friendship unblocked");
 	try {
 		const postResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_friendship`, {
 			method: 'DELETE',
