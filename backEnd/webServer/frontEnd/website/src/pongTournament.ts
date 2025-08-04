@@ -124,6 +124,9 @@ export class PongTournament {
 		}
 		else if (this.tournamentState.phase === Phase.COMPLETED){
 			
+
+			console.log(`DEBUG: TOURNAMENT FINAL STATE\n`, this.tournamentState);
+
 			let selectElements: Set<HTMLElement | null> = new Set<HTMLElement | null>();
 			
 			selectElements.add(document.getElementById("card-3b"));

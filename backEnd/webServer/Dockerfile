@@ -38,7 +38,8 @@ COPY --from=builder /usr/src/app/frontEnd/website/dist ./var/www/html/website/di
 COPY --from=builder /usr/src/app/frontEnd/website/index.html ./var/www/html/website
 COPY --from=builder /usr/src/app/frontEnd/website/src/components/ ./var/www/html/website/dist/components/
 COPY --from=builder /usr/src/app/frontEnd/website/public/avatars ./var/www/html/website/public/avatars
-
+#TODO temporal images remove
+COPY frontEnd/website/public ./var/www/html/website/public/avatars
 
 WORKDIR /var/www/html
 
