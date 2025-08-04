@@ -97,7 +97,7 @@ export async function loadProfile() {
 	// end friend status
 
 
-	const profileResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile?id=${id}`, {
+	const profileResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile`, {
 	  method: 'GET',
 	  credentials: 'include'
 	});

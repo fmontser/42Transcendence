@@ -60,6 +60,11 @@ function setEndPoints(): void {
 		"Failed to retrieve user friendships"
 	);
 
+	new EndPoints.SeeFriendProfileEndpoint(
+		"/usermanagement/front/get/friend_profile",
+		"Failed to retrieve user friendships"
+	);
+
 	new EndPoints.SeeFriendshihpsPendingEndpoint(
 		"/usermanagement/front/get/friendships_pending",
 		"Failed to retrieve pending friendships"
