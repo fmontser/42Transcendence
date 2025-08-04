@@ -180,14 +180,15 @@ export class SeePseudosEndpoint extends Endpoint {
 
 export class SeeProfileEndpoint extends Endpoint {
 	add(server: any): void {
-		server.get(this.path, async (request: any, reply: any) => {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`SeeProfileEndpoint: ${this.path} called`);
-			const id = request.query.id;
-			if (!id) {
-				reply.status(400).send({ error: 'User ID is required' });
-				return;
-			}
-			const response = await fetch(`http://dataBase:3000/get/profile?user=${id}`, {
+			const user = request.user;
+			// const id = request.query.id;
+			// if (!id) {
+			// 	reply.status(400).send({ error: 'User ID is required' });
+			// 	return;
+			// }
+			const response = await fetch(`http://dataBase:3000/get/profile?user=${user.id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeProfileEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -200,6 +201,64 @@ export class SeeProfileEndpoint extends Endpoint {
 				return;
 			}
 			console.log('SeeProfileEndpoint: Data received:', data);
+			reply.send(data);
+		});
+	}
+}
+
+export class SeeFriendProfileEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`SeeFriendProfileEndpoint: ${this.path} called`);
+			const user = request.user;
+			const friendId = request.query.id;
+
+			if (!friendId) {
+				reply.status(400).send({ error: 'Friend ID is required' });
+				return;
+			}
+
+			const response1 = await fetch(
+				`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
+				{ method: 'GET' }
+			);
+			if (!response1.ok) {
+				server.log.error(`SeeUserFriendshihpsEndpoint: ${this.errorMsg} - `, response1.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const friends = await response1.json();
+			let isFriend = false;
+			for (const friend of friends) {
+				if (friend.id === friendId) {
+					console.log(`SeeFriendProfileEndpoint: User ${user.id} is friends with ${friendId}`);
+					isFriend = true;
+					break;
+				}
+			}
+
+			if (!isFriend) {
+				reply.status(403).send({ error: 'You are not friends with this user' });
+				return;
+			}
+			// const id = request.query.id;
+			// if (!id) {
+			// 	reply.status(400).send({ error: 'User ID is required' });
+			// 	return;
+			// }
+			const response2 = await fetch(`http://dataBase:3000/get/profile?user=${friendId}`, {
+				method: 'GET'});
+			if (!response2.ok) {
+				server.log.error(`SeeFriendProfileEndpoint: ${this.errorMsg} - `, response2.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const data = await response2.json();
+			if (data.length === 0) {
+				reply.status(404).send({ error: 'User not found' });
+				return;
+			}
+			console.log('SeeFriendProfileEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
