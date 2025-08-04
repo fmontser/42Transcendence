@@ -41,7 +41,7 @@ export class TournamentManager {
 		}
 	}
 	
-	public async requestTournament(connection: any ,userId: number): Promise<Tournament> {
+	public async requestTournament(connection: any ,userId: number): Promise<Tournament | null> {
 		let newTournament: Tournament | null =  this.findPendingTournament(this.tournamentList);
 		
 		if (newTournament == null) {
@@ -49,6 +49,10 @@ export class TournamentManager {
 			this.tournamentList.add(newTournament);
 			console.log(`Info: New tournament is preparing...`);
 		}
+
+		if (this.findPlayerDup(userId))
+			return (null);
+
 		newTournament.join(userId, connection);
 		console.log(`Info: userId: ${userId} has joined a tournament`)
 		return (newTournament);
@@ -58,6 +62,16 @@ export class TournamentManager {
 		return (this.matchManager.requestPairedMatch(tournament, connection, userId));
 	}
 	
+	private findPlayerDup(userId: number): boolean {
+		for (const t of this.tournamentList) {
+			for (const p of t.getPlayers()) {
+				if (userId === p[1].id)
+					return (true);
+			}
+		}
+		return (false);
+	}
+
 	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {
 		for(const tournament of tournamentList) {
 			if (tournament.getPhase() == Phase.DRAW) {

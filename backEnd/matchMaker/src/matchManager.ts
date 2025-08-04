@@ -13,13 +13,17 @@ export class MatchManager {
 		this.matchList = new Set<Match>();
 	}
 
-	public async requestMatch(connection: any ,userId: number): Promise<void> {
+	public async requestMatch(connection: any ,userId: number): Promise<Match | null> {
 		let newMatch: Match | null = this.findPendingMatch();
 
 		if (newMatch == null) {
 			newMatch = new Match();
 			this.matchList.add(newMatch);
 		}
+
+		if (this.findPlayerDup(userId))
+			return null;
+
 		await newMatch.addPlayer(connection, userId);
 		console.log(`Info: UserId ${userId} is waiting for a match...`);
 
@@ -27,6 +31,7 @@ export class MatchManager {
 			console.log(`Info: match found!: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
 			this.requestNewPongInstance(newMatch);
 		}
+		return (newMatch);
 	}
 
 	public async requestPairedMatch(tournament: Tournament, connection: any[] ,userId: number[]): Promise<Match> {
@@ -38,6 +43,14 @@ export class MatchManager {
 		console.log(`Info: Requesting Paired match to serverPong: [${newMatch.player0Name} vs ${newMatch.player1Name}]`);
 		this.requestNewPongInstance(newMatch);
 		return (newMatch);
+	}
+
+	private findPlayerDup(userId: number): boolean {
+		for (const m of this.matchList) {
+			if (userId === m.player0Id || userId === m.player1Id)
+				return (true)
+		}
+		return (false);
 	}
 
 	private findPendingMatch(): Match | null {

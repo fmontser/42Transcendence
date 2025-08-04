@@ -1,6 +1,4 @@
 import { MatchMakerConnector } from "./matchMakerConnector.js";
-import { router } from "./router.js"
-import { PongGame } from "./pongGame.js";
 
 export enum Phase {
 	DRAW, SEMIFINALS, FINALS, COMPLETED, CANCELED
@@ -32,7 +30,6 @@ export class PongTournament {
 		this.messageFrame = document.getElementById("messageFrame");
 		this.gameFrame = document.getElementById("gameFrame");
 		this.tournamentFrame = document.getElementById("tournamentFrame");
-		this.injectGame();
 		this.setupEvents();
 	}
 
@@ -92,11 +89,6 @@ export class PongTournament {
 		});
 	}
 
-	private injectGame(): void {
-		history.pushState(null, '', '/gameFrame');
-		router();
-	}
-
 	private getUserButton(): HTMLButtonElement {
 		let cardId!: string;
 		let card!: any;
@@ -124,6 +116,7 @@ export class PongTournament {
 		this.messageFrame?.setAttribute("style", "display: none");
 		this.gameFrame?.setAttribute("style", "display: none;")
 		this.tournamentFrame?.setAttribute("style", "display: block;")
+
 		if (this.tournamentState.phase === Phase.FINALS) {
 			const pair3cd = document.getElementById("pair3cd");
 			if (pair3cd)
@@ -131,6 +124,9 @@ export class PongTournament {
 		}
 		else if (this.tournamentState.phase === Phase.COMPLETED){
 			
+
+			console.log(`DEBUG: TOURNAMENT FINAL STATE\n`, this.tournamentState);
+
 			let selectElements: Set<HTMLElement | null> = new Set<HTMLElement | null>();
 			
 			selectElements.add(document.getElementById("card-3b"));

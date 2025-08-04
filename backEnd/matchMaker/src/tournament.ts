@@ -227,6 +227,9 @@ export class Tournament {
 
 		setTimeout(() => {}, 3000);
 
+		console.log(`DEBUG: TOURNAMENT FINAL STATE\n`, this.tournamentState);
+
+
 		await this.broadcastStatus();
 
 		console.log(`Info: Tournament ended`);

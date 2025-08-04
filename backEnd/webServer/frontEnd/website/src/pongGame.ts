@@ -1,4 +1,3 @@
-import { timeStamp } from "console";
 import { MatchMakerConnector } from "./matchMakerConnector.js";
 import { ServerPongConnector } from "./serverPongConnector.js";
 
@@ -27,7 +26,7 @@ export class PongGame {
 
 	constructor () {}
 
-	public start(): void {
+	public async start(): Promise<void> {
 		this.drawWaitScreen();
 		this.matchMakerConnector = new MatchMakerConnector(this);
 	}

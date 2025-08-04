@@ -134,11 +134,27 @@
 
 		}
 
+		canvas {
+			border: 2px solid white;
+		}
+		#score {
+			position: flex;
+			width: 100%;
+			text-align: center;
+			top: 40px;
+			color: white;
+			font-size: 24px;
+			font-family: monospace;
+		}
+
 	</style>
 </head>
 	<body>
 		<div id="messageFrame" style="display: none;"></div>
-		<div id="gameFrame" style="display: none;"></div>
+		<div id="gameFrame" style="display: none;">
+			<div id="score">0 - 0</div>
+			<canvas id="playField" width="1280" height="720"></canvas>
+		</div>
 		<div id="tournamentFrame" style="display: block;">
 
 			<div class="podium-section">

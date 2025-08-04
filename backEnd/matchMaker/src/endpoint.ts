@@ -1,5 +1,6 @@
 import { matchManager, tournamentManager } from './matchmaker'
 import { Phase, Tournament } from './tournament';
+import { Match } from './match';
 
 export abstract class Endpoint {
 
@@ -96,7 +97,11 @@ export class PostMatchRequest extends Endpoint {
 					switch (jsonData.type) {
 						case 'matchRequest':
 							console.log(`Info: Recieved matchRequest from userId ${userId}`);
-							matchManager.requestMatch(connection, userId);
+							const match: Match | any = matchManager.requestMatch(connection, userId);
+							if (!match) {
+								console.log(`Info: User ${userId} attempted to play multiple instances, closing connection`);
+								connection.close();
+							}
 							break;
 					}
 				} catch (error) {
@@ -114,6 +119,55 @@ export class PostMatchRequest extends Endpoint {
 }
 
 export class PostTournamentRequest extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
+			
+			let sessionToken!: any;
+			let userId!: any;
+			let tournament!: Tournament | null;
+			
+			sessionToken = this.retrieveSessionToken(req);
+			userId = await this.validateSession(sessionToken);
+			if (sessionToken == null || userId == null) {
+				this.replyNotAllowed(connection);
+				return;
+			}
+			this.replyAccepted(connection);
+
+			connection.on('message', async (data: any) => {
+				try {
+					const jsonData = JSON.parse(data.toString());
+
+					switch (jsonData.type) {
+						case 'tournamentRequest':
+							console.log("Info: Tournament request recieved");
+							tournament = await tournamentManager.requestTournament(connection, userId);
+							if (!tournament) {
+								console.log(`Info: User ${userId} attempted to play multiple instances, closing connection`);
+								connection.close();
+							}
+							break;
+						case 'readyState':
+							console.log(`Info: Recieved readyState from UserId ${userId}`);
+							tournament?.setPlayerReady(userId);
+							break;
+					}
+				} catch (error) {
+					console.error("Error processing message:", error);
+				}
+			});
+
+			connection.on('close', () => {
+				console.log("Client left the matchMaker");
+				if (tournament?.getPhase() != Phase.COMPLETED)
+					tournament?.cancel(userId);
+			});
+		});
+	}
+}
+
+
+/* export class PostTournamentRequest extends Endpoint {
 	
 	add(server: any): void {
 		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
@@ -156,4 +210,4 @@ export class PostTournamentRequest extends Endpoint {
 			});
 		});
 	}
-}
+} */
