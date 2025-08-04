@@ -268,7 +268,7 @@ export async function loadProfile() {
 
 	//Friend requests
 
-	fetchList('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
+	// fetchList('friend-list-blocked', 'blocked-user-template', '/usermanagement/front/get/friendships_blocked');
 
 	fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
 
@@ -363,18 +363,18 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			
 		}
 		//blocked
-		if (containerElement == 'friend-list-blocked')
-		{
-			const button = Clone.querySelector('button') as HTMLButtonElement;
-			(button!).onclick = () => {
-				if (divToUse)
-				{
-					unblockFriendship(friend.id);
-				}
-			};
+		// if (containerElement == 'friend-list-blocked')
+		// {
+		// 	const button = Clone.querySelector('button') as HTMLButtonElement;
+		// 	(button!).onclick = () => {
+		// 		if (divToUse)
+		// 		{
+		// 			unblockFriendship(friend.id);
+		// 		}
+		// 	};
 		// 	const button = Clone.querySelector('#accept-button');
 		// 	button.onclick = acceptFriendship(friend.id);
-		}
+		// }
 
 		// Check if the span element inside the template exists
 		console.log("clone append log");
