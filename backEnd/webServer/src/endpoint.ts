@@ -25,7 +25,7 @@ export abstract class Endpoint {
 	}
 }
 
-const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localtest"];
+const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localtest", "friend_profile"];
 
 interface UserProfile {
 	username: string;
