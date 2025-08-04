@@ -5,5 +5,5 @@ TODO
 	We can play vs ourselves in 1v1 remote
 	We can connect directly to profile without being connected
 	Keep user avatars in data to not erase when using 'make down'
-	2FA with google login doesnt work
+	Google sign in in webpage signin.ts ? if yes, need to implement 2FA
 	We can do a research bar to find users
