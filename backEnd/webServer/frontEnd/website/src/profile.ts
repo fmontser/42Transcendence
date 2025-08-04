@@ -635,7 +635,30 @@ async function deleteAccount() {
 
 async function twoFactorAuthentication()
 {
+	const twoFAStatusResponse = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/get/2fa/status`, {
+		method: 'GET',
+		credentials: 'include'
+	});
+
+	if (!twoFAStatusResponse.ok) {
+		console.error('Error fetching 2FA status');
+		return;
+	}
+	const twoFAStatusData = await twoFAStatusResponse.json();
+	const twoFAEnabled = twoFAStatusData.two_fa;
+
 	const enable2FAButton =  document.getElementById('enable2FAButton')
+	const disable2FAButton = document.getElementById('disable2FAButton');
+
+	if (!twoFAEnabled) {
+		(enable2FAButton!).classList.remove('hidden');
+		(disable2FAButton!).classList.add('hidden'); // ou `block`, selon ton style
+	}
+	else  {
+		(disable2FAButton!).classList.remove('hidden');
+		(enable2FAButton!).classList.add('hidden'); // enlève ce que tu aurais pu mettre
+	}
+	
 	if (enable2FAButton) {
 		enable2FAButton.addEventListener('click', async () => {
 			const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
@@ -644,8 +667,8 @@ async function twoFactorAuthentication()
 			});
 		
 			if (!sessionResponse.ok) {
-			window.location.href = 'login.html';
-			return;
+				window.location.href = 'login.html';
+				return;
 			}
 		
 			const sessionData = await sessionResponse.json();
@@ -717,9 +740,8 @@ async function twoFactorAuthentication()
 		}
 	}
 
-	const disable2FAbutton = document.getElementById('disable2FAButton');
-	if (disable2FAbutton) {
-		disable2FAbutton.addEventListener('click', async () => {
+	if (disable2FAButton) {
+		disable2FAButton.addEventListener('click', async () => {
 			if (!confirm("Are you sure you want to disable 2FA ?")) return;
 
 			const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/patch/2fa/delete`, {
