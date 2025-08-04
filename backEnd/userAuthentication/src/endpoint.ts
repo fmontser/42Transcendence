@@ -616,3 +616,24 @@ export class TwoFALoginEndpoint extends Endpoint {
     });
   }
 }
+
+export class TwoFAStatusEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (req: any, reply: any) => {
+			const user = req.user;
+
+			// Verify if 2FA is enabled for the user
+			const response = await fetch(`http://dataBase:3000/get/2fastatus?id=${user.id}`);
+			if (!response.ok) {
+				console.error(`Failed to fetch user data for 2FA status: ${response.statusText}`);
+				return reply.status(500).send({ error: "Failed to fetch user data" });
+			}
+			const userData = await response.json();
+			if (userData.length === 0) {
+				return reply.status(404).send({ error: "User not found" });
+			}
+
+			reply.send({ two_fa: userData[0].two_fa });
+		});
+	}
+}

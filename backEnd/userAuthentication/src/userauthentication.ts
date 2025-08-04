@@ -77,6 +77,11 @@ function setEndPoints(): void {
 		"Failed to log in with 2FA"
 	);
 
+	new EndPoints.TwoFAStatusEndpoint(
+		"/userauthentication/front/get/2fa/status",
+		"Failed to retrieve 2FA status"
+	);
+
 	EndPoints.Endpoint.enableAll(server);
 }
 
