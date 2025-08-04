@@ -163,7 +163,12 @@ async function handleCredentialResponse(response: google.accounts.id.CredentialR
 
 	const data = await response2.json();
 
-	if (response2.ok && data.success) {
+	if (response2.ok && data.twofaRequired){
+		tempTokenFor2FA = data.token;
+		(document.getElementById('loginForm')!).style.display = 'none';
+		(document.getElementById('twoFASection')!).style.display = 'block';
+	}
+	else if (response2.ok) {
 		console.log("response ok");
 		history.pushState(null, '', '/');
 		router();
@@ -171,6 +176,7 @@ async function handleCredentialResponse(response: google.accounts.id.CredentialR
 		(document.getElementById('error')! as HTMLParagraphElement).textContent = data.error || "Error during Google Sign-In, please try again.";
 	}
 }
+
 async function initialize() {
 	try {
 		console.log("loading Google Sign-In script...");
