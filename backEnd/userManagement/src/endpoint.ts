@@ -228,16 +228,19 @@ export class SeeFriendProfileEndpoint extends Endpoint {
 				return;
 			}
 			const friends = await response1.json();
+			console.log('SeeFriendProfileEndpoint: Friends data received:', friends);
 			let isFriend = false;
 			for (const friend of friends) {
-				if (friend.id === friendId) {
+				if (friend.id.toString() === friendId) {
 					console.log(`SeeFriendProfileEndpoint: User ${user.id} is friends with ${friendId}`);
 					isFriend = true;
 					break;
 				}
+				console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friend.id}`);
 			}
 
 			if (!isFriend) {
+				console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friendId}`);
 				reply.status(403).send({ error: 'You are not friends with this user' });
 				return;
 			}

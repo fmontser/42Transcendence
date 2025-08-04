@@ -7,8 +7,7 @@
 
       <!-- TODO dario ajustar la estetica -->
 <h2 class="text-2xl font-bold text-white mb-4">Avatar</h2>
-<div id="avatar-box">
-</div>
+<img id="avatar-box"/>
 <form id="formAvatar" class="max-w-md mx-auto flex flex-col gap-4" onsubmit="return false;">
 	<input type="file" id="inputAvatar" name="image" accept="image/*" required class="bg-gray-700 border border-gray-600 text-white rounded-lg p-2" />
 	<button type="button" id="sendAvatarBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
@@ -149,15 +148,4 @@
     </span>
     <button class="bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded">Delete</button>
   </div>
-</template>
-
-
-<!-- Blocked users -->
-<template id="blocked-user-template">
-<div id="entry" class="bg-gray-800 p-4 rounded-lg flex justify-between items-center shadow-lg">
-	<span class="font-medium text-gray-400 line-through">
-	</span>
-	<button class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-1 px-3 rounded">
-	  Unblock</button>
-</div>
 </template>

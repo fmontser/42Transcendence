@@ -586,7 +586,7 @@ async function modifyAvatar() {
 					body: formData,
 				});
 
-				//TODO dario, manejar la respuesta de archivo invalido en el frontend (manejar el codigo 422, mostrar mensaje ....)
+				//TODO mathis, manejar la respuesta de archivo invalido en el frontend (manejar el codigo 422, mostrar mensaje ....)
 				if (reply.status == 422)
 				{
 					//TODO archivo invalido  imagenes de 100x100 jpg max 30000 bytes (30kb)
