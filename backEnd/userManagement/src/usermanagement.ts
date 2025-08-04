@@ -40,6 +40,16 @@ function setEndPoints(): void {
 		"Failed to retrieve pseudos"
 	);
 
+	new EndPoints.GetMatchListEndpoint(
+		"/usermanagement/front/get/matchlist",
+		"Failed to retrieve match list"
+	);
+
+	new EndPoints.GetFriendMatchListEndpoint(
+		"/usermanagement/front/get/friend_matchlist",
+		"Failed to retrieve friend match list"
+	)
+
 	new EndPoints.CreateUserEndpoint(
 		"/usermanagement/front/post/create",
 		"Failed to create user"

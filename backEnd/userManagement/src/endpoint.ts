@@ -21,6 +21,83 @@ export abstract class Endpoint {
 	}
 }
 
+export class GetMatchListEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`GetMatchListEndpoint: ${this.path} called`);
+			const userId = request.user.id;
+
+			try {
+				const response = await fetch(`http://dataBase:3000/get/matchs?id=${userId}`);
+				if (!response.ok) {
+					throw new Error(`Failed to fetch match list: ${response.statusText}`);
+				}
+				const data = await response.json();
+				console.log('GetMatchListEndpoint: Data received:', data);
+				reply.send(data);
+			} catch (error) {
+				console.error('Error fetching match list:', error);
+				reply.status(500).send({ error: 'Failed to fetch match list' });
+			}
+		});
+	}
+}
+
+export class GetFriendMatchListEndpoint extends Endpoint {
+	add(server: any): void {
+		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
+			console.log(`GetFriendMatchListEndpoint: ${this.path} called`);
+			const user = request.user;
+			const friendId = request.query.id;
+
+			if (!friendId) {
+				reply.status(400).send({ error: 'Friend ID is required' });
+				return;
+			}
+
+			const response1 = await fetch(
+				`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
+				{ method: 'GET' }
+			);
+			if (!response1.ok) {
+				server.log.error(`GetFriendMatchListEndpoint: ${this.errorMsg} - `, response1.statusText);
+				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				return;
+			}
+			const friends = await response1.json();
+			console.log('GetFriendMatchListEndpoint: Friends data received:', friends);
+			let isFriend = false;
+			for (const friend of friends) {
+				if (friend.id.toString() === friendId) {
+					console.log(`GetFriendMatchListEndpoint: User ${user.id} is friends with ${friendId}`);
+					isFriend = true;
+					break;
+				}
+				console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friend.id}`);
+			}
+
+			if (!isFriend) {
+				console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friendId}`);
+				reply.status(403).send({ error: 'You are not friends with this user' });
+				return;
+			}
+
+			try {
+				const response = await fetch(`http://dataBase:3000/get/matchs?id=${friendId}`);
+				if (!response.ok) {
+					throw new Error(`Failed to fetch match list: ${response.statusText}`);
+				}
+				const data = await response.json();
+				console.log('GetFriendMatchListEndpoint: Data received:', data);
+				reply.send(data);
+			} catch (error) {
+				console.error('Error fetching match list:', error);
+				reply.status(500).send({ error: 'Failed to fetch match list' });
+			}
+		});
+	}
+}
+
 export class ModifyAvatarEndpoint extends Endpoint {
 	add(server: any): void {
 		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
