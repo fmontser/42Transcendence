@@ -3,7 +3,8 @@ import { PongTournament } from './pongTournament.js';
 import {createWebSocket, closeWebSocket} from './websocket.js';
 
 console.log('SPA loaded');
-history.pushState(null, '', window.location.href);
+//history.pushState(null, '', window.location.href);
+customPushState(null, '', window.location.href);
 
 interface Page {
 	path: string;
@@ -351,6 +352,37 @@ const routes: Page[] = [
 		}
 	},
 	{
+		path: "/friend_profile",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/friend_profile", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				let data: string = await response.text();
+				const root = document.getElementById('root');
+				if (root) {
+					root.innerHTML = data;
+				import(`./friend_profile.js`)
+					.then((module) => {		
+						module.init();
+					});
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+	{
 		path: "/logout",
 		view: async () => {
 			try
@@ -408,7 +440,8 @@ document.addEventListener('click', e => {
 		e.preventDefault();
 		const href = target.getAttribute('data-path')!;
 
-		history.pushState(null, '', href);
+		//history.pushState(null, '', href);
+		customPushState(null, '', href);
 
 		router();
 	}
@@ -418,3 +451,24 @@ document.addEventListener('click', e => {
 window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
+
+export function customPushState(state: any, title: string, url: string) {
+	history.pushState(state, title, url);
+	
+	// Save custom history stack to sessionStorage
+	let stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
+	stack.push({ state, title, url });
+	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
+	console.log("custom push state called");
+}
+
+window.addEventListener('load', () => {
+	const stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
+	console.log("page has been reloaded");
+	// Optionally replay the history to simulate back/forward
+	for (let item of stack) {
+	  history.pushState(item.state, item.title, item.url);
+	  console.log("previous routes: ", item.url);
+	}
+	router();
+  });

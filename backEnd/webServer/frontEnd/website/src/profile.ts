@@ -1,4 +1,5 @@
 import { router } from './router.js';
+import { customPushState } from './router.js';
 import {createWebSocket, closeWebSocket, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
 // async function getProfile(): Promise<Response>
 // {
@@ -304,6 +305,15 @@ async function fetchList(containerElement: string, templateElement: string, url:
 	}
 }
 
+export let friend_id_for_profile: string;
+
+export function changeFriendIDProfile(friend_id: string) {
+	friend_id_for_profile = friend_id
+}
+export function getFriendIDProfile() {
+	return friend_id_for_profile
+}
+
 function addElement(friend: any, containerElement: string, templateElement: string) {
 	const requestListContainer = document.getElementById(containerElement) as HTMLDivElement | null;
 	const templateRequest = document.getElementById(templateElement) as HTMLTemplateElement | null;
@@ -317,14 +327,24 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			divToUse.id = `friend-${friend.id}`;
 		}
 
-		console.log("divToUse: ", divToUse);
+		//console.log("divToUse: ", divToUse);
 
 		const span = Clone.querySelector('span');
-		console.log("span selection log: ", span);
+		//console.log("span selection log: ", span);
 
 		//friends
 		if (span) {
 			span.textContent = friend.pseudo;
+			//span.classList.add("nav-link")
+			//span.setAttribute('data-path', "friend_profile");
+			span.addEventListener("click", () => {
+
+				 console.log("friend id before sessionStorage:", friend.friend_id);
+				 customPushState(null, '', "friend_profile");
+				 changeFriendIDProfile(friend.friend_id)
+				 router();
+
+			})
 		}
 		if (containerElement == 'friend-list-accepted')
 		{
