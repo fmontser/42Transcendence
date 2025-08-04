@@ -13,6 +13,47 @@ interface Page {
 const routes: Page[] = [
 
 	{
+		path: "/localtest",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/localtest", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					console.log("html:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					} else {
+						console.error('Root element not found');
+					}
+					import(`./localTest.js`)
+					.then((module) => {		
+						module.showStartScreen();
+					});
+				}
+				else {
+					console.log("Fetch failed.");
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+	{
 		path: "/game",
 		view: async () => {
 			try {
@@ -234,7 +275,7 @@ const routes: Page[] = [
 				// }
 				//import("");
 				import(`./signin.js`)
-    				.then((module) => {		
+					.then((module) => {		
 						module.init();
 					});
 				}

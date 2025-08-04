@@ -125,10 +125,14 @@ export async function loadProfile() {
 	// 			avatarBox.appendChild(img);
 
 	(document.getElementById('editBioBtn')!).addEventListener('click', () => {
-		(document.getElementById('bio')!).style.display = 'none';
-		(document.getElementById('bioInput')!).style.display = 'inline';
-		(document.getElementById('editBioBtn')!).style.display = 'none';
-		(document.getElementById('saveBioBtn')!).style.display = 'inline';
+		document.getElementById('bio')!.classList.add('hidden');
+		document.getElementById('bioInput')!.classList.remove('hidden');
+		document.getElementById('bioInput')!.classList.add('inline');
+
+		document.getElementById('editBioBtn')!.classList.add('hidden');
+		document.getElementById('saveBioBtn')!.classList.remove('hidden');
+		document.getElementById('saveBioBtn')!.classList.add('inline');
+
 	});
 
 	(document.getElementById('saveBioBtn')!).addEventListener('click', async () => {
@@ -148,18 +152,29 @@ export async function loadProfile() {
 		(document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour de la bio.';
 	  }
 	
-	  (document.getElementById('bio')!).style.display = 'inline';
-	  (document.getElementById('bioInput')!).style.display = 'none';
-	  (document.getElementById('editBioBtn')!).style.display = 'inline';
-	  (document.getElementById('saveBioBtn')!).style.display = 'none';
+		document.getElementById('bio')!.classList.remove('hidden');
+		document.getElementById('bio')!.classList.add('inline');
+
+		document.getElementById('bioInput')!.classList.remove('inline');
+		document.getElementById('bioInput')!.classList.add('hidden');
+
+		document.getElementById('editBioBtn')!.classList.remove('hidden');
+		document.getElementById('editBioBtn')!.classList.add('inline');
+
+		document.getElementById('saveBioBtn')!.classList.remove('inline');
+		document.getElementById('saveBioBtn')!.classList.add('hidden');
+
 	});
 
 	//pseudo
 	(document.getElementById('editPseudoBtn')!).addEventListener('click', () => {
-		(document.getElementById('pseudo')!).style.display = 'none';
-		(document.getElementById('pseudoInput')!).style.display = 'inline';
-		(document.getElementById('editPseudoBtn')!).style.display = 'none';
-		(document.getElementById('savePseudoBtn')!).style.display = 'inline';
+		document.getElementById('pseudo')!.classList.add('hidden');
+		document.getElementById('pseudoInput')!.classList.remove('hidden');
+		document.getElementById('pseudoInput')!.classList.add('inline');
+
+		document.getElementById('editPseudoBtn')!.classList.add('hidden');
+		document.getElementById('savePseudoBtn')!.classList.remove('hidden');
+		document.getElementById('savePseudoBtn')!.classList.add('inline');
   	});
 
 	(document.getElementById('savePseudoBtn')!).addEventListener('click', async () => {
@@ -179,10 +194,17 @@ export async function loadProfile() {
 		  (document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour du pseudo.';
 		}
 
-		(document.getElementById('pseudo')!).style.display = 'inline';
-		(document.getElementById('pseudoInput')!).style.display = 'none';
-		(document.getElementById('editPseudoBtn')!).style.display = 'inline';
-		(document.getElementById('savePseudoBtn')!).style.display = 'none';
+		document.getElementById('pseudo')!.classList.remove('hidden');
+		document.getElementById('pseudo')!.classList.add('inline');
+
+		document.getElementById('pseudoInput')!.classList.remove('inline');
+		document.getElementById('pseudoInput')!.classList.add('hidden');
+
+		document.getElementById('editPseudoBtn')!.classList.remove('hidden');
+		document.getElementById('editPseudoBtn')!.classList.add('inline');
+
+		document.getElementById('savePseudoBtn')!.classList.remove('inline');
+		document.getElementById('savePseudoBtn')!.classList.add('hidden');
 	});
 
 	//Show pseudos
@@ -225,10 +247,12 @@ export async function loadProfile() {
 			  const message = document.getElementById('message');
 			  if (res.ok) {
 				(message!).textContent = `Requête d'amitié envoyée à ${pseudo}`;
-				(message!).style.color = 'green';
+				message!.classList.add('text-green-500');
+
 			  } else {
 				(message!).textContent = `Erreur lors de l'ajout de ${pseudo}`;
-				(message!).style.color = 'red';
+				message!.classList.add('text-red-500');
+
 			  }
 			});
 		
@@ -644,7 +668,9 @@ async function twoFactorAuthentication()
 			// ✅ Affiche le QR code et la clé manuelle
 			(document.getElementById('qrCodeImage')! as HTMLImageElement).src = data.qrCode;
 			(document.getElementById('manualKey')!).textContent = data.manualKey;
-			(document.getElementById('qrCodeContainer')!).style.display = 'block';
+			const qrCodeContainer = document.getElementById('qrCodeContainer')!;
+			qrCodeContainer.classList.remove('hidden');
+			qrCodeContainer.classList.add('block');
 		});
 
 		// ✅ 2) Quand l'utilisateur entre le code de Google Authenticator et clique sur "Vérifier"
@@ -681,10 +707,10 @@ async function twoFactorAuthentication()
 				const msg = document.getElementById('twoFAStatusMessage') as HTMLParagraphElement;
 
 				if (response.ok) {
-					msg.style.color = "green";
+					msg.classList.add('text-green-500');
 					msg.textContent = "✅ 2FA activée avec succès !";
 				} else {
-					msg.style.color = "red";
+					msg.classList.add('text-red-500');
 					msg.textContent = "❌ Code invalide, réessayez.";
 				}
 			});
@@ -704,11 +730,11 @@ async function twoFactorAuthentication()
 			const msg = document.getElementById('twoFAStatusMessage') as HTMLParagraphElement;
 
 			if (response.ok) {
-			msg.style.color = "green";
+			msg.classList.add('text-green-500');
 			msg.textContent = "✅ 2FA désactivée avec succès.";
 			alert("La 2FA a été désactivée.");
 			} else {
-			msg.style.color = "red";
+			msg.classList.add('text-red-500');
 			msg.textContent = "❌ Erreur lors de la désactivation de la 2FA.";
 			alert("Erreur lors de la désactivation.");
 			}
