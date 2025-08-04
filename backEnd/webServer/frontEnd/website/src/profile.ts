@@ -616,19 +616,19 @@ async function modifyAvatar() {
 
 
 async function deleteAccount() {
-	if (confirm('Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.')) {
+	if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
 	  const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/user`, {
 		method: 'DELETE',
 		credentials: 'include'
 	  });
 
 	  if (response.ok) {
-		alert('Votre compte a été supprimé avec succès.');
+		alert('Your account has been deleted successfully.');
 		history.pushState(null, '', '/');
 		router();
 		//window.location.href = '/login';
 	  } else {
-		alert('Erreur lors de la suppression du compte.');
+		alert('Error during account deletion. Please try again later.');
 	  }
 	}
 }
@@ -659,8 +659,8 @@ async function twoFactorAuthentication()
 			});
 
 			if (!response.ok) {
-			alert("Erreur lors de la génération du QR code 2FA");
-			return;
+				alert("2FA already enabled.");
+				return;
 			}
 
 			const data = await response.json();
@@ -708,10 +708,10 @@ async function twoFactorAuthentication()
 
 				if (response.ok) {
 					msg.classList.add('text-green-500');
-					msg.textContent = "✅ 2FA activée avec succès !";
+					msg.textContent = "2FA enabled";
 				} else {
 					msg.classList.add('text-red-500');
-					msg.textContent = "❌ Code invalide, réessayez.";
+					msg.textContent = "Wrong code, please try again.";
 				}
 			});
 		}
@@ -720,7 +720,7 @@ async function twoFactorAuthentication()
 	const disable2FAbutton = document.getElementById('disable2FAButton');
 	if (disable2FAbutton) {
 		disable2FAbutton.addEventListener('click', async () => {
-			if (!confirm("Êtes-vous sûr de vouloir désactiver la 2FA ?")) return;
+			if (!confirm("Are you sure you want to disable 2FA ?")) return;
 
 			const response = await fetch(`https://${window.location.hostname}:8443/userauthentication/front/patch/2fa/delete`, {
 			method: 'PATCH',
@@ -731,12 +731,12 @@ async function twoFactorAuthentication()
 
 			if (response.ok) {
 			msg.classList.add('text-green-500');
-			msg.textContent = "✅ 2FA désactivée avec succès.";
-			alert("La 2FA a été désactivée.");
+			msg.textContent = "2FA Disabled";
+			alert("2FA Disabled successfully.");
 			} else {
 			msg.classList.add('text-red-500');
-			msg.textContent = "❌ Erreur lors de la désactivation de la 2FA.";
-			alert("Erreur lors de la désactivation.");
+			msg.textContent = "2FA is not enabled.";
+			alert("Error disabling 2FA, it may not be enabled.");
 			}
 		});
 	}
