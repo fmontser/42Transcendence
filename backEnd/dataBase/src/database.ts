@@ -70,7 +70,9 @@ function setTables(): void {
 			player1_id INTEGER,
 			player1_score INTEGER,
 			winner_id INTEGER,
-			disconnected BOOLEAN
+			disconnected BOOLEAN,
+			FOREIGN KEY (player0_id) REFERENCES users(id) ON DELETE CASCADE,
+			FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS tournaments (
@@ -266,6 +268,32 @@ function setEndPoints(): void {
   		AND f.status = 'accepted'
 		`,
 		"Failed to get accepted friendships"
+	);
+
+	new EndPoints.getEndpoint(
+		"/get/matchs",
+		`SELECT
+			self_profile.pseudo AS user_pseudo,
+			enemy_profile.pseudo AS enemy_pseudo,
+			CASE 
+				WHEN m.player0_id = self_profile.user_id THEN m.player0_score
+				ELSE m.player1_score
+			END AS user_score,
+			CASE 
+				WHEN m.player0_id = self_profile.user_id THEN m.player1_score
+				ELSE m.player0_score
+			END AS enemy_score,
+			winner_profile.pseudo AS winner_pseudo
+		FROM matches m
+		JOIN profiles self_profile ON (m.player0_id = self_profile.user_id OR m.player1_id = self_profile.user_id)
+		JOIN profiles enemy_profile ON (
+			(m.player0_id = enemy_profile.user_id OR m.player1_id = enemy_profile.user_id)
+			AND enemy_profile.user_id != self_profile.user_id
+		)
+		LEFT JOIN profiles winner_profile ON winner_profile.user_id = m.winner_id
+		WHERE self_profile.user_id = ?;
+		`,
+		"Failed to get matches data"
 	);
 
 	new EndPoints.postEndpoint(
