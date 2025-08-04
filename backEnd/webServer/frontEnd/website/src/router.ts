@@ -352,6 +352,37 @@ const routes: Page[] = [
 		}
 	},
 	{
+		path: "/friend_profile",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/friend_profile", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				let data: string = await response.text();
+				const root = document.getElementById('root');
+				if (root) {
+					root.innerHTML = data;
+				import(`./friend_profile.js`)
+					.then((module) => {		
+						module.init();
+					});
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+	{
 		path: "/logout",
 		view: async () => {
 			try
@@ -421,7 +452,7 @@ window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
 
-function customPushState(state: any, title: string, url: string) {
+export function customPushState(state: any, title: string, url: string) {
 	history.pushState(state, title, url);
 	
 	// Save custom history stack to sessionStorage
