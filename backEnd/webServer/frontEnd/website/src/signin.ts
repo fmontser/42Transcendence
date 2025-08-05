@@ -50,18 +50,23 @@ const signinForm: HTMLFormElement = document.getElementById('signin-form') as HT
 				} 
 				else 
 				{
-					console.error('Signin failed:', response.status, response.statusText);
+					const errorElem = document.getElementById('error') as HTMLParagraphElement | null;
+					const responseData = await response.json();
+					if (errorElem) {
+						errorElem.textContent = responseData.error || "An error occurred during signin. Please try again.";
+					}
+					console.error('Signin failed:', response.status, responseData.error);
 				}
 			}
 			catch (error)
 			{
-			console.error('An error occurred during the sigin request:', error);
+				console.error('An error occurred during the sigin request:', error);
 			}
 		});
 		}
 	else
 	{
-		console.error('The form with ID "login-form" was not found.'); // Add for debugging
+		console.error('The form with ID "signin-form" was not found.'); // Add for debugging
 	}
 	initialize()
 }

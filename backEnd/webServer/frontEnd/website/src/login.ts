@@ -45,7 +45,11 @@ if (loginForm)
 			} 
 		  	else 
 			{
-				console.error('Login failed:', response.status, response.statusText);
+				const errorElem = document.getElementById('error') as HTMLParagraphElement | null;
+				if (errorElem) {
+					errorElem.textContent = data.error || "An error occurred during login. Please try again.";
+				}
+				console.error('Login failed:', response.status, data.error);
 			}
 		}
 		catch (error)

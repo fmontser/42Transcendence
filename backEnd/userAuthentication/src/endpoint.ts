@@ -290,11 +290,11 @@ export class LogInEndpoint extends Endpoint {
 
 			console.log(data);
 			if (data.length === 0) {
-				reply.status(404).send({ error: 'User not found' });
+				reply.status(404).send({ error: 'Invalid username or password' });
 				return;
 			}
 			if (data[0].login_method !== 'local') {
-				reply.status(403).send({ error: 'User login method is not local' });
+				reply.status(403).send({ error: 'Please connect using Google Sign-In' });
 				return;
 			}
 			console.log(data[0].pass, pass);
@@ -302,7 +302,7 @@ export class LogInEndpoint extends Endpoint {
 			const isValidPassword = await bcrypt.compare(pass, data[0].pass);
 
 			if (!isValidPassword) {
-				reply.status(401).send({ error: 'Invalid credentials' });
+				reply.status(401).send({ error: 'Invalid username or password' });
 				return;
 			}
 
@@ -324,7 +324,7 @@ export class LogInEndpoint extends Endpoint {
 					secure: true,
 					sameSite: 'lax',
 					path: '/',
-					maxAge: 3600 * 24 * 30 * 3       // 1h ..o..un trimestre...//TODO restablecer
+					maxAge: 3600
 				})
 				.send({ success: true });
 			}
@@ -340,6 +340,21 @@ export class CreateUserEndpoint extends Endpoint {
 			const pass = request.body.pass;
 			if (!name || !pass) {
 				reply.status(400).send({ error: 'Name and password are required' });
+				return;
+			}
+			if (name.length < 3 || name.length > 20) {
+				console.error(`CreateUserEndpoint: ${this.errorMsg} - Name length is invalid`);
+				reply.status(400).send({ error: 'Name must be between 3 and 20 characters' });
+				return;
+			}
+			if (pass.length < 6 || pass.length > 20) {
+				console.error(`CreateUserEndpoint: ${this.errorMsg} - Password length is invalid`);
+				reply.status(400).send({ error: 'Password must be between 6 and 20 characters' });
+				return;
+			}
+			if (!/^[a-zA-Z0-9@._-]+$/.test(name)) {
+				console.error(`CreateUserEndpoint: ${this.errorMsg} - Name contains invalid characters`);
+				reply.status(400).send({ error: 'Name can only contain alphanumeric characters, @, ., _ and -' });
 				return;
 			}
 
@@ -488,7 +503,7 @@ export class TwoFAEnableEndpoint extends Endpoint {
 			});
 			if (!resUpdateStatus.ok) {
 				console.error(`Failed to update 2FA status for user ${user.id}`);
-				return reply.status(500).send({ error: "Failed to update DB" });
+				return reply.status(500).send({ error: "Internal server error" });
 			}
 
 			console.log(`2FA enabled for user ${user.id}`);
@@ -509,7 +524,7 @@ export class TwoFADeleteEndpoint extends Endpoint {
 			const response = await fetch(`http://dataBase:3000/get/userfa?id=${user.id}`);
 			if (!response.ok) {
 				console.error(`Failed to fetch user data for 2FA deletion: ${response.statusText}`);
-				return reply.status(500).send({ error: "Failed to fetch user data" });
+				return reply.status(500).send({ error: "Internal server error" });
 			}
 			const userData = await response.json();
 			if (!userData[0].two_fa){
@@ -525,7 +540,7 @@ export class TwoFADeleteEndpoint extends Endpoint {
 			});
 			if (!resUpdateStatus.ok) {
 				console.error(`Failed to update 2FA status for user ${user.id}`);
-				return reply.status(500).send({ error: "Failed to update DB" });
+				return reply.status(500).send({ error: "Internal server error" });
 			}
 
 			console.log(`2FA disabled for user ${user.id}`);
@@ -570,7 +585,7 @@ export class TwoFALoginEndpoint extends Endpoint {
       const response = await fetch(`http://dataBase:3000/get/userfa?id=${userId}`);
       if (!response.ok) {
         console.error(`Failed to fetch user ${userId} for 2FA login`);
-        return reply.status(500).send({ error: "Failed to fetch user data" });
+        return reply.status(500).send({ error: "Internal server error" });
       }
 
       const userData = await response.json();
@@ -626,7 +641,7 @@ export class TwoFAStatusEndpoint extends Endpoint {
 			const response = await fetch(`http://dataBase:3000/get/2fastatus?id=${user.id}`);
 			if (!response.ok) {
 				console.error(`Failed to fetch user data for 2FA status: ${response.statusText}`);
-				return reply.status(500).send({ error: "Failed to fetch user data" });
+				return reply.status(500).send({ error: "Internal server error" });
 			}
 			const userData = await response.json();
 			if (userData.length === 0) {
