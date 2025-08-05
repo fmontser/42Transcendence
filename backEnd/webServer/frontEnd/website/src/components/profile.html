@@ -29,11 +29,31 @@
           <button id="editPseudoBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
             Modify alias</button>
           <button id="savePseudoBtn" class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-            Save channges</button>
+            Save changes</button>
         </div>
+
+        <p id="errorPseudoMessage" class="text-sm font-semibold h-6 text-center"></p>
       </div>
 
-<!--2Auth-->
+<!--Bio-->
+      <div class="flex flex-col sm:flex-row sm:items-start sm:gap-4">
+        <p class="text-lg font-semibold text-white w-28 shrink-0 pt-2">
+          Bio :
+          <div class="flex-grow mt-2 sm:mt-0">
+            <span id="bio" class="text-lg text-indigo-400 font-medium">...</span>
+            <textarea id="bioInput" maxlength="50" class="hidden"></textarea>
+          </div>
+          <div class="shrink-0 mt-2 sm:mt-0">
+            <button id="editBioBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
+              Modify bio</button>
+            <button id="saveBioBtn" class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
+              Save changes</button>
+          </div>
+          <p id="errorBioMessage" class="text-sm font-semibold h-6 text-center"></p>
+        </p>
+      </div>
+
+      <!--2Auth-->
 <div id="twoFA-section">
   <p class="text-lg font-semibold text-white w-35 shrink-0">
     Two Factor Authentication:</p>
@@ -64,22 +84,6 @@
     <p id="twoFAStatusMessage" class="text-sm font-semibold h-6 text-center text-green-400"></p>
   </div>
 </div>
-<!--Bio-->
-      <div class="flex flex-col sm:flex-row sm:items-start sm:gap-4">
-        <p class="text-lg font-semibold text-white w-28 shrink-0 pt-2">
-          Bio :
-          <div class="flex-grow mt-2 sm:mt-0">
-            <span id="bio" class="text-lg text-indigo-400 font-medium">...</span>
-            <textarea id="bioInput" maxlength="50" class="hidden"></textarea>
-          </div>
-          <div class="shrink-0 mt-2 sm:mt-0">
-            <button id="editBioBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300 whitespace-nowrap">
-              Modify bio</button>
-            <button id="saveBioBtn" class="hidden bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-300">
-              Save changes</button>
-          </div>
-        </p>
-      </div>
 <!--Creation date and experience?-->
       <div class="pt-6 border-t border-gray-700 space-y-2">
         <p class="text-lg text-gray-400">
@@ -88,7 +92,7 @@
           Experience : <span id="experience">...</span></p>
       </div>
     </div>
-
+<!-- 
     <input 
       type="text" 
       id="searchInput" 
@@ -97,7 +101,7 @@
     />
 
     <ul id="list" class="space-y-2"></ul>
-    <p id="message" class="mt-2 font-semibold"></p>
+    <p id="message" class="mt-2 font-semibold"></p> -->
 
 
     <div class="mt-8 text-center">

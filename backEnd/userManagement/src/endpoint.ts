@@ -595,6 +595,16 @@ export class ModifyBioEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'Bio is required' });
 				return;
 			}
+
+			if (bio.length > 500) {
+				reply.status(400).send({ error: 'Bio must be less than 500 characters' });
+				return;
+			}
+			if (!/^[\w\s.,!?'"@#&()\-:;\/\\\[\]{}|<>€£$%^*+=~`àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜÇáéíóúÁÉÍÓÚñÑüÜ¡¿]*$/.test(bio)) {
+				reply.status(400).send({ error: 'Bio contains invalid characters' });
+				return;
+			}
+
 			const response = await fetch('http://dataBase:3000/patch/bio', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
@@ -622,6 +632,27 @@ export class ModifyPseudoEndpoint extends Endpoint {
 				reply.status(400).send({ error: 'Pseudo is required' });
 				return;
 			}
+
+			if (pseudo.trim().length === 0) {
+				reply.status(400).send({ error: 'Pseudo cannot be only whitespace' });
+				return;
+			}
+			if (!/^[\w .,!?'"@#&()\-:;\/\\\[\]{}|<>€£$%^*+=~`àâäéèêëîïôöùûüçÀÂÄÉÈÊËÎÏÔÖÙÛÜáéíóúÁÉÍÓÚñÑüÜ¡¿Ç]*$/.test(pseudo)) {
+				reply.status(400).send({ error: 'Pseudo contains invalid characters' });
+				return;
+			}
+
+			if (pseudo.length < 3) {
+				reply.status(400).send({ error: 'Pseudo must be at least 3 characters' });
+				return;
+			}
+
+			if (pseudo.length > 20) {
+				reply.status(400).send({ error: 'Pseudo must be less than 20 characters' });
+				return;
+			}
+			
+
 			const response = await fetch('http://dataBase:3000/patch/pseudo', {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
