@@ -299,7 +299,13 @@ export async function loadProfile() {
 				const matchElement = clone.querySelector('div')!;
 				matchElement.classList.add(isWin ? 'bg-green-700' : 'bg-red-700');
 
-				clone.querySelector('.enemy-pseudo')!.textContent = match.enemy_pseudo;
+				const enemySpan = clone.querySelector('.enemy-pseudo')!;
+				enemySpan.textContent = match.enemy_pseudo;
+				enemySpan.addEventListener('click', () => {
+					history.pushState(null, '', "friend_profile");
+					changeFriendIDProfile(match.enemy_id);
+					router();
+				});
 				clone.querySelector('.score-text')!.textContent = `${match.user_score} : ${match.enemy_score}`;
 
 				const badge = clone.querySelector('.result-badge')!;
