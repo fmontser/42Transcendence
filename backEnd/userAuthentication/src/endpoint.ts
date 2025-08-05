@@ -483,6 +483,15 @@ export class TwoFAEnableEndpoint extends Endpoint {
 				return reply.status(400).send({ error: "No 2FA setup in progress" });
 			}
 
+			if (!token) {
+				console.error(`2FA token is missing for user ${user.id}`);
+				return reply.status(400).send({ error: "Missing 2FA token" });
+			}
+			if (token.length !== 6 || !/^\d+$/.test(token)) {
+				console.error(`Invalid 2FA token format for user ${user.id}`);
+				return reply.status(400).send({ error: "Invalid 2FA token format" });
+			}
+
 			const verified = speakeasy.totp.verify({
 				secret,
 				encoding: "base32",

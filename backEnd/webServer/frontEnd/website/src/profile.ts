@@ -1,3 +1,4 @@
+import { error } from 'console';
 import { router } from './router.js';
 import { customPushState } from './router.js';
 import {createWebSocket, closeWebSocket, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
@@ -148,9 +149,15 @@ export async function loadProfile() {
 	
 	if (response.ok) {
 		(document.getElementById('bio')!).textContent = newBio;
-		(document.getElementById('message')!).textContent = 'Bio mise à jour.';
+		(document.getElementById('errorBioMessage')!).classList.remove('text-red-500');
+		(document.getElementById('errorBioMessage')!).classList.add('text-green-500');
+		(document.getElementById('errorBioMessage')!).textContent = 'Bio updated successfully.';
 	  } else {
-		(document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour de la bio.';
+		const errorData = await response.json();
+		console.error('Error updating bio: ', errorData.error);
+		(document.getElementById('errorBioMessage')!).classList.remove('text-green-500');
+		(document.getElementById('errorBioMessage')!).classList.add('text-red-500');
+		(document.getElementById('errorBioMessage')!).textContent = errorData.error || 'Error updating bio.';
 	  }
 	
 		document.getElementById('bio')!.classList.remove('hidden');
@@ -190,9 +197,15 @@ export async function loadProfile() {
 
 		if (response.ok) {
 		  (document.getElementById('pseudo')!).textContent = newPseudo;
-		  (document.getElementById('message')!).textContent = 'Pseudo mis à jour.';
+		  (document.getElementById('errorPseudoMessage')!).classList.remove('text-red-500');
+		  (document.getElementById('errorPseudoMessage')!).classList.add('text-green-500');
+		  (document.getElementById('errorPseudoMessage')!).textContent = 'Pseudo updated successfully.';
 		} else {
-		  (document.getElementById('message')!).textContent = 'Erreur lors de la mise à jour du pseudo.';
+		  const errorData = await response.json();
+		  console.error('Error updating pseudo: ', errorData.error);
+		  (document.getElementById('errorPseudoMessage')!).classList.remove('text-green-500');
+		  (document.getElementById('errorPseudoMessage')!).classList.add('text-red-500');
+		  (document.getElementById('errorPseudoMessage')!).textContent = errorData.error || 'Error updating pseudo.';
 		}
 
 		document.getElementById('pseudo')!.classList.remove('hidden');
@@ -218,12 +231,13 @@ export async function loadProfile() {
 		  credentials: 'include'
 		});
 		
+		const pseudos = await response.json(); // attend [{ pseudo: 'alice', user_id:'1' }, { pseudo: 'bob', user_id:'2' }]
+
 		if (!response.ok) {
-		  (list!).innerHTML = '<li>Erreur lors de la récupération des pseudos.</li>';
+		  const errorData = await response.json();
+		  (list!).innerHTML = `<li>${errorData.error || 'Error fetching pseudos.'}</li>`;
 		  return;
 		}
-		
-		const pseudos = await response.json(); // attend [{ pseudo: 'alice', user_id:'1' }, { pseudo: 'bob', user_id:'2' }]
 
 		if (Array.isArray(pseudos) && pseudos.length > 0) {
 		  pseudos.forEach(({ pseudo, user_id }) => {
@@ -257,11 +271,11 @@ export async function loadProfile() {
 		
 			  const message = document.getElementById('message');
 			  if (res.ok) {
-				(message!).textContent = `Requête d'amitié envoyée à ${pseudo}`;
+				(message!).textContent = `Friend request sent to ${pseudo}`;
 				message!.classList.add('text-green-500');
 
 			  } else {
-				(message!).textContent = `Erreur lors de l'ajout de ${pseudo}`;
+				(message!).textContent = `Error sending friend request to ${pseudo}`;
 				message!.classList.add('text-red-500');
 
 			  }
@@ -271,8 +285,6 @@ export async function loadProfile() {
 			li.appendChild(button);
 			(list!).appendChild(li);
 		  });
-		} else {
-			(list!).innerHTML = '<li>Aucun pseudo trouvé.</li>';
 		}
 		
 	});
@@ -478,7 +490,7 @@ const blockFriendship = async (ID: number) => {
 			body: JSON.stringify({ id: ID })
 		});
 		if (!postResponse.ok) {
-			throw new Error('Erreur blocking friendship');
+			throw new Error('Error blocking friendship');
 		}
 		// const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
 	  	// (element).remove()
@@ -500,7 +512,7 @@ const deleteFriendship = async (ID: number) => {
 		body: JSON.stringify({ id: ID })
 	  });
 	  if (!postResponse.ok) {
-		throw new Error('Erreur deleting friendship');
+		throw new Error('Error deleting friendship');
 	  }
 
 	  const element = document.getElementById(`friend-${ID}`) as HTMLDivElement;
@@ -815,8 +827,10 @@ async function twoFactorAuthentication()
 					msg.classList.add('text-green-500');
 					msg.textContent = "2FA enabled";
 				} else {
+					const errorData = await response.json();
+					console.error('Error enabling 2FA: ', errorData.error);
 					msg.classList.add('text-red-500');
-					msg.textContent = "Wrong code, please try again.";
+					msg.textContent = errorData.error || 'Error enabling 2FA.';
 				}
 			});
 		}
