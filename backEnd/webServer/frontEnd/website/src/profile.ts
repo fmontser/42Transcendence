@@ -223,71 +223,162 @@ export async function loadProfile() {
 
 	//Show pseudos
 	(document.getElementById('showPseudosBtn')!).addEventListener('click', async () => {
-		const list = document.getElementById('pseudoList');
-		(list!).innerHTML = ''; // Réinitialise la liste
-		
+		const list = document.getElementById('pseudoList')!;
+		const searchInput = (document.getElementById('searchInput') as HTMLInputElement);
+		const message = document.getElementById('message')!;
+		list.innerHTML = ''; // Clear list
+		message.textContent = ''; // Clear message
+
+		// Get the search term (lowercased)
+		const searchTerm = searchInput.value.trim().toLowerCase();
+
+		// Fetch pseudos
 		const response = await fetch('/usermanagement/front/get/pseudos', {
-		  method: 'GET',
-		  credentials: 'include'
+			method: 'GET',
+			credentials: 'include'
 		});
-		
-		const pseudos = await response.json(); // attend [{ pseudo: 'alice', user_id:'1' }, { pseudo: 'bob', user_id:'2' }]
+
+		let pseudos;
+		try {
+			pseudos = await response.json();
+		} catch (err) {
+			list.innerHTML = `<li class="text-red-500">Invalid server response.</li>`;
+			return;
+		}
 
 		if (!response.ok) {
-		  const errorData = await response.json();
-		  (list!).innerHTML = `<li>${errorData.error || 'Error fetching pseudos.'}</li>`;
-		  return;
+			const errorMessage = (pseudos?.error) ? pseudos.error : 'Error fetching pseudos.';
+			list.innerHTML = `<li class="text-red-500">${errorMessage}</li>`;
+			return;
 		}
 
-		if (Array.isArray(pseudos) && pseudos.length > 0) {
-		  pseudos.forEach(({ pseudo, user_id }) => {
+		// Filter based on search input
+		const filtered = Array.isArray(pseudos)
+			? pseudos.filter(({ pseudo }) =>
+				pseudo.toLowerCase().includes(searchTerm)
+			)
+			: [];
+
+		if (filtered.length === 0) {
+			list.innerHTML = '<li class="text-white">No matching pseudos found.</li>';
+			return;
+		}
+
+		// Display filtered pseudos
+		filtered.forEach(({ pseudo, user_id }) => {
 			const li = document.createElement('li');
-			li.classList.add('text-white', 'mb-2.5', 'flex', 'justify-between', 'items-center', 'gap-2.5', 'font-bold');
-		
+			li.classList.add(
+			'text-white', 'mb-2.5', 'flex', 'justify-between',
+			'items-center', 'gap-2.5', 'font-bold'
+			);
+
 			const span = document.createElement('span');
+			span.textContent = pseudo || 'Inconnu';
 
 			span.addEventListener("click", () => {
+				history.pushState(null, '', "friend_profile");
+				changeFriendIDProfile(user_id);
+				router();
+			});
 
-				 //console.log("friend id before sessionStorage:", friend.friend_id);
-				 //customPushState(null, '', "friend_profile");
-				 history.pushState(null, '', "friend_profile");
-				 changeFriendIDProfile(user_id)
-				 router();
-
-			})
-			span.textContent = pseudo || 'Inconnu';
 			const button = document.createElement('button');
 			button.textContent = 'Add';
-			button.classList.add('bg-green-600', 'rounded', 'py-1', 'px-3', 'hover:bg-green-700', 'text-white', 'font-bold');//, 'hover:bg-green-700', 'text-white font-bold', 'py-1', 'px-3');
+			button.classList.add(
+			'bg-green-600', 'rounded', 'py-1', 'px-3',
+			'hover:bg-green-700', 'text-white', 'font-bold'
+			);
+
 			button.addEventListener('click', async () => {
-			  const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
-				method: 'POST',
-				credentials: 'include',
-				headers: {
-				  'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ targetPseudo: pseudo })
-			  });
-		
-			  const message = document.getElementById('message');
-			  if (res.ok) {
-				(message!).textContent = `Friend request sent to ${pseudo}`;
-				message!.classList.add('text-green-500');
+				const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
+					method: 'POST',
+					credentials: 'include',
+					headers: {
+					'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ targetPseudo: pseudo })
+				});
 
-			  } else {
-				(message!).textContent = `Error sending friend request to ${pseudo}`;
-				message!.classList.add('text-red-500');
-
-			  }
+				if (res.ok) {
+					message.textContent = `Friend request sent to ${pseudo}`;
+					message.className = 'text-green-500 font-semibold';
+				} else {
+					message.textContent = `Error sending friend request to ${pseudo}`;
+					message.className = 'text-red-500 font-semibold';
+				}
 			});
-		
+
 			li.appendChild(span);
 			li.appendChild(button);
-			(list!).appendChild(li);
-		  });
-		}
-		
+			list.appendChild(li);
+		});
 	});
+
+	// (document.getElementById('showPseudosBtn')!).addEventListener('click', async () => {
+	// 	const list = document.getElementById('pseudoList');
+	// 	(list!).innerHTML = ''; // Réinitialise la liste
+		
+	// 	const response = await fetch('/usermanagement/front/get/pseudos', {
+	// 	  method: 'GET',
+	// 	  credentials: 'include'
+	// 	});
+		
+	// 	const pseudos = await response.json(); // attend [{ pseudo: 'alice', user_id:'1' }, { pseudo: 'bob', user_id:'2' }]
+
+	// 	if (!response.ok) {
+	// 	  const errorData = await response.json();
+	// 	  (list!).innerHTML = `<li>${errorData.error || 'Error fetching pseudos.'}</li>`;
+	// 	  return;
+	// 	}
+
+	// 	if (Array.isArray(pseudos) && pseudos.length > 0) {
+	// 	  pseudos.forEach(({ pseudo, user_id }) => {
+	// 		const li = document.createElement('li');
+	// 		li.classList.add('text-white', 'mb-2.5', 'flex', 'justify-between', 'items-center', 'gap-2.5', 'font-bold');
+		
+	// 		const span = document.createElement('span');
+
+	// 		span.addEventListener("click", () => {
+
+	// 			 //console.log("friend id before sessionStorage:", friend.friend_id);
+	// 			 //customPushState(null, '', "friend_profile");
+	// 			 history.pushState(null, '', "friend_profile");
+	// 			 changeFriendIDProfile(user_id)
+	// 			 router();
+
+	// 		})
+	// 		span.textContent = pseudo || 'Inconnu';
+	// 		const button = document.createElement('button');
+	// 		button.textContent = 'Add';
+	// 		button.classList.add('bg-green-600', 'rounded', 'py-1', 'px-3', 'hover:bg-green-700', 'text-white', 'font-bold');//, 'hover:bg-green-700', 'text-white font-bold', 'py-1', 'px-3');
+	// 		button.addEventListener('click', async () => {
+	// 		  const res = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/post/friendship`, {
+	// 			method: 'POST',
+	// 			credentials: 'include',
+	// 			headers: {
+	// 			  'Content-Type': 'application/json'
+	// 			},
+	// 			body: JSON.stringify({ targetPseudo: pseudo })
+	// 		  });
+		
+	// 		  const message = document.getElementById('message');
+	// 		  if (res.ok) {
+	// 			(message!).textContent = `Friend request sent to ${pseudo}`;
+	// 			message!.classList.add('text-green-500');
+
+	// 		  } else {
+	// 			(message!).textContent = `Error sending friend request to ${pseudo}`;
+	// 			message!.classList.add('text-red-500');
+
+	// 		  }
+	// 		});
+		
+	// 		li.appendChild(span);
+	// 		li.appendChild(button);
+	// 		(list!).appendChild(li);
+	// 	  });
+	// 	}
+		
+	// });
 
 	const matchsResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/matchlist`, {
 		method: 'GET',
