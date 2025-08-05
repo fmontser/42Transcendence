@@ -47,7 +47,6 @@ export class GetFriendMatchListEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`GetFriendMatchListEndpoint: ${this.path} called`);
-			const user = request.user;
 			const friendId = request.query.id;
 
 			if (!friendId) {
@@ -55,32 +54,32 @@ export class GetFriendMatchListEndpoint extends Endpoint {
 				return;
 			}
 
-			const response1 = await fetch(
-				`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
-				{ method: 'GET' }
-			);
-			if (!response1.ok) {
-				server.log.error(`GetFriendMatchListEndpoint: ${this.errorMsg} - `, response1.statusText);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-				return;
-			}
-			const friends = await response1.json();
-			console.log('GetFriendMatchListEndpoint: Friends data received:', friends);
-			let isFriend = false;
-			for (const friend of friends) {
-				if (friend.id.toString() === friendId) {
-					console.log(`GetFriendMatchListEndpoint: User ${user.id} is friends with ${friendId}`);
-					isFriend = true;
-					break;
-				}
-				console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friend.id}`);
-			}
+			// const response1 = await fetch(
+			// 	`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
+			// 	{ method: 'GET' }
+			// );
+			// if (!response1.ok) {
+			// 	server.log.error(`GetFriendMatchListEndpoint: ${this.errorMsg} - `, response1.statusText);
+			// 	reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+			// 	return;
+			// }
+			// const friends = await response1.json();
+			// console.log('GetFriendMatchListEndpoint: Friends data received:', friends);
+			// let isFriend = false;
+			// for (const friend of friends) {
+			// 	if (friend.id.toString() === friendId) {
+			// 		console.log(`GetFriendMatchListEndpoint: User ${user.id} is friends with ${friendId}`);
+			// 		isFriend = true;
+			// 		break;
+			// 	}
+			// 	console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friend.id}`);
+			// }
 
-			if (!isFriend) {
-				console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friendId}`);
-				reply.status(403).send({ error: 'You are not friends with this user' });
-				return;
-			}
+			// if (!isFriend) {
+			// 	console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friendId}`);
+			// 	reply.status(403).send({ error: 'You are not friends with this user' });
+			// 	return;
+			// }
 
 			try {
 				const response = await fetch(`http://dataBase:3000/get/matchs?id=${friendId}`);
@@ -287,7 +286,7 @@ export class SeeFriendProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`SeeFriendProfileEndpoint: ${this.path} called`);
-			const user = request.user;
+			// const user = request.user;
 			const friendId = request.query.id;
 
 			if (!friendId) {
@@ -295,32 +294,32 @@ export class SeeFriendProfileEndpoint extends Endpoint {
 				return;
 			}
 
-			const response1 = await fetch(
-				`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
-				{ method: 'GET' }
-			);
-			if (!response1.ok) {
-				server.log.error(`SeeUserFriendshihpsEndpoint: ${this.errorMsg} - `, response1.statusText);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-				return;
-			}
-			const friends = await response1.json();
-			console.log('SeeFriendProfileEndpoint: Friends data received:', friends);
-			let isFriend = false;
-			for (const friend of friends) {
-				if (friend.id.toString() === friendId) {
-					console.log(`SeeFriendProfileEndpoint: User ${user.id} is friends with ${friendId}`);
-					isFriend = true;
-					break;
-				}
-				console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friend.id}`);
-			}
+			// const response1 = await fetch(
+			// 	`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
+			// 	{ method: 'GET' }
+			// );
+			// if (!response1.ok) {
+			// 	server.log.error(`SeeUserFriendshihpsEndpoint: ${this.errorMsg} - `, response1.statusText);
+			// 	reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+			// 	return;
+			// }
+			// const friends = await response1.json();
+			// console.log('SeeFriendProfileEndpoint: Friends data received:', friends);
+			// let isFriend = false;
+			// for (const friend of friends) {
+			// 	if (friend.id.toString() === friendId) {
+			// 		console.log(`SeeFriendProfileEndpoint: User ${user.id} is friends with ${friendId}`);
+			// 		isFriend = true;
+			// 		break;
+			// 	}
+			// 	console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friend.id}`);
+			// }
 
-			if (!isFriend) {
-				console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friendId}`);
-				reply.status(403).send({ error: 'You are not friends with this user' });
-				return;
-			}
+			// if (!isFriend) {
+			// 	console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friendId}`);
+			// 	reply.status(403).send({ error: 'You are not friends with this user' });
+			// 	return;
+			// }
 			// const id = request.query.id;
 			// if (!id) {
 			// 	reply.status(400).send({ error: 'User ID is required' });
@@ -443,7 +442,7 @@ export class SeeFriendshihpsPendingEndpoint extends Endpoint {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`SeeFriendshihpsPendingEndpoint: ${this.path} called`);
 			const user = request.user;
-			const response = await fetch(`http://dataBase:3000/get/friendships_pending?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}`, {
+			const response = await fetch(`http://dataBase:3000/get/friendships_pending?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeFriendshihpsPendingEndpoint: ${this.errorMsg} - `, response.statusText);
@@ -541,7 +540,7 @@ export class SeeFriendshihpsBlockedEndpoint extends Endpoint {
 		server.get(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
 			console.log(`SeeFriendshihpsBlockedEndpoint: ${this.path} called`);
 			const user = request.user;
-			const response = await fetch(`http://dataBase:3000/get/friendships_blocked?id1=${user.id}&id2=${user.id}&id3=${user.id}`, {
+			const response = await fetch(`http://dataBase:3000/get/friendships_blocked?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}`, {
 				method: 'GET'});
 			if (!response.ok) {
 				server.log.error(`SeeFriendshihpsBlockedEndpoint: ${this.errorMsg} - `, response.statusText);

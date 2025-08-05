@@ -155,7 +155,7 @@ function setEndPoints(): void {
 
 	new EndPoints.getEndpoint(
 		"/get/pseudos",
-		"SELECT pseudo FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
+		"SELECT pseudo, user_id FROM profiles WHERE pseudo IS NOT NULL AND user_id != ?",
 		"Failed to get users"
 	);
 
@@ -197,7 +197,11 @@ function setEndPoints(): void {
 		CASE 	
 			WHEN f.user_id = ? THEN p2.pseudo
 			ELSE p1.pseudo
-		END AS pseudo
+		END AS pseudo,
+		CASE
+			WHEN  f.user_id = ? THEN p2.id
+			ELSE p1.id
+		END AS friend_id
 		FROM friends f
 		JOIN profiles p1 ON p1.user_id = f.user_id
 		JOIN profiles p2 ON p2.user_id = f.friend_id
@@ -236,7 +240,11 @@ function setEndPoints(): void {
 		CASE 	
 			WHEN f.user_id = ? THEN p2.pseudo
 			ELSE p1.pseudo
-		END AS pseudo
+		END AS pseudo,
+		CASE
+			WHEN  f.user_id = ? THEN p2.id
+			ELSE p1.id
+		END AS friend_id
 		FROM friends f
 		JOIN profiles p1 ON p1.user_id = f.user_id
 		JOIN profiles p2 ON p2.user_id = f.friend_id
