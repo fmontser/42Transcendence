@@ -223,14 +223,24 @@ export async function loadProfile() {
 		  return;
 		}
 		
-		const pseudos = await response.json(); // attend [{ pseudo: 'alice' }, { pseudo: 'bob' }]
-		
+		const pseudos = await response.json(); // attend [{ pseudo: 'alice', user_id:'1' }, { pseudo: 'bob', user_id:'2' }]
+
 		if (Array.isArray(pseudos) && pseudos.length > 0) {
-		  pseudos.forEach(({ pseudo }) => {
+		  pseudos.forEach(({ pseudo, user_id }) => {
 			const li = document.createElement('li');
 			li.classList.add('text-white', 'mb-2.5', 'flex', 'justify-between', 'items-center', 'gap-2.5', 'font-bold');
 		
 			const span = document.createElement('span');
+
+			span.addEventListener("click", () => {
+
+				 //console.log("friend id before sessionStorage:", friend.friend_id);
+				 //customPushState(null, '', "friend_profile");
+				 history.pushState(null, '', "friend_profile");
+				 changeFriendIDProfile(user_id)
+				 router();
+
+			})
 			span.textContent = pseudo || 'Inconnu';
 			const button = document.createElement('button');
 			button.textContent = 'Add';

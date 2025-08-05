@@ -9,9 +9,6 @@ export async function init()
 		return;
 	}
 
-
-	
-
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friend_profile?id=${id}`, {
 		method: 'GET',
 		credentials: 'include'
