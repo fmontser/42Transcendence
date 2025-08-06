@@ -153,9 +153,10 @@ export class Tournament {
 		this.tournamentState.cards[4].avatar = this.findPlayerById(winnersArray[0][1]).avatar;
 		this.tournamentState.cards[5].name = this.findPlayerById(winnersArray[1][1]).name;
 		this.tournamentState.cards[5].avatar = this.findPlayerById(winnersArray[1][1]).avatar;
-		
-		this.changePhase(Phase.FINALS);
+
 		this.resetAllReadyStates();
+
+		console.log(`DEBUG: >>> post reset readyness state`, this.tournamentState);
 
 		setTimeout(() => {}, 3000);
 
