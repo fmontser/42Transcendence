@@ -11,6 +11,13 @@ volumes:
             type: none
             o: bind
             device: ${HOST_DB_VOL_PATH}
+    webServer-volume:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ${HOST_WS_VOL_PATH}
+
 
 services:
     proxy:
@@ -34,6 +41,8 @@ services:
         image: webserver-img
         restart: unless-stopped
         container_name: webServer
+        volumes:
+            - webServer-volume:/var/www/html/website/public/avatars
         networks:
             - proxy-network
             - backend-network

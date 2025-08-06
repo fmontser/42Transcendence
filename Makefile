@@ -53,6 +53,7 @@ all: build
 build:
 	@echo "Building docker images..."
 	@mkdir -p volumes/dataBase-volume/
+	@mkdir -p volumes/webServer-volume/website/public/avatars/
 	@make -C $(DB_DIR) install
 	@make -C $(MM_DIR) install
 	@make -C $(SP_DIR) install
@@ -64,6 +65,7 @@ build:
 build_nc:
 	@echo "Building docker images..."
 	@mkdir -p volumes/dataBase-volume/
+	@mkdir -p volumes/webServer-volume/website/public/avatars/
 	@make -C $(DB_DIR) install
 	@make -C $(MM_DIR) install
 	@make -C $(SP_DIR) install
