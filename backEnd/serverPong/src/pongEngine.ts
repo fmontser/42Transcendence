@@ -82,6 +82,7 @@ export abstract class PongGame {
 	protected gameLoop!: NodeJS.Timeout;
 	protected status!: Status;
 	protected winnerId!: number;
+	protected loserId!: number;
 	protected endType!: string;
 
 	constructor(player0Id: number, player1Id: number) {
@@ -217,9 +218,10 @@ export class StandardGame extends PongGame {
 		connection.send(JSON.stringify({
 			type: this.endType,
 			winnerId: this.winnerId,
+			loserId: this.loserId,
 			score: this.score
 		}))
-		console.log("Info: Sent game summary to matchMaker");
+		console.log(`Info: Sent game summary to matchMaker. WinnerId: ${this.winnerId} LoserId: ${this.loserId}`);
 	}
 
 	public gameEnd(disconnectedPlayer: Player | null): void {
@@ -227,11 +229,13 @@ export class StandardGame extends PongGame {
 		if (this.status == Status.COMPLETED)
 			return;
 		if (disconnectedPlayer != null) {
-			this.winnerId = this.players[P1].userId == disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
+			this.winnerId = this.players[P1].userId != disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
+			this.loserId = this.players[P1].userId == disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
 			this.endType = 'playerDisconnected';
 			this.status = Status.DISCONNECTED;
 		} else {
 			this.winnerId = this.score[P1] > this.score[P2] ? this.players[P1].userId : this.players[P2].userId;
+			this.loserId = this.score[P1] < this.score[P2] ? this.players[P1].userId : this.players[P2].userId;
 			this.endType = 'endGame';
 			this.status = Status.COMPLETED;
 		}
@@ -239,6 +243,7 @@ export class StandardGame extends PongGame {
 		this.broadcastSend(JSON.stringify({
 			type: this.endType,
 			winnerId: this.winnerId,
+			loserId: this.loserId,
 			score: this.score
 		}));
 		console.log("Info: Sent game summary to players");
