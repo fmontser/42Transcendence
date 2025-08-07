@@ -82,6 +82,11 @@ export class PongTournament {
 		const buttons = document.querySelectorAll('.readyButton');
 
 		buttons.forEach((btn, idx) => {
+			const pair = btn?.parentElement?.parentElement;
+
+			if (this.tournamentState.phase === Phase.SEMIFINALS && pair?.getAttribute("id") == "pair-2ab")
+				return;
+			
 			(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
 			(btn as HTMLButtonElement).disabled = true;
 			if (btn === this.getUserButton())

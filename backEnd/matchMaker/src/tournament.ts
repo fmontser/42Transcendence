@@ -90,7 +90,8 @@ export class Tournament {
 
 	public async drawSemifinals(): Promise<void> {
 		this.previousPhase = Phase.SEMIFINALS;
-		//TODO recuperar el randomizer cuando se solucione el problema de los resultados...
+
+		//TODO @@@@@@@@@@@@@@@ continuar aqui, drawpairings de alguna forma adultera el ranking final...
 		//await this.drawPairings(4, 500);
 		await this.sendReadyRequest();
 		await this.waitAllPlayersReady();
@@ -207,9 +208,6 @@ export class Tournament {
 
 		this.ranking = Array.from(this.players.entries());
 		this.ranking.sort((a,b) => b[1].score - a[1].score);
-
-		//TODO borrar debug
-		console.log(`DEBUG: ranking >>>`, this.ranking);
 
 		this.tournamentState.cards[6].name = this.ranking[0][1].name;
 		this.tournamentState.cards[6].avatar = this.ranking[0][1].avatar;
