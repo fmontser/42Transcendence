@@ -80,7 +80,7 @@ export class PongTournament {
 
 	public enableButtons(): void {
 		const buttons = document.querySelectorAll('.readyButton');
-	
+
 		buttons.forEach((btn, idx) => {
 			(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
 			(btn as HTMLButtonElement).disabled = true;
@@ -118,14 +118,11 @@ export class PongTournament {
 		this.tournamentFrame?.setAttribute("style", "display: block;")
 
 		if (this.tournamentState.phase === Phase.FINALS) {
-			const pair3cd = document.getElementById("pair3cd");
+			const pair3cd = document.getElementById("pair-3cd") as HTMLElement | null;
 			if (pair3cd)
-				pair3cd.style.display = 'none';
+				pair3cd.setAttribute("style", "display: none;")
 		}
 		else if (this.tournamentState.phase === Phase.COMPLETED){
-			
-
-			console.log(`DEBUG: TOURNAMENT FINAL STATE\n`, this.tournamentState);
 
 			let selectElements: Set<HTMLElement | null> = new Set<HTMLElement | null>();
 			

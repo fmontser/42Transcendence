@@ -129,6 +129,7 @@ export class MatchManager {
 					match.status = Status.COMPLETED;
 					match.score = data.score;
 					match.winnerId = data.winnerId;
+					match.loserId = data.loserId;
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
 					ws.close();
@@ -138,6 +139,7 @@ export class MatchManager {
 					match.status = Status.DISCONNECTED;
 					match.score = data.score;
 					match.winnerId = data.winnerId;
+					match.loserId = data.loserId;
 					this.postMatchEntry(match, data);
 					this.cleanMatch(match);
 					ws.close();
