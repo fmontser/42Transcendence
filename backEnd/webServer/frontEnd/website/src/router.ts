@@ -426,8 +426,11 @@ export const router = async () => {
 		console.log("finished");
 	}
 	else {
-
-		document.querySelector('#root')!.innerHTML = '<h1>404 - Page Not Found (dynamic)</h1>';
+		const response: Response = await fetch("/components/404", {
+			method: 'GET'
+		});
+		let data: string = await response.text();
+		document.querySelector('#root')!.innerHTML = data;
 	}
 }
 
