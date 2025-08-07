@@ -1,5 +1,6 @@
-import { StandardGame, Player, PongGame } from './pongEngine'
-import { P1, P2, standardGameManager } from './serverpong';
+import { StandardGame, Player } from './pongEngine'
+import { standardGameManager } from './serverpong';
+import { LocalGame } from './localGame';
 
 export abstract class Endpoint {
 	protected static list: Set<Endpoint> = new Set();
@@ -20,6 +21,12 @@ export abstract class Endpoint {
 			endpoint.add(server);
 	}
 
+	private async getPlayerName(userId: number): Promise<string> {
+		const response = await fetch(`http://dataBase:3000/get/username?id=${userId}`);
+		const data = await response.json();
+		return (data[0].name);
+	}
+
 	protected async validateSession(player: Player): Promise<boolean> {
 		const reply = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${this.sessionToken}`, {
 			method: 'GET'
@@ -28,13 +35,14 @@ export abstract class Endpoint {
 			const data = await reply.json();
 			console.log(`Info: UserId ${data.id} session confirmed`);
 			player.userId = data.id;
+			player.name = await this.getPlayerName(player.userId);
 			return (true);
 		} else {
 			console.log('Info: Invalid user session');
 			return (false);
 		}
 	}
-
+	
 	protected retrieveSessionToken(request: any): any {
 			const cookieHeader = request.headers.cookie;
 			if (cookieHeader) {
@@ -146,7 +154,7 @@ export class GetNewGame extends Endpoint {
 		server.get(this.path, { websocket: true }, async (connection: any, req: any) => {
 
 			let currentGame!: StandardGame;
-			let player: Player =  new Player(connection);
+			let player: Player = new Player(connection);
 
 			const sessionToken = this.retrieveSessionToken(req);
 			if (sessionToken == null || !(await this.validateSession(player))) {
@@ -161,7 +169,7 @@ export class GetNewGame extends Endpoint {
 					switch (jsonData.type) {
 						case 'setupRequest':
 							console.log(`Info: PlayerId ${player.userId} is requesting setup data`);
-							currentGame = standardGameManager.joinGame(player);
+							currentGame = await standardGameManager.joinGame(player);
 							currentGame.gameSetup(player);
 							console.log("Info: Sent setupResponse to user: " + player.userId);
 							break;
@@ -171,9 +179,9 @@ export class GetNewGame extends Endpoint {
 							currentGame.gameStart();
 							break;
 						case 'input':
-							if (player.userId == currentGame.player0Id)
+							if (player.userId == currentGame.players[0].userId)
 								currentGame.playField.paddle0.updateVector(jsonData.direction);
-							else if (player.userId == currentGame.player1Id)
+							else if (player.userId == currentGame.players[1].userId)
 								currentGame.playField.paddle1.updateVector(jsonData.direction);
 							break;
 					}
@@ -190,7 +198,7 @@ export class GetNewGame extends Endpoint {
 	}
 }
 
-import { LocalGame } from './localGame';
+
 //Local Game endpoint
 export class GetLocalGame extends Endpoint {
 	private currentGame!: LocalGame;

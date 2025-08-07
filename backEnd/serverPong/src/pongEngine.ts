@@ -2,12 +2,12 @@ import { PlayField } from './playField';
 import { Ball } from './ball';
 import { Paddle } from './paddle';
 
-import { P1, P2, TICK_INTERVAL,
+import { TICK_INTERVAL,
 		 PLAYFIELD_POS, PLAYFIELD_SIZE,
 		 PADDLE_SPEED, PADDLE_WIDTH, PADDLE_HEIGHT, PADDLE_MARGIN,
 		 BALL_RADIUS, BALL_SPEED,
 		 MAX_SCORE, 
-		 standardGameManager} from './serverpong';
+		 standardGameManager } from './serverpong';
 
 import { clearInterval } from 'timers';
 
@@ -18,10 +18,13 @@ enum Status {
 export class Player {
 	connection!: any;
 	userId!: number;
+	name!: string;
+	score!: number;
 	public isReady: boolean;
 
 	constructor(connection: any) {
 		this.connection = connection;
+		this.score = 0;
 		this.isReady = false;
 	}
 }
@@ -49,7 +52,7 @@ export class StandardGameManager {
 		let pongGame!: StandardGame;
 
 		for(const game of this.StandardGameList) {
-			if (game.player0Id == player.userId || game.player1Id == player.userId)
+			if (game.expectedPlayer0Id == player.userId || game.expectedPlayer1Id == player.userId)
 				pongGame = game;
 		}
 		return (pongGame);
@@ -59,7 +62,7 @@ export class StandardGameManager {
 		let game!: StandardGame;
 
 		for (const g of this.StandardGameList){
-			if (g.player0Id === userId || g.player1Id === userId)
+			if (g.players[0].userId === userId || g.players[1].userId === userId)
 				return (g);
 		}
 		return (null);
@@ -73,12 +76,11 @@ export class StandardGameManager {
 }
 
 export abstract class PongGame {
-	public score: number[];
-	public player0Id!: number;
-	public player1Id!: number;
 	public playField: PlayField;
-	protected players!: Player[];
-	protected maxScore: number;
+	public players!: Player[];
+	public expectedPlayer0Id!: number;
+	public expectedPlayer1Id!: number;
+
 	protected gameLoop!: NodeJS.Timeout;
 	protected status!: Status;
 	protected winnerId!: number;
@@ -87,24 +89,21 @@ export abstract class PongGame {
 
 	constructor(player0Id: number, player1Id: number) {
 
-		this.score = [0,0];
-		this.players = [];
-		this.maxScore = MAX_SCORE;
+		this.players = new Array(2);
 		this.status = Status.PENDING;
-		this.player0Id = player0Id;
-		this.player1Id = player1Id;
-
 		this.playField = new PlayField(this, PLAYFIELD_SIZE, PLAYFIELD_POS);
+		this.expectedPlayer0Id = player0Id;
+		this.expectedPlayer1Id = player1Id;
 
 		this.playField.setPaddle0(new Paddle(
-			P1,
+			0,
 			PADDLE_SPEED,
 			{width: PADDLE_WIDTH, height: PADDLE_HEIGHT},
 			{x: this.playField.bounds.left + PADDLE_MARGIN, y: this.playField.bounds.center.y - PADDLE_HEIGHT/2},
 		));
 
 		this.playField.setPaddle1(new Paddle(
-			P2,
+			1,
 			PADDLE_SPEED,
 			{width: PADDLE_WIDTH, height: PADDLE_HEIGHT},
 			{x: this.playField.bounds.right - PADDLE_MARGIN - PADDLE_WIDTH, y: this.playField.bounds.center.y - PADDLE_HEIGHT/2},
@@ -128,7 +127,12 @@ export class StandardGame extends PongGame {
 	}
 
 	public addPlayer(player: Player): void {
-		this.players.push(player);
+		if (player.userId == this.expectedPlayer0Id)
+			this.players[0] = player;
+		else if (player.userId == this.expectedPlayer1Id)
+			this.players[1] = player;
+		if (this.players[0] && this.players[1])
+			console.log(`Info: added player, ${this.players[0].name} vs ${this.players[1].name}`);
 	}
 
 	private playersReady(): boolean {
@@ -174,7 +178,7 @@ export class StandardGame extends PongGame {
 		else
 			this.status = Status.ONGOING;
 
-		console.log(`Info: Game has started!: [ id: ${this.player0Id} vs id: ${this.player1Id}]`);
+		console.log(`Info: Game has started!: [ id: ${this.players[0].userId} vs id: ${this.players[1].userId}]`);
 		this.playField.ball.launchBall();
 
 		this.gameLoop = setInterval(() => {
@@ -184,7 +188,7 @@ export class StandardGame extends PongGame {
 			this.playField.ball.transpose();
 			this.playField.ball.checkScore();
 
-			if (this.score[P1] >= this.maxScore || this.score[P2] >= this.maxScore) {
+			if (this.players[0].score >= MAX_SCORE || this.players[1].score >= MAX_SCORE) {
 				clearInterval(this.gameLoop);
 				this.gameEnd(null);
 				return;
@@ -197,7 +201,7 @@ export class StandardGame extends PongGame {
 					this.playField.paddle0.pos,
 					this.playField.paddle1.pos
 				],
-				score: this.score
+				score: [this.players[0].score, this.players[1].score]
 			}));
 			
 		}, TICK_INTERVAL);
@@ -219,7 +223,7 @@ export class StandardGame extends PongGame {
 			type: this.endType,
 			winnerId: this.winnerId,
 			loserId: this.loserId,
-			score: this.score
+			score: [this.players[0].score, this.players[1].score]
 		}))
 		console.log(`Info: Sent game summary to matchMaker. WinnerId: ${this.winnerId} LoserId: ${this.loserId}`);
 	}
@@ -229,13 +233,13 @@ export class StandardGame extends PongGame {
 		if (this.status == Status.COMPLETED)
 			return;
 		if (disconnectedPlayer != null) {
-			this.winnerId = this.players[P1].userId != disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
-			this.loserId = this.players[P1].userId == disconnectedPlayer.userId ? this.players[P1].userId : this.players[P2].userId;
+			this.winnerId = this.players[0].userId != disconnectedPlayer.userId ? this.players[0].userId : this.players[1].userId;
+			this.loserId = this.players[0].userId == disconnectedPlayer.userId ? this.players[0].userId : this.players[1].userId;
 			this.endType = 'playerDisconnected';
 			this.status = Status.DISCONNECTED;
 		} else {
-			this.winnerId = this.score[P1] > this.score[P2] ? this.players[P1].userId : this.players[P2].userId;
-			this.loserId = this.score[P1] < this.score[P2] ? this.players[P1].userId : this.players[P2].userId;
+			this.winnerId = this.players[0].score > this.players[1].score ? this.players[0].userId : this.players[1].userId;
+			this.loserId = this.players[0].score < this.players[1].score ? this.players[0].userId : this.players[1].userId;
 			this.endType = 'endGame';
 			this.status = Status.COMPLETED;
 		}
@@ -244,7 +248,7 @@ export class StandardGame extends PongGame {
 			type: this.endType,
 			winnerId: this.winnerId,
 			loserId: this.loserId,
-			score: this.score
+			score: [this.players[0].score, this.players[1].score]
 		}));
 		console.log("Info: Sent game summary to players");
 

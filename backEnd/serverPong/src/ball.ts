@@ -1,7 +1,7 @@
 import { GameObject, Pos, Vect2D } from './gameObject';
 import { Paddle } from './paddle';
 import { PlayField } from './playField'
-import { P1, P2, TICK_RATE } from './serverpong';
+import { TICK_RATE } from './serverpong';
 
 export class Ball extends GameObject {
 	radius: number;
@@ -31,13 +31,15 @@ export class Ball extends GameObject {
 	};
 
 	public checkScore(): void {
-		if ( this.pos.x + this.radius >= this.playField.bounds.right) {
+		let playerSlot: number = -1;
+
+		if ( this.pos.x + this.radius >= this.playField.bounds.right)
+			playerSlot = 0;
+		if ( this.pos.x - this.radius <= this.playField.bounds.left)
+			playerSlot = 1;
+		if (playerSlot > -1) {
 			this.launchBall();
-			this.playField.game.score[P1]++;
-		}
-		else if ( this.pos.x - this.radius <= this.playField.bounds.left){
-			this.launchBall();
-			this.playField.game.score[P2]++;
+			this.playField.game.players[playerSlot].score++;
 		}
 	}
 

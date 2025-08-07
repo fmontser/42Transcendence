@@ -90,7 +90,8 @@ export class Tournament {
 
 	public async drawSemifinals(): Promise<void> {
 		this.previousPhase = Phase.SEMIFINALS;
-		await this.drawPairings(4, 500);
+		//TODO recuperar el randomizer cuando se solucione el problema de los resultados...
+		//await this.drawPairings(4, 500);
 		await this.sendReadyRequest();
 		await this.waitAllPlayersReady();
 
