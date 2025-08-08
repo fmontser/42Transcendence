@@ -23,10 +23,10 @@ async function methodNotAllowed()
 const routes: Page[] = [
 
 	{
-		path: "/localtest",
+		path: "/localgame",
 		view: async () => {
 			try {
-				let response: Response = await fetch("/components/localtest", {
+				let response: Response = await fetch("/components/localgame", {
 					method: 'GET',
 					credentials: 'include'
 				});
@@ -40,7 +40,7 @@ const routes: Page[] = [
 					} else {
 						console.error('Root element not found');
 					}
-					import(`./localTest.js`)
+					import(`./localGame.js`)
 					.then((module) => {		
 						module.showStartScreen();
 					});

@@ -1,13 +1,13 @@
 let ws: WebSocket | null = null;
-const playField = document.getElementById('playField') as HTMLCanvasElement;
+let playField = document.getElementById('playField') as HTMLCanvasElement;
 if (!playField) {
 	throw new Error("Fatal Error: playField element not found in DOM.");
 }
-const ctx = playField.getContext('2d');
+let ctx = playField.getContext('2d');
 if (!ctx) {
 	throw new Error("Fatal Error: Canvas 2D context could not be created.");
 }
-const scoreElement = document.getElementById('score') as HTMLElement;
+let scoreElement = document.getElementById('score') as HTMLElement;
 if (!scoreElement) {
 	throw new Error("Fatal Error: scoreElement element not found in DOM.");
 }
@@ -266,9 +266,39 @@ function setup()
 }
 
 export function showStartScreen() {
-	setup();
-	// Fondo
+
+
+	ws = null;
+	playField = document.getElementById('playField') as HTMLCanvasElement;
+	if (!playField) {
+		throw new Error("Fatal Error: playField element not found in DOM.");
+	}
+	ctx = playField.getContext('2d');
+	if (!ctx) {
+		throw new Error("Fatal Error: Canvas 2D context could not be created.");
+	}
+	scoreElement = document.getElementById('score') as HTMLElement;
+	if (!scoreElement) {
+		throw new Error("Fatal Error: scoreElement element not found in DOM.");
+	}
+
+	PADDLE_WIDTH = 64;
+	PADDLE_HEIGHT = 256;
+	BALL_RADIUS = 32;
+
+	gameActive = false;
+	gameStarted = false;
+
+	console.log("ctx: ", ctx);
+	if (ctx)
+		console.log("True");
+	else
+		console.log("False");
+
 	console.log("1");
+	setup();
+	console.log("2");
+	// Fondo
 	(ctx!).fillStyle = '#1a1a1a';
 	(ctx!).fillRect(0, 0, playField.width, playField.height);
 
@@ -279,6 +309,7 @@ export function showStartScreen() {
 	(ctx!).fillText('PONG', playField.width/2, playField.height/3);
 
 	// Botón de inicio
+	console.log("3");
 	const buttonY = playField.height/2 + 50;
 	(ctx!).fillStyle = '#4CAF50';
 	(ctx!).fillRect(playField.width/2 - 100, buttonY, 200, 50);
@@ -286,6 +317,7 @@ export function showStartScreen() {
 	(ctx!).fillStyle = 'white';
 	(ctx!).font = '24px monospace';
 	(ctx!).fillText('Start Game', playField.width/2, buttonY + 32);
+	console.log("4");
 
 	// Listener para el botón
 	playField.addEventListener('click', handleStartClick);
