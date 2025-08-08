@@ -25,7 +25,7 @@ export abstract class Endpoint {
 	}
 }
 
-const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localtest", "friend_profile", "404"];
+const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localtest", "friend_profile", "404", "405"];
 
 interface UserProfile {
 	username: string;
@@ -181,7 +181,7 @@ export class AccessComponentEndpoint extends Endpoint {
 			{
 				console.log('User doesnt have credentials.');
 				console.log('File:', requestedFile);
-				if (requestedFile == "login" || requestedFile == "signin" || requestedFile == "404")
+				if (requestedFile == "login" || requestedFile == "signin" || requestedFile == "404" || requestedFile == "405")
 				{
 					const filePath = path.join('website/dist/components', `${requestedFile}.html`);
 					console.log("The file path:", filePath)
@@ -204,19 +204,9 @@ export class AccessComponentEndpoint extends Endpoint {
 					//	method: 'GET'});
 					//const data = await response.json();
 				}
-				else if (requestedFile == "home")
-				{
-					reply.status(405);
-					reply.send({ error: 'Method Not Allowed' });
-				}
 				else if (pages.includes(requestedFile))
 				{
-					console.log("should arrive here.");
-					const filePath = path.join('website/dist/components', `405.html`);
-					const data = await fs.readFile(filePath, 'utf-8');
-					reply.type('text/html; charset=utf-8')
-					reply.status(405).send({ error: "Method not allowed." });
-					//return;
+					reply.status(405);
 				}
 			}
 

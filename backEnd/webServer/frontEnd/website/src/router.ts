@@ -11,6 +11,15 @@ interface Page {
 	view: () => Promise<void>;
 }
 
+async function methodNotAllowed()
+{
+	const response: Response = await fetch("/components/405", {
+		method: 'GET'
+	});
+	let data: string = await response.text();
+	document.querySelector('#root')!.innerHTML = data;
+}
+
 const routes: Page[] = [
 
 	{
@@ -37,7 +46,7 @@ const routes: Page[] = [
 					});
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -76,7 +85,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -113,7 +122,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -152,7 +161,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -188,16 +197,16 @@ const routes: Page[] = [
 					} else {
 						console.error('Root element not found');
 					}
+					import(`./home.js`)
+					.then((module) => {		
+						module.loadWebSocket();
+					});
 				}
 				else {
 					history.pushState(null, '', "/login");
 					router();
 					return;
 				}
-				import(`./home.js`)
-    				.then((module) => {		
-						module.loadWebSocket();
-					});
 			}
 			catch (error: unknown)
 			{
@@ -263,23 +272,17 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				if (root) {
-					root.innerHTML = data;
-				// const newScript = document.createElement('script');
-				// newScript.src = './dist/signin.js?cb=${Date.now()}';
-				// newScript.type = 'module';
-				// newScript.async = true;
-				// document.body.appendChild(newScript);
-				// } else {
-				// 	console.error('Root element not found');
-				// }
-				//import("");
-				import(`./signin.js`)
-					.then((module) => {		
-						module.init();
-					});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					import(`./signin.js`)
+						.then((module) => {		
+							module.init();
+						});
+					}
 				}
 			}
 			catch (error: unknown)
@@ -320,7 +323,7 @@ const routes: Page[] = [
 				}
 				else
 				{
-					console.error("Unknown error.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -344,14 +347,21 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				if (root) {
-					root.innerHTML = data;
-				import(`./friend_profile.js`)
-					.then((module) => {		
-						module.init();
-					});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					import(`./friend_profile.js`)
+						.then((module) => {		
+							module.init();
+						});
+					}
+				}
+				else
+				{
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -376,7 +386,6 @@ const routes: Page[] = [
 					method: 'POST',
 					credentials: 'include'
 				});
-				
 				closeWebSocket();
 
 				//window.location.href="/login";
