@@ -38,26 +38,26 @@ interface UserProfile {
 
 }
 
-export class AccessProfileEndpoint extends Endpoint {
-	add(server: FastifyInstance): void {
-		server.get(this.path, async (request: FastifyRequest, reply: FastifyReply) => {
-			console.log("check 1");
-			const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
-				method: 'GET',
-				credentials: 'include',
-			});
-			if (!response.ok) {
-				console.log("something went wrong with profile_session fetch.");
-			}
-			console.log("check");
-			const sessionData = await response.json();
-			reply.type('application/json');
-			console.log("second check");
-			reply.send(sessionData);
-			console.log("third check");
-		});
-	}
-}
+// export class AccessProfileEndpoint extends Endpoint {
+// 	add(server: FastifyInstance): void {
+// 		server.get(this.path, async (request: FastifyRequest, reply: FastifyReply) => {
+// 			console.log("check 1");
+// 			const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
+// 				method: 'GET',
+// 				credentials: 'include',
+// 			});
+// 			if (!response.ok) {
+// 				console.log("something went wrong with profile_session fetch.");
+// 			}
+// 			console.log("check");
+// 			const sessionData = await response.json();
+// 			reply.type('application/json');
+// 			console.log("second check");
+// 			reply.send(sessionData);
+// 			console.log("third check");
+// 		});
+// 	}
+// }
 
 export class AccessLoginEndpoint extends Endpoint {
 	add(server: any): void {
@@ -111,8 +111,8 @@ async function isAuthentified (request: any): Promise<boolean>
 	let cred = false;
 	try
 	{
-		console.log("The token:");
-		console.log(token);
+		//console.log("The token:");
+		//console.log(token);
 		let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
 			method: 'GET',
 		});
@@ -140,31 +140,9 @@ export class AccessComponentEndpoint extends Endpoint {
 		server.get(this.path, async (request: any, reply: any) => {
 			//console.log(`AccessComponent endpoint: ${this.path} called`);
 			const requestedFile = request.params.name;
-			console.log("raw cookie:");
-			console.log(request.headers.cookie);
-			const cookies = parseCookies(request.headers.cookie);
-			const token: string | undefined = cookies.token;
-			let cred = 0
-			try {
-				console.log("The token:");
-				console.log(token);
-				let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
-					method: 'GET',
-				});
-				let data = await response.json();
-				if (response.ok)
-				{
-					console.log(data.id)
-					cred = 1;
-				}
-			} catch (error: unknown){
-				if (error instanceof Error)
-					{
-						console.error("Error:", error.message);
-					}
-					else
-						console.log("there's an error.");
-			}
+			//console.log("raw cookie:");
+			//console.log(request.headers.cookie);
+			let cred = await isAuthentified(request);
 			if (cred) //Has credentials fet
 			{
 				console.log('User has credentials.');
@@ -203,7 +181,7 @@ export class AccessComponentEndpoint extends Endpoint {
 			{
 				console.log('User doesnt have credentials.');
 				console.log('File:', requestedFile);
-				if (requestedFile == "login" || requestedFile == "signin")
+				if (requestedFile == "login" || requestedFile == "signin" || requestedFile == "404")
 				{
 					const filePath = path.join('website/dist/components', `${requestedFile}.html`);
 					console.log("The file path:", filePath)
@@ -226,11 +204,19 @@ export class AccessComponentEndpoint extends Endpoint {
 					//	method: 'GET'});
 					//const data = await response.json();
 				}
-				else
+				else if (requestedFile == "home")
 				{
-					console.log('File not found.');
-					reply.status(404).send({ error: `404 Not Found` });
-					return;
+					reply.status(405);
+					reply.send({ error: 'Method Not Allowed' });
+				}
+				else if (pages.includes(requestedFile))
+				{
+					console.log("should arrive here.");
+					const filePath = path.join('website/dist/components', `405.html`);
+					const data = await fs.readFile(filePath, 'utf-8');
+					reply.type('text/html; charset=utf-8')
+					reply.status(405).send({ error: "Method not allowed." });
+					//return;
 				}
 			}
 

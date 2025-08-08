@@ -190,8 +190,9 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					window.location.href="/login";
-					console.log("Fetch failed.");
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 				import(`./home.js`)
     				.then((module) => {		
@@ -302,40 +303,24 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				let cookies = document.cookie.split(';');
-				for (const c of cookies)
+				if (response.ok)
 				{
-					const [key, value] = c.trim().split('=');
-					//console.log("key-value: ", key, value);
-				}
-				if (root) {
-					root.innerHTML = data;
-					
-					// const existingScript = Array.from(document.scripts).find(script =>
-					// 	script.src.includes('profile.js')
-					// );
-					// console.log("Existing script: ", existingScript);
-					// if (existingScript)
-					// 	existingScript.remove();
-					// const newScript = document.createElement('script');
-					// newScript.src = `./dist/profile.js?cb=${Date.now()}`;
-					// newScript.async = true;
-					// document.body.appendChild(newScript);
-					import(`./profile.js`)
-    				.then((module) => {		
-						module.loadProfile();
-       	 // Use the exports from the module here.
-        // For example, if the module has a default export:
-        // module.default.someFunction();
-   					 });
-    				// .catch((err) => {
-        			// 	console.error("Failed to load the module:", err);
-   					//  });
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						import(`./profile.js`)
+						.then((module) => {		
+							module.loadProfile();
+						});
 
-				} else {
-					console.error('Root element not found');
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else
+				{
+					console.error("Unknown error.");
 				}
 			}
 			catch (error: unknown)

@@ -58,10 +58,10 @@ function setEndPoints(): void {
 		"Unknown error."
 	);
 	
-	new EndPoints.AccessProfileEndpoint(
-		"/access/profile",
-		"Unknown error."
-	);
+	// new EndPoints.AccessProfileEndpoint(
+	// 	"/access/profile",
+	// 	"Unknown error."
+	// );
 
 	new EndPoints.PostAvatarEndpoint(
 		"/post/avatar",
