@@ -71,6 +71,7 @@ function setTables(): void {
 			player1_score INTEGER,
 			winner_id INTEGER,
 			disconnected BOOLEAN,
+			date TEXT DEFAULT (strftime('%d-%m-%Y', 'now', 'localtime')),
 			FOREIGN KEY (player0_id) REFERENCES users(id) ON DELETE CASCADE,
 			FOREIGN KEY (player1_id) REFERENCES users(id) ON DELETE CASCADE
 		)`,
