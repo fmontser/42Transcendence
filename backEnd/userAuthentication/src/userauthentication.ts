@@ -20,7 +20,7 @@ function setEndPoints(): void {
 	);
 	
 	*/
-	//TODO este endpoint no tendria que estar expuesto!! uso exclusivo del backend (y /userauthentication/ es redundante..)
+
 	new EndPoints.ProfileEndpoint(
 		"/userauthentication/front/get/profile_session_with_token",
 		"Failed to retrieve user profile"
