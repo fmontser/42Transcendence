@@ -1,6 +1,6 @@
 
-import { Tournament, Phase, Player } from "./tournament";
-import { MatchManager, Status } from "./matchManager";
+import { Tournament, Phase } from "./tournament";
+import { MatchManager } from "./matchManager";
 import { matchManager } from "./matchmaker";
 import { Match } from "./match";
 
@@ -23,11 +23,11 @@ export class TournamentManager {
 					if (t.getPhase() === Phase.SEMIFINALS) {
 						await t.drawSemifinals();
 						await t.waitAllMatchesEnd();
-						t.setPhase(Phase.FINALS);
+						t.changePhase(Phase.FINALS);
 					} else if (t.getPhase() === Phase.FINALS) {
 						await t.drawFinals();
 						await t.waitAllMatchesEnd();
-						t.setPhase(Phase.COMPLETED);
+						t.changePhase(Phase.COMPLETED);
 					} else if (t.getPhase() === Phase.COMPLETED) {
 						await t.endTournament();
 						await this.closeTournament(t);
