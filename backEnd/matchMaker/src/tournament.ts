@@ -71,8 +71,7 @@ export class Tournament {
 			const cards = this.tournamentState.cards;
 			const dataToShuffle = cards.slice(0, 4).map(c => ({
 				name: c.name,
-				avatar: c.avatar,
-				ready: c.ready
+				avatar: c.avatar
 			}));
 
 			dataToShuffle.sort(() => Math.random() - 0.5);
@@ -80,7 +79,6 @@ export class Tournament {
 			for (let i = 0; i < 4; i++) {
 				cards[i].name = dataToShuffle[i].name;
 				cards[i].avatar = dataToShuffle[i].avatar;
-				cards[i].ready = dataToShuffle[i].ready;
 			}
 
 			this.broadcastStatus();
@@ -91,8 +89,7 @@ export class Tournament {
 	public async drawSemifinals(): Promise<void> {
 		this.previousPhase = Phase.SEMIFINALS;
 
-		//TODO @@@@@@@@@@@@@@@ continuar aqui, drawpairings de alguna forma adultera el ranking final...
-		//await this.drawPairings(4, 500);
+		await this.drawPairings(4, 500);
 		await this.sendReadyRequest();
 		await this.waitAllPlayersReady();
 
@@ -323,6 +320,7 @@ export class Tournament {
 	}
 
 	private async sendReadyRequest(): Promise<void> {
+		await this.broadcastStatus();
 		for (const p of this.players) {
 			await p[1].connection.send(JSON.stringify({
 				type: 'readyRequest'
