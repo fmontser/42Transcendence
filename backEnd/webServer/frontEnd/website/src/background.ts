@@ -69,7 +69,7 @@ interface NormalOptions {
 	colour: string;
   }
   
-  let particles: Particle[] = [];
+  let particles: Particle[];
   
   function rand(low: number, high: number): number {
 	return Math.random() * (high - low) + low;
@@ -154,6 +154,7 @@ interface NormalOptions {
   
   export function startAnimation(): void {
 	const [canvas, ctx] = initializeCanvas();
+	particles = [];
   
 	// Create a bunch of particles
 	for (let i = 0; i < NUM_PARTICLES; i++) {

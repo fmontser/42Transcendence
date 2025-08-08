@@ -199,7 +199,7 @@ const routes: Page[] = [
 					}
 					import(`./home.js`)
 					.then((module) => {		
-						module.loadWebSocket();
+						module.init();
 					});
 				}
 				else {
