@@ -1,23 +1,14 @@
 let ws: WebSocket | null = null;
-let playField = document.getElementById('playField') as HTMLCanvasElement;
-if (!playField) {
-	throw new Error("Fatal Error: playField element not found in DOM.");
-}
-let ctx = playField.getContext('2d');
-if (!ctx) {
-	throw new Error("Fatal Error: Canvas 2D context could not be created.");
-}
-let scoreElement = document.getElementById('score') as HTMLElement;
-if (!scoreElement) {
-	throw new Error("Fatal Error: scoreElement element not found in DOM.");
-}
+let playField: HTMLCanvasElement;
+let ctx;
+let scoreElement:  HTMLElement;
 
 let PADDLE_WIDTH = 64;
 let PADDLE_HEIGHT = 256;
 let BALL_RADIUS = 32;
 
-let gameActive = false;
-let gameStarted = false;  // Nueva variable para controlar primera pantalla
+let gameActive;
+let gameStarted; // Nueva variable para controlar primera pantalla
 
 interface Ball {
 	x: number;
@@ -194,7 +185,7 @@ function handleNewGameClick(event: MouseEvent) {
 	if (x >= playField.width/2 - 100 && x <= playField.width/2 + 100 &&
 		y >= playField.height/2 + 120 && y <= playField.height/2 + 170) {
 		
-		// Remover el listener para evitar múltiples clicks
+		// Eliminar el listener para evitar múltiples clicks
 		playField.removeEventListener('click', handleNewGameClick);
 		
 		// Crear nueva conexión en lugar de usar la antigua (que está cerrada)
@@ -267,7 +258,7 @@ function setup()
 
 export function showStartScreen() {
 
-
+	console.log("Main function showStartScreen is being executed!");
 	ws = null;
 	playField = document.getElementById('playField') as HTMLCanvasElement;
 	if (!playField) {
@@ -289,15 +280,14 @@ export function showStartScreen() {
 	gameActive = false;
 	gameStarted = false;
 
+	console.log("Game Started:", gameStarted, "Game Active:", gameActive);
+
 	console.log("ctx: ", ctx);
 	if (ctx)
 		console.log("True");
 	else
 		console.log("False");
 
-	console.log("1");
-	setup();
-	console.log("2");
 	// Fondo
 	(ctx!).fillStyle = '#1a1a1a';
 	(ctx!).fillRect(0, 0, playField.width, playField.height);

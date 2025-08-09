@@ -413,6 +413,10 @@ const routes: Page[] = [
 export const router = async () => {
 	const path = location.pathname;
 	const match = routes.find(route => route.path == path);
+	const root = document.getElementById('root');
+	if (root) {
+		root.innerHTML = '';
+	}
 	if (match)
 	{
 		console.log("match: ", match);
