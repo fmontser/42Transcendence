@@ -25,7 +25,7 @@ export abstract class Endpoint {
 	}
 }
 
-const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localgame", "friend_profile", "404", "405"];
+const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localgame", "friend_profile", "404", "405", "local_tournament"];
 
 // export class AccessProfileEndpoint extends Endpoint {
 // 	add(server: FastifyInstance): void {

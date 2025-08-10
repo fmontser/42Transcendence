@@ -258,6 +258,7 @@ function setup()
 
 export function showStartScreen() {
 
+	cleanup();
 	console.log("Main function showStartScreen is being executed!");
 	ws = null;
 	playField = document.getElementById('playField') as HTMLCanvasElement;
@@ -299,7 +300,6 @@ export function showStartScreen() {
 	(ctx!).fillText('PONG', playField.width/2, playField.height/3);
 
 	// Botón de inicio
-	console.log("3");
 	const buttonY = playField.height/2 + 50;
 	(ctx!).fillStyle = '#4CAF50';
 	(ctx!).fillRect(playField.width/2 - 100, buttonY, 200, 50);
@@ -307,10 +307,21 @@ export function showStartScreen() {
 	(ctx!).fillStyle = 'white';
 	(ctx!).font = '24px monospace';
 	(ctx!).fillText('Start Game', playField.width/2, buttonY + 32);
-	console.log("4");
 
 	// Listener para el botón
+	setup();
 	playField.addEventListener('click', handleStartClick);
+}
+
+function cleanup()
+{
+	if (ws)
+	{
+		if (ws.readyState === WebSocket.OPEN)
+		{
+			ws.close();
+		}
+	}
 }
 
 export {};

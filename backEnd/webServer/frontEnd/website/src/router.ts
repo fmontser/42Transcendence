@@ -23,6 +23,47 @@ async function methodNotAllowed()
 const routes: Page[] = [
 
 	{
+		path: "/localtournament",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/local_tournament", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					//console.log("html:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					} else {
+						console.error('Root element not found');
+					}
+					import(`./localTournament.js`)
+					.then((module) => {		
+						module.init()
+					});
+				}
+				else {
+					await methodNotAllowed();
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+	{
 		path: "/localgame",
 		view: async () => {
 			try {
