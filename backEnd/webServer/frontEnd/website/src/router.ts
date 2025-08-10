@@ -2,6 +2,8 @@ import { PongGame } from './pongGame.js';
 import { PongTournament } from './pongTournament.js';
 import {createWebSocket, closeWebSocket} from './websocket.js';
 
+let currentCleanupFunction: any = null;
+
 console.log('SPA loaded');
 history.pushState(null, '', window.location.href);
 //customPushState(null, '', window.location.href);
@@ -84,6 +86,7 @@ const routes: Page[] = [
 					import(`./localGame.js`)
 					.then((module) => {		
 						module.showStartScreen();
+						currentCleanupFunction = module.cleanup;
 					});
 				}
 				else {
@@ -458,6 +461,10 @@ export const router = async () => {
 	if (root) {
 		root.innerHTML = '';
 	}
+	if (typeof currentCleanupFunction === 'function') {
+        currentCleanupFunction();
+    }
+	currentCleanupFunction = null;
 	if (match)
 	{
 		console.log("match: ", match);

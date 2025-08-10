@@ -1,3 +1,4 @@
+let abortController = new AbortController();
 let ws: WebSocket | null = null;
 let playField: HTMLCanvasElement;
 let ctx;
@@ -216,6 +217,8 @@ function handleNewContinueClick() {
 function setup()
 {
 	// control
+	abortController.abort(); 
+    abortController = new AbortController();
 	document.addEventListener('keydown', (event: KeyboardEvent) => {
 		let input = { type: 'input', playerId: 0, direction: 'stop' };
 		
@@ -413,11 +416,17 @@ function endTournamentScreen()
 
 function cleanup()
 {
+	abortController.abort();
 	if (ws)
 	{
-		if (ws.readyState === WebSocket.OPEN)
-		{
+		// if (ws.readyState === WebSocket.OPEN)
+		// {
+			ws.onopen = null;
+			ws.onmessage = null;
+			ws.onerror = null;
+			ws.onclose = null;
 			ws.close();
-		}
+			ws = null;
+		// }
 	}
 }

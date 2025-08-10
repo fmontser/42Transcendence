@@ -1,3 +1,4 @@
+let abortController = new AbortController();
 let ws: WebSocket | null = null;
 let playField: HTMLCanvasElement;
 let ctx;
@@ -172,7 +173,7 @@ function showEndGameScreen(endGameData: EndGameData) {
 	(ctx!).fillText('New Game', playField.width/2, buttonY + 32);
 
 	// Añadir listener para el click en el botón
-	playField.addEventListener('click', handleNewGameClick);
+	playField.addEventListener('click', handleNewGameClick, { signal: abortController.signal });
 }
 
 // Función para manejar el click en "New Game"
@@ -208,57 +209,63 @@ function handleStartClick(event: MouseEvent) {
 	}
 }
 
+function handleKeyDown(event: KeyboardEvent)
+{
+	let input = { type: 'input', playerId: 0, direction: 'stop' };
+	switch(event.key) {
+		case 'w':
+			input.direction = 'up';
+			input.playerId = 0;
+			break;
+		case 's':
+			input.direction = 'down';
+			input.playerId = 0;
+			break;
+		case 'ArrowUp':
+			input.direction = 'up';
+			input.playerId = 1;
+			break;
+		case 'ArrowDown':
+			input.direction = 'down';
+			input.playerId = 1;
+			break;
+	}
+	if (ws?.readyState === WebSocket.OPEN) {
+		ws.send(JSON.stringify(input));
+	}
+}
+
+function handleKeyUp(event: KeyboardEvent)
+{
+	let input = { type: 'input', playerId: 0, direction: 'stop' };
+		
+	switch(event.key) {
+		case 'w':
+		case 's':
+			input.playerId = 0;
+			break;
+		case 'ArrowUp':
+		case 'ArrowDown':
+			input.playerId = 1;
+			break;
+	}
+	if (ws?.readyState === WebSocket.OPEN) {
+		ws.send(JSON.stringify(input));
+	}
+}
+
 function setup()
 {
 	// control
-	document.addEventListener('keydown', (event: KeyboardEvent) => {
-		let input = { type: 'input', playerId: 0, direction: 'stop' };
-		
-		switch(event.key) {
-			case 'w':
-				input.direction = 'up';
-				input.playerId = 0;
-				break;
-			case 's':
-				input.direction = 'down';
-				input.playerId = 0;
-				break;
-			case 'ArrowUp':
-				input.direction = 'up';
-				input.playerId = 1;
-				break;
-			case 'ArrowDown':
-				input.direction = 'down';
-				input.playerId = 1;
-				break;
-		}
-		if (ws?.readyState === WebSocket.OPEN) {
-			ws.send(JSON.stringify(input));
-		}
-	});
+	abortController.abort(); 
+    abortController = new AbortController();
+	document.addEventListener('keydown', handleKeyDown, { signal: abortController.signal });
 
-	document.addEventListener('keyup', (event: KeyboardEvent) => {
-		let input = { type: 'input', playerId: 0, direction: 'stop' };
-		
-		switch(event.key) {
-			case 'w':
-			case 's':
-				input.playerId = 0;
-				break;
-			case 'ArrowUp':
-			case 'ArrowDown':
-				input.playerId = 1;
-				break;
-		}
-		if (ws?.readyState === WebSocket.OPEN) {
-			ws.send(JSON.stringify(input));
-		}
-	});
+	document.addEventListener('keyup', handleKeyUp, { signal: abortController.signal });
 }
 
 export function showStartScreen() {
 
-	cleanup();
 	console.log("Main function showStartScreen is being executed!");
 	ws = null;
 	playField = document.getElementById('playField') as HTMLCanvasElement;
@@ -310,17 +317,21 @@ export function showStartScreen() {
 
 	// Listener para el botón
 	setup();
-	playField.addEventListener('click', handleStartClick);
+	playField.addEventListener('click', handleStartClick, { signal: abortController.signal });
 }
 
-function cleanup()
+export function cleanup()
 {
+	console.log("Cleanup function called...")
+	abortController.abort();
 	if (ws)
 	{
-		if (ws.readyState === WebSocket.OPEN)
-		{
+			ws.onopen = null;
+			ws.onmessage = null;
+			ws.onerror = null;
+			ws.onclose = null;
 			ws.close();
-		}
+			ws = null;
 	}
 }
 
