@@ -7,6 +7,7 @@ let name1: string;
 let name2: string;
 let finalist1: string;
 let finalist2: string;
+let winner: string;
 let matchCount: number;
 
 let alias1: string;
@@ -178,6 +179,8 @@ function showEndGameScreen(endGameData: EndGameData) {
 			finalist1 = name1;
 		if (matchCount == 2)
 			finalist2 = name1;
+		if (matchCount == 3)
+			winner = name1;
 	}
 	else
 	{
@@ -187,6 +190,8 @@ function showEndGameScreen(endGameData: EndGameData) {
 			finalist1 = name2;
 		if (matchCount == 2)
 			finalist2 = name2;
+		if (matchCount == 3)
+			winner = name2;
 	}
 
 	// Botón de nueva partida
@@ -441,23 +446,40 @@ async function finalGame()
 	}
 }
 
-function endTournamentScreen()
+async function endTournamentScreen()
 {
-	const root = document.getElementById('root');
-	if (root) {
-	root.innerHTML = '';
+	matchCount = 3;
+	let response: Response = await fetch("/components/local_tournament", {
+		method: 'GET'
+	});
+	let data: string = await response.text();
+	document.querySelector('#root')!.innerHTML = data;
 
-	// Create a wrapper div to center content
-	const wrapper = document.createElement('div');
-	wrapper.className = 'flex justify-center items-center min-h-screen';
+	const response2: Response = await fetch("/components/players_local", {
+		method: 'GET'
+	});
+	let data2: string = await response2.text();
+	document.querySelector('#input-tournamnet')!.innerHTML = data2;
 
+	document.getElementById("player-1-name")!.textContent = alias1;
+	document.getElementById("player-2-name")!.textContent = alias2;
+	document.getElementById("player-3-name")!.textContent = alias3;
+	document.getElementById("player-4-name")!.textContent = alias4;
+	document.getElementById("finalist-1")!.textContent = finalist1;
+	document.getElementById("finalist-2")!.textContent = finalist2;
+	document.getElementById("finalist-2")!.textContent = finalist2;
+	document.getElementById("winner-name")!.textContent = winner;
+
+	let startButton = document.getElementById("start-button") as HTMLElement;
+	startButton.remove();
+	const wrapper = document.getElementById('return-to-home-button');
+	if (wrapper) {
 	const button = document.createElement('button');
-	button.className = 'nav-link bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-3 px-8 rounded-lg transition-colors duration-300 min-w-[250px]';
+	button.classList.add('nav-link', 'bg-green-600', 'hover:bg-green-700', 'text-white', 'font-bold', 'text-xl', 'py-3', 'px-8', 'rounded-lg', 'transition-colors', 'duration-300', 'min-w-[250px]');
 	button.textContent = 'Home';
 	button.setAttribute('data-path', '/');
 
 	wrapper.appendChild(button);
-	root.appendChild(wrapper);
 	}
 }
 
