@@ -34,6 +34,13 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
 					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
@@ -75,6 +82,13 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
 					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
@@ -116,6 +130,14 @@ const routes: Page[] = [
 				});
 				if (response.ok)
 				{
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
+
 					let data: string = await response.text();
 					//console.log("html:", data);
 					const root = document.getElementById('root');
@@ -193,6 +215,13 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
 					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
@@ -233,6 +262,13 @@ const routes: Page[] = [
 				if (response.ok)
 				{
 					let data: string = await response.text();
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
 					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
@@ -404,6 +440,13 @@ const routes: Page[] = [
 				});
 				if (response.ok)
 				{
+					const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+						method: 'GET',
+						credentials: 'include'
+					});
+					const sessionData = await sessionResponse.json();
+					const id = sessionData.name;
+					createWebSocket(id);
 					let data: string = await response.text();
 					const root = document.getElementById('root');
 					if (root) {
