@@ -3,15 +3,6 @@ import {createWebSocket} from './websocket.js';
 
 export async function init()
 {
-	// const selfSessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
-	// 	method: 'GET',
-	// 	credentials: 'include'
-	// });
-	// const sessionData = await selfSessionResponse.json();
-	// const selfId = sessionData.name;
-
-
-	// createWebSocket(selfId);
 	const id: string = getFriendIDProfile();
 
 	if (!id) {
