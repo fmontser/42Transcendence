@@ -661,7 +661,7 @@ export class ModifyPseudoEndpoint extends Endpoint {
 			});
 			if (!response.ok) {
 				server.log.error(`ModifyPseudoEndpoint: ${this.errorMsg} - `, response.statusText);
-				reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
+				reply.status(500).send({ error: `Pseudo already exist` });
 				return;
 			}
 			console.log(`Pseudo updated for user ${user.id}`);
