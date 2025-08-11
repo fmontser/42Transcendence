@@ -9,6 +9,11 @@ let finalist1: string;
 let finalist2: string;
 let matchCount: number;
 
+let alias1: string;
+let alias2: string;
+let alias3: string;
+let alias4: string;
+
 let PADDLE_WIDTH = 64;
 let PADDLE_HEIGHT = 256;
 let BALL_RADIUS = 32;
@@ -331,24 +336,32 @@ async function loadDOM()
 	}
 }
 
+async function handleInput()
+{
+		alias1 = (document.getElementById("alias-1") as HTMLInputElement)?.value || "player 1";
+		alias2 = (document.getElementById("alias-2") as HTMLInputElement)?.value || "player 2";
+		alias3 = (document.getElementById("alias-3") as HTMLInputElement)?.value || "player 3";
+		alias4 = (document.getElementById("alias-4") as HTMLInputElement)?.value || "player 4";
+		await loadDOM();
+		name1 = alias1;
+		name2 = alias2;
+		showStartScreen();
+}
+
 export async function init ()
 {
 	cleanup();
-	let alias1: string;
-	let alias2: string;
-	let alias3: string;
-	let alias4: string;
+	const response: Response = await fetch("/components/input_local", {
+		method: 'GET'
+	});
+	let data: string = await response.text();
+	document.querySelector('#input-tournamnet')!.innerHTML = data;
 	matchCount = 1;
 	let startButton = document.getElementById("start-button") as HTMLElement;
 	startButton.textContent = "Start first match"
 	if (startButton)
 	{
-		startButton.addEventListener('click', async () => {
-			await loadDOM();
-			name1 = "player 1";
-			name2 = "player 2";
-			showStartScreen();
-		})
+		startButton.addEventListener('click', handleInput)
 	}
 	//fetch hmtl of tournament.
 	//Let user input alias names, if not ==> default names (player 1, player 2, player 3 and player 4).
@@ -367,14 +380,27 @@ async function secondGame()
 	});
 	let data: string = await response.text();
 	document.querySelector('#root')!.innerHTML = data;
+
+	const response2: Response = await fetch("/components/players_local", {
+		method: 'GET'
+	});
+	let data2: string = await response2.text();
+	document.querySelector('#input-tournamnet')!.innerHTML = data2;
+
+	document.getElementById("player-1-name")!.textContent = alias1;
+	document.getElementById("player-2-name")!.textContent = alias2;
+	document.getElementById("player-3-name")!.textContent = alias3;
+	document.getElementById("player-4-name")!.textContent = alias4;
+	document.getElementById("finalist-1")!.textContent = finalist1;
+
 	let startButton = document.getElementById("start-button") as HTMLElement;
 	startButton.textContent = "Start second match"
 	if (startButton)
 	{
 			startButton.addEventListener('click', async () => {
 				await loadDOM();
-				name1 = "player 3";
-				name2 = "player 4";
+				name1 = alias3;
+				name2 = alias4;
 				showStartScreen();
 			})
 	}
@@ -388,6 +414,20 @@ async function finalGame()
 	});
 	let data: string = await response.text();
 	document.querySelector('#root')!.innerHTML = data;
+
+	const response2: Response = await fetch("/components/players_local", {
+		method: 'GET'
+	});
+	let data2: string = await response2.text();
+	document.querySelector('#input-tournamnet')!.innerHTML = data2;
+
+	document.getElementById("player-1-name")!.textContent = alias1;
+	document.getElementById("player-2-name")!.textContent = alias2;
+	document.getElementById("player-3-name")!.textContent = alias3;
+	document.getElementById("player-4-name")!.textContent = alias4;
+	document.getElementById("finalist-1")!.textContent = finalist1;
+	document.getElementById("finalist-2")!.textContent = finalist2;
+
 	let startButton = document.getElementById("start-button") as HTMLElement;
 	startButton.textContent = "Start final match"
 	if (startButton)
@@ -405,12 +445,19 @@ function endTournamentScreen()
 {
 	const root = document.getElementById('root');
 	if (root) {
-		root.innerHTML = '';
-		const button = document.createElement('button');
-		button.className = 'nav-link';
-		button.textContent = 'Home'
-		button.setAttribute('data-path', '/'); 
-		root.appendChild(button);
+	root.innerHTML = '';
+
+	// Create a wrapper div to center content
+	const wrapper = document.createElement('div');
+	wrapper.className = 'flex justify-center items-center min-h-screen';
+
+	const button = document.createElement('button');
+	button.className = 'nav-link bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-3 px-8 rounded-lg transition-colors duration-300 min-w-[250px]';
+	button.textContent = 'Home';
+	button.setAttribute('data-path', '/');
+
+	wrapper.appendChild(button);
+	root.appendChild(wrapper);
 	}
 }
 

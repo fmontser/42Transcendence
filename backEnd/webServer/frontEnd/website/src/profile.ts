@@ -48,8 +48,9 @@ export async function loadProfile() {
 	});
 
 	if (!sessionResponse.ok) {
-	  window.location.href = 'login.html';
-	  return;
+		history.pushState(null, '', "/login");
+		router();
+		return;
 	}
 
 	const sessionData = await sessionResponse.json();
@@ -811,7 +812,6 @@ async function deleteAccount() {
 		alert('Your account has been deleted successfully.');
 		history.pushState(null, '', '/');
 		router();
-		//window.location.href = '/login';
 	  } else {
 		alert('Error during account deletion. Please try again later.');
 	  }
@@ -852,7 +852,8 @@ async function twoFactorAuthentication()
 			});
 		
 			if (!sessionResponse.ok) {
-				window.location.href = 'login.html';
+				history.pushState(null, '', "/login");
+				router();
 				return;
 			}
 		
@@ -891,8 +892,9 @@ async function twoFactorAuthentication()
 				});
 			
 				if (!sessionResponse.ok) {
-				window.location.href = 'login.html';
-				return;
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			
 				const sessionData = await sessionResponse.json();
