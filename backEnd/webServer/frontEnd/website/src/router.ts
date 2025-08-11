@@ -6,7 +6,6 @@ let currentCleanupFunction: any = null;
 
 console.log('SPA loaded');
 history.pushState(null, '', window.location.href);
-//customPushState(null, '', window.location.href);
 
 interface Page {
 	path: string;
@@ -491,7 +490,6 @@ document.addEventListener('click', e => {
 
 		history.pushState(null, '', href);
 		console.log("href: ", href);
-		//customPushState(null, '', href);
 		
 		router();
 	}
@@ -511,28 +509,3 @@ export function customPushState(state: any, title: string, url: string) {
 	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
 	console.log("custom push state called");
 }
-
-// window.addEventListener('load', () => {
-// 	// const stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
-// 	// console.log("page has been reloaded");
-// 	// // Optionally replay the history to simulate back/forward
-// 	// if (stack.length > 0) {
-
-// 	// // for (let item of stack) {
-// 	// //   history.pushState(item.state, item.title || '', item.url);
-// 	// //   console.log("previous routes: ", item.url, item.state, item.title);
-// 	// // }
-// 	// //history.replaceState(null, '', window.location.href);
-// 	// const first = stack[0];
-// 	// console.log("stack length: ", stack.length);
-// 	// //history.replaceState(first.state, first.title || '', first.url);
-// 	// for (let i = 0; i < stack.length - 1; i++) {
-// 	// 	const item = stack[i];
-// 	// 	console.log("state: ", item.state, item.title, item.url);
-// 	// 	history.pushState(item.state, item.title || '', item.url);
-// 	//   }
-// 	//   history.replaceState(first.state, first.title || '', first.url);
-// 	//   //history.pushState(stack[0].state, stack[0].title || '', stack[0].url);
-// 	// }
-// 	router();
-//   });

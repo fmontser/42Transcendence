@@ -66,13 +66,16 @@ export class PongTournament {
 				name.textContent = c.name;
 			if (img) {
 				img.src = c.avatar;
-				img.style.display = 'block';
+				img.classList.remove('hidden');
 			}
 			if (btn) {
-				if (c.ready)
-					(btn as HTMLButtonElement).style.backgroundColor = "rgba(59, 218, 78, 0.268)";
+				if (c.ready) {
+					btn.classList.remove('bg-pink-300', 'bg-opacity-40');
+					btn.classList.add('bg-green-400', 'bg-opacity-30');
+				}
 				else {
-					(btn as HTMLButtonElement).style.backgroundColor = "rgba(218, 59, 144, 0.159)";
+					btn.classList.remove('bg-green-400', 'bg-opacity-30');
+					btn.classList.add('bg-pink-300', 'bg-opacity-40');
 				}
 			}
 		}
@@ -87,7 +90,8 @@ export class PongTournament {
 			if (this.tournamentState.phase === Phase.SEMIFINALS && pair?.getAttribute("id") == "pair-2ab")
 				return;
 			
-			(btn as HTMLButtonElement).setAttribute("style", "display: flexbox;");
+			btn.classList.remove('hidden');
+			btn.classList.add('flex');
 			(btn as HTMLButtonElement).disabled = true;
 			if (btn === this.getUserButton())
 				(btn as HTMLButtonElement).disabled = false;
@@ -112,20 +116,33 @@ export class PongTournament {
 	}
 	
 	public displayPlayfield(): void {
-		this.messageFrame?.setAttribute("style", "display: none");
-		this.gameFrame?.setAttribute("style", "display: block;")
-		this.tournamentFrame?.setAttribute("style", "display: none;");
+		this.messageFrame?.classList.add('hidden');
+		this.messageFrame?.classList.remove('flex', 'block', 'inline-block', 'flexbox');
+
+		this.gameFrame?.classList.remove('hidden');
+		this.gameFrame?.classList.add('block');
+
+		this.tournamentFrame?.classList.add('hidden');
+		this.tournamentFrame?.classList.remove('block');
+		
 	}
 
 	public hidePlayfield(): void {
-		this.messageFrame?.setAttribute("style", "display: none");
-		this.gameFrame?.setAttribute("style", "display: none;")
-		this.tournamentFrame?.setAttribute("style", "display: block;")
+		this.messageFrame?.classList.add('hidden');
+		this.messageFrame?.classList.remove('flex');
+
+		this.gameFrame?.classList.add('hidden');
+		this.gameFrame?.classList.remove('block');
+
+		this.tournamentFrame?.classList.remove('hidden');
+		this.tournamentFrame?.classList.add('block');
 
 		if (this.tournamentState.phase === Phase.FINALS) {
 			const pair3cd = document.getElementById("pair-3cd") as HTMLElement | null;
-			if (pair3cd)
-				pair3cd.setAttribute("style", "display: none;")
+			if (pair3cd) {
+				pair3cd.classList.add('hidden');
+				pair3cd.classList.remove('block', 'flex', 'inline-block');
+			}
 		}
 		else if (this.tournamentState.phase === Phase.COMPLETED){
 
@@ -145,8 +162,10 @@ export class PongTournament {
 			}
 
 			for (const e of selectElements) {
-				if (e)
-					e.style.display = 'none';
+				if (e) {
+					e.classList.add('hidden');
+					e.classList.remove('block', 'flex', 'inline-block');
+				}
 			}
 		}
 	}
@@ -157,9 +176,15 @@ export class PongTournament {
 
 	public cancelTournament(userName: string): void {
 		console.log(`Info: User ${userName} disconnected. Tournament was cancelled`);
-		this.messageFrame?.setAttribute("style", "display: flex");
-		this.gameFrame?.setAttribute("style", "display: none;")
-		this.tournamentFrame?.setAttribute("style", "display: none;");
+		this.messageFrame?.classList.remove('hidden');
+		this.messageFrame?.classList.add('flex');
+		
+		this.gameFrame?.classList.add('hidden');
+		this.gameFrame?.classList.remove('block');
+		
+		this.tournamentFrame?.classList.add('hidden');
+		this.tournamentFrame?.classList.remove('block');
+		
 
 		if (this.messageFrame) {
 			this.messageFrame.innerHTML = `User ${userName} disconnected. Tournament was cancelled`;
