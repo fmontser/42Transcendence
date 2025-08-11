@@ -2,22 +2,32 @@ import { PongGame } from './pongGame.js';
 import { PongTournament } from './pongTournament.js';
 import {createWebSocket, closeWebSocket} from './websocket.js';
 
+let currentCleanupFunction: any = null;
+
 console.log('SPA loaded');
 history.pushState(null, '', window.location.href);
-//customPushState(null, '', window.location.href);
 
 interface Page {
 	path: string;
 	view: () => Promise<void>;
 }
 
+async function methodNotAllowed()
+{
+	const response: Response = await fetch("/components/405", {
+		method: 'GET'
+	});
+	let data: string = await response.text();
+	document.querySelector('#root')!.innerHTML = data;
+}
+
 const routes: Page[] = [
 
 	{
-		path: "/localtest",
+		path: "/localtournament",
 		view: async () => {
 			try {
-				let response: Response = await fetch("/components/localtest", {
+				let response: Response = await fetch("/components/local_tournament", {
 					method: 'GET',
 					credentials: 'include'
 				});
@@ -31,13 +41,55 @@ const routes: Page[] = [
 					} else {
 						console.error('Root element not found');
 					}
-					import(`./localTest.js`)
+					import(`./localTournament.js`)
 					.then((module) => {		
-						module.showStartScreen();
+						module.init()
 					});
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
+				}
+			}
+			catch (error: unknown)
+			{
+				if (error instanceof Error)
+				{
+					console.error("Error:", error.message);
+				}
+				else
+				{
+					console.error("Unknown error.");
+				}
+			}
+		}
+	},
+
+	{
+		path: "/localgame",
+		view: async () => {
+			try {
+				let response: Response = await fetch("/components/localgame", {
+					method: 'GET',
+					credentials: 'include'
+				});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					//console.log("html:", data);
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					} else {
+						console.error('Root element not found');
+					}
+					import(`./localGame.js`)
+					.then((module) => {		
+						module.showStartScreen();
+						currentCleanupFunction = module.cleanup;
+					});
+				}
+				else {
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -76,7 +128,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -113,7 +165,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -152,7 +204,7 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					console.log("Fetch failed.");
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -188,15 +240,16 @@ const routes: Page[] = [
 					} else {
 						console.error('Root element not found');
 					}
+					import(`./home.js`)
+					.then((module) => {		
+						module.init();
+					});
 				}
 				else {
-					window.location.href="/login";
-					console.log("Fetch failed.");
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
-				import(`./home.js`)
-    				.then((module) => {		
-						module.loadWebSocket();
-					});
 			}
 			catch (error: unknown)
 			{
@@ -262,23 +315,17 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				if (root) {
-					root.innerHTML = data;
-				// const newScript = document.createElement('script');
-				// newScript.src = './dist/signin.js?cb=${Date.now()}';
-				// newScript.type = 'module';
-				// newScript.async = true;
-				// document.body.appendChild(newScript);
-				// } else {
-				// 	console.error('Root element not found');
-				// }
-				//import("");
-				import(`./signin.js`)
-					.then((module) => {		
-						module.init();
-					});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					import(`./signin.js`)
+						.then((module) => {		
+							module.init();
+						});
+					}
 				}
 			}
 			catch (error: unknown)
@@ -302,40 +349,24 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				let cookies = document.cookie.split(';');
-				for (const c of cookies)
+				if (response.ok)
 				{
-					const [key, value] = c.trim().split('=');
-					//console.log("key-value: ", key, value);
-				}
-				if (root) {
-					root.innerHTML = data;
-					
-					// const existingScript = Array.from(document.scripts).find(script =>
-					// 	script.src.includes('profile.js')
-					// );
-					// console.log("Existing script: ", existingScript);
-					// if (existingScript)
-					// 	existingScript.remove();
-					// const newScript = document.createElement('script');
-					// newScript.src = `./dist/profile.js?cb=${Date.now()}`;
-					// newScript.async = true;
-					// document.body.appendChild(newScript);
-					import(`./profile.js`)
-    				.then((module) => {		
-						module.loadProfile();
-       	 // Use the exports from the module here.
-        // For example, if the module has a default export:
-        // module.default.someFunction();
-   					 });
-    				// .catch((err) => {
-        			// 	console.error("Failed to load the module:", err);
-   					//  });
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+						import(`./profile.js`)
+						.then((module) => {		
+							module.loadProfile();
+						});
 
-				} else {
-					console.error('Root element not found');
+					} else {
+						console.error('Root element not found');
+					}
+				}
+				else
+				{
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -359,14 +390,21 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				if (root) {
-					root.innerHTML = data;
-				import(`./friend_profile.js`)
-					.then((module) => {		
-						module.init();
-					});
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					import(`./friend_profile.js`)
+						.then((module) => {		
+							module.init();
+						});
+					}
+				}
+				else
+				{
+					await methodNotAllowed();
 				}
 			}
 			catch (error: unknown)
@@ -391,7 +429,6 @@ const routes: Page[] = [
 					method: 'POST',
 					credentials: 'include'
 				});
-				
 				closeWebSocket();
 
 				//window.location.href="/login";
@@ -419,6 +456,14 @@ const routes: Page[] = [
 export const router = async () => {
 	const path = location.pathname;
 	const match = routes.find(route => route.path == path);
+	const root = document.getElementById('root');
+	if (root) {
+		root.innerHTML = '';
+	}
+	if (typeof currentCleanupFunction === 'function') {
+        currentCleanupFunction();
+    }
+	currentCleanupFunction = null;
 	if (match)
 	{
 		console.log("match: ", match);
@@ -426,8 +471,11 @@ export const router = async () => {
 		console.log("finished");
 	}
 	else {
-
-		document.querySelector('#root')!.innerHTML = '<h1>404 - Page Not Found (dynamic)</h1>';
+		const response: Response = await fetch("/components/404", {
+			method: 'GET'
+		});
+		let data: string = await response.text();
+		document.querySelector('#root')!.innerHTML = data;
 	}
 }
 
@@ -442,7 +490,6 @@ document.addEventListener('click', e => {
 
 		history.pushState(null, '', href);
 		console.log("href: ", href);
-		//customPushState(null, '', href);
 		
 		router();
 	}
@@ -462,28 +509,3 @@ export function customPushState(state: any, title: string, url: string) {
 	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
 	console.log("custom push state called");
 }
-
-// window.addEventListener('load', () => {
-// 	// const stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
-// 	// console.log("page has been reloaded");
-// 	// // Optionally replay the history to simulate back/forward
-// 	// if (stack.length > 0) {
-
-// 	// // for (let item of stack) {
-// 	// //   history.pushState(item.state, item.title || '', item.url);
-// 	// //   console.log("previous routes: ", item.url, item.state, item.title);
-// 	// // }
-// 	// //history.replaceState(null, '', window.location.href);
-// 	// const first = stack[0];
-// 	// console.log("stack length: ", stack.length);
-// 	// //history.replaceState(first.state, first.title || '', first.url);
-// 	// for (let i = 0; i < stack.length - 1; i++) {
-// 	// 	const item = stack[i];
-// 	// 	console.log("state: ", item.state, item.title, item.url);
-// 	// 	history.pushState(item.state, item.title || '', item.url);
-// 	//   }
-// 	//   history.replaceState(first.state, first.title || '', first.url);
-// 	//   //history.pushState(stack[0].state, stack[0].title || '', stack[0].url);
-// 	// }
-// 	router();
-//   });
