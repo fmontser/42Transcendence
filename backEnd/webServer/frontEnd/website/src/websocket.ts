@@ -22,10 +22,10 @@ export async function resetDictionaryWs() {
 	});
 }
 
-export async function createWebSocket(userId: string) {
+export async function createWebSocket(userId: string) : Promise<WebSocket | null> {
 	if (ws) {
 		console.log("WebSocket already exists.");
-		return;
+		return ws;
 	}
 
 	resetDictionaryWs();
@@ -36,15 +36,17 @@ export async function createWebSocket(userId: string) {
 		console.log("WebSocket connected → user online");
 	};
 
-	ws.onmessage = (event) => {
-		const data = JSON.parse(event.data);
-		dictionaryWs[data.id] = data.status;
-		console.log(`Message received: ${data.id} is ${data.status ? 'online' : 'offline'}`);
-	};
+	// ws.onmessage = (event) => {
+	// 	const data = JSON.parse(event.data);
+	// 	dictionaryWs[data.id] = data.status;
+	// 	console.log(`Message received: ${data.id} is ${data.status ? 'online' : 'offline'}`);
+	// };
 
 	ws.onclose = () => {
 		console.log("WebSocket closed → user offline");
 	};
+
+	return ws;
 }
 
 export function closeWebSocket() {
@@ -53,6 +55,10 @@ export function closeWebSocket() {
 		ws = null;
 		console.log("WebSocket closed");
 	}
+}
+
+export function modifyDictionaryWs(id: string, status: boolean): void {
+	dictionaryWs[id] = status;
 }
 
 export function WsFriendStatus(id: string): boolean {

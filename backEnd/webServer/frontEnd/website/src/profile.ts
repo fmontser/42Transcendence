@@ -1,7 +1,7 @@
 import { error } from 'console';
 import { router } from './router.js';
 import { customPushState } from './router.js';
-import {createWebSocket, closeWebSocket, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
+import {createWebSocket, closeWebSocket, modifyDictionaryWs, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
 // async function getProfile(): Promise<Response>
 // {
 
@@ -56,8 +56,19 @@ export async function loadProfile() {
 	const sessionData = await sessionResponse.json();
 	let id = sessionData.name;
 
-	createWebSocket(id);
+	const ws = await createWebSocket(id);
 
+	if (!ws) {
+		console.error("WebSocket creation failed.");
+		return;
+	} else {
+		 ws.onmessage = (event) => {
+			const data = JSON.parse(event.data);
+			modifyDictionaryWs(data.id, data.status);
+			console.log(`Message received: ${data.id} is ${data.status ? 'online' : 'offline'}`);
+			fetchList('friend-list-accepted', 'friend-template', '/usermanagement/front/get/friendships_accepted');
+		};
+	}
 	// if (ws) {
 	// 	ws.onmessage = (event) => {
 	// 		const data = JSON.parse(event.data);
@@ -459,6 +470,10 @@ async function fetchList(containerElement: string, templateElement: string, url:
 	  //console.log("fetch succesful");
 
 	  const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2}]
+	  const container = document.getElementById(containerElement) as HTMLDivElement | null;
+		if (container) {
+			container.innerHTML = '';
+		}
 	  //console.log(data)
 	  data.forEach((friend: any) => {
 		//console.log(friend.pseudo);
