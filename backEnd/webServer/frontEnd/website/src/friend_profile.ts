@@ -1,15 +1,17 @@
-import { getFriendIDProfile } from './profile.js'
+// import { getFriendIDProfile } from './profile.js'
 import {createWebSocket} from './websocket.js';
 
-export async function init()
-{
-	const id: string = getFriendIDProfile();
-
-	if (!id) {
-		console.error("No friend ID found");
-		return;
+export async function init(friendId: string | null = null): Promise<void> {
+	if (friendId) {
+		const params = new URLSearchParams(window.location.search);
+		params.set('friendId', friendId);
+		window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+	}
+	else {
+		return;//TODO send to 404
 	}
 
+	const id = friendId;
 	const sessionResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friend_profile?id=${id}`, {
 		method: 'GET',
 		credentials: 'include'
@@ -17,7 +19,7 @@ export async function init()
 
 	if (!sessionResponse.ok) {
 		console.error("Failed to retrieve friend profile");
-		return;
+		return;//TODO send to 404
 	}
 
 	const profile = (await sessionResponse.json())[0];

@@ -288,8 +288,8 @@ export async function loadProfile() {
 			span.textContent = pseudo || 'Inconnu';
 
 			span.addEventListener("click", () => {
-				history.pushState(null, '', "friend_profile");
-				changeFriendIDProfile(user_id);
+				history.pushState(null, '', "friend_profile?friendId=" + user_id);
+				// changeFriendIDProfile(user_id);
 				router();
 			});
 
@@ -417,8 +417,8 @@ export async function loadProfile() {
 				const enemySpan = clone.querySelector('.enemy-pseudo')!;
 				enemySpan.textContent = match.enemy_pseudo;
 				enemySpan.addEventListener('click', () => {
-					history.pushState(null, '', "friend_profile");
-					changeFriendIDProfile(match.enemy_id);
+					history.pushState(null, '', "friend_profile?friendId=" + match.enemy_id);
+					// changeFriendIDProfile(match.enemy_id);
 					router();
 				});
 				clone.querySelector('.score-text')!.textContent = `${match.user_score} : ${match.enemy_score}`;
@@ -485,14 +485,14 @@ async function fetchList(containerElement: string, templateElement: string, url:
 	}
 }
 
-export let friend_id_for_profile: string;
+// export let friend_id_for_profile: string;
 
-export function changeFriendIDProfile(friend_id: string) {
-	friend_id_for_profile = friend_id
-}
-export function getFriendIDProfile() {
-	return friend_id_for_profile
-}
+// export function changeFriendIDProfile(friend_id: string) {
+// 	friend_id_for_profile = friend_id
+// }
+// export function getFriendIDProfile() {
+// 	return friend_id_for_profile
+// }
 
 function addElement(friend: any, containerElement: string, templateElement: string) {
 	const requestListContainer = document.getElementById(containerElement) as HTMLDivElement | null;
@@ -521,8 +521,8 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 
 				 //console.log("friend id before sessionStorage:", friend.friend_id);
 				 //customPushState(null, '', "friend_profile");
-				 history.pushState(null, '', "friend_profile");
-				 changeFriendIDProfile(friend.friend_id)
+				 history.pushState(null, '', "friend_profile?friendId=" + friend.friend_id);
+				 //changeFriendIDProfile(friend.friend_id)
 				 router();
 
 			})

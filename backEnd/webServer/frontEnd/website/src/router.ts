@@ -434,6 +434,14 @@ const routes: Page[] = [
 		path: "/friend_profile",
 		view: async () => {
 			try {
+				const params = new URLSearchParams(window.location.search);
+				const friendId = params.get("friendId");
+				if (!friendId) {
+					console.error("Friend ID is missing");
+					return;
+				}
+				
+				console.log("friendId:", friendId);
 				let response: Response = await fetch("/components/friend_profile", {
 					method: 'GET',
 					credentials: 'include'
@@ -453,7 +461,7 @@ const routes: Page[] = [
 						root.innerHTML = data;
 					import(`./friend_profile.js`)
 						.then((module) => {		
-							module.init();
+							module.init(friendId);
 						});
 					}
 				}
