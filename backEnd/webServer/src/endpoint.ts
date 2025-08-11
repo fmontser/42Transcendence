@@ -27,30 +27,14 @@ export abstract class Endpoint {
 
 const pages: Array<string> = ["login", "signin", "profile", "home", "game", "tournament", "localgame", "friend_profile", "404", "405", "local_tournament", "input_local", "players_local"];
 
-// export class AccessProfileEndpoint extends Endpoint {
-// 	add(server: FastifyInstance): void {
-// 		server.get(this.path, async (request: FastifyRequest, reply: FastifyReply) => {
-// 			console.log("check 1");
-// 			const response = await fetch(`https://userManagement:3000/usermanagement/front/get/profile_session`, {
-// 				method: 'GET',
-// 				credentials: 'include',
-// 			});
-// 			if (!response.ok) {
-// 				console.log("something went wrong with profile_session fetch.");
-// 			}
-// 			console.log("check");
-// 			const sessionData = await response.json();
-// 			reply.type('application/json');
-// 			console.log("second check");
-// 			reply.send(sessionData);
-// 			console.log("third check");
-// 		});
-// 	}
-// }
-
 export class AccessLoginEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			let cred = await isAuthentified(request);
+			if (cred)
+			{
+				reply.status(405)
+			}
 			const filePath = path.join('website/dist/components', `login.html`);
 			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');
@@ -65,6 +49,11 @@ export class AccessLoginEndpoint extends Endpoint {
 export class AccessSigninEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
+			let cred = await isAuthentified(request);
+			if (cred)
+			{
+				reply.status(405)
+			}
 			const filePath = path.join('website/dist/components', `signin.html`);
 			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');

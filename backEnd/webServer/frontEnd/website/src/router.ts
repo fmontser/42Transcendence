@@ -272,25 +272,31 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				let data: string = await response.text();
-				const root = document.getElementById('root');
-				if (root) {
-					root.innerHTML = data;
+				if (response.ok)
+				{
+					let data: string = await response.text();
+					const root = document.getElementById('root');
+					if (root) {
+						root.innerHTML = data;
+					}
+					const existingScript = document.querySelector("script[src*='/dist/login.js']");
+					//console.log(existingScript);
+					if (existingScript) {
+						//console.log('Found and removed existing script:', existingScript);
+						existingScript.remove();
+					}
 
-				const existingScript = document.querySelector("script[src*='/dist/login.js']");
-				//console.log(existingScript);
-				if (existingScript) {
-					//console.log('Found and removed existing script:', existingScript);
-					existingScript.remove();
+					const newScript = document.createElement('script');
+					newScript.src = `./dist/login.js?cb=${Date.now()}`;
+					newScript.type = 'module';
+					newScript.async = true;
+					document.body.appendChild(newScript);
 				}
-
-				const newScript = document.createElement('script');
-				newScript.src = `./dist/login.js?cb=${Date.now()}`;
-				newScript.type = 'module';
-				newScript.async = true;
-				document.body.appendChild(newScript);
-				} else {
-					console.error('Root element not found');
+				else
+				{
+					history.pushState(null, '', "/");
+					router();
+					return;
 				}
 				//import("");
 			}
@@ -326,6 +332,12 @@ const routes: Page[] = [
 							module.init();
 						});
 					}
+				}
+				else
+				{
+					history.pushState(null, '', "/");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
