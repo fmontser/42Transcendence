@@ -99,4 +99,10 @@ export class ServerPongConnector {
 		this.game.setGameState(data);
 		this.sendStartRequest();
 	}
+
+	 
+	public closeConnection = () => {
+		console.log(`DEBUG: cleanup closing connection`);
+		this.ws.close();
+	}
 }

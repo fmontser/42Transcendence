@@ -145,4 +145,7 @@ export class PongGame {
 		this.gameState.score = data.score;
 	}
 
+	public cleanUp = () => {
+		this.serverPongConnector.closeConnection();
+	}
 }
