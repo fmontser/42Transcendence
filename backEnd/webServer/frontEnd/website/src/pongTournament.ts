@@ -71,12 +71,12 @@ export class PongTournament {
 			}
 			if (btn) {
 				if (c.ready) {
-					btn.classList.remove('bg-pink-300', 'bg-opacity-40');
-					btn.classList.add('bg-green-400', 'bg-opacity-30');
+					btn.classList.remove('bg-pink-600/15');
+					btn.classList.add('bg-green-400/30');
 				}
 				else {
-					btn.classList.remove('bg-green-400', 'bg-opacity-30');
-					btn.classList.add('bg-pink-300', 'bg-opacity-40');
+					btn.classList.remove('bg-green-400/30');
+					btn.classList.add('bg-pink-600/15');
 				}
 			}
 		}
@@ -92,7 +92,7 @@ export class PongTournament {
 				return;
 			
 			btn.classList.remove('hidden');
-			btn.classList.add('flex');
+			btn.classList.add('ma');
 			(btn as HTMLButtonElement).disabled = true;
 			if (btn === this.getUserButton())
 				(btn as HTMLButtonElement).disabled = false;
