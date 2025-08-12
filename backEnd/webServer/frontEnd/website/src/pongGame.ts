@@ -77,7 +77,6 @@ export class PongGame {
 		}, 3000);
 	}
 
-	//TODO FRONTEND estetica
 	private drawWaitScreen(): void {
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
@@ -88,7 +87,6 @@ export class PongGame {
 		this.ctx2d.fillText('FINDING A MATCH', this.playField.width / 2, this.playField.height / 2);
 	}
 
-	//TODO FRONTEND estetica
 	public drawFrame(): void {
 		// playField
 		this.ctx2d.fillStyle = '#1a1a1a';
@@ -114,7 +112,6 @@ export class PongGame {
 		this.scoreElement.textContent = `${this.gameState.score[0]} - ${this.gameState.score[1]}`;
 	}
 
-	//TODO FRONTEND estetica
 	public drawEndGameScreen(endGameData: any): void {
 		// canvas
 		this.ctx2d.fillStyle = '#1a1a1a';

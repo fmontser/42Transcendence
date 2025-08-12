@@ -168,46 +168,10 @@ const routes: Page[] = [
 	},
 
 	{
-		path: "/gameFrame",
-		view: async () => {
-			try {
-				let response: Response = await fetch("/components/game", {
-					method: 'GET',
-					credentials: 'include'
-				});
-				if (response.ok)
-				{
-					let data: string = await response.text();
-					//console.log("html:", data);
-					const gameFrame = document.getElementById('gameFrame');
-					if (gameFrame) {
-						gameFrame.innerHTML = data;
-					} else {
-						console.error('gameFrame element not found');
-					}
-				}
-				else {
-					await methodNotAllowed();
-				}
-			}
-			catch (error: unknown)
-			{
-				if (error instanceof Error)
-				{
-					console.error("Error:", error.message);
-				}
-				else
-				{
-					console.error("Unknown error.");
-				}
-			}
-		}
-	},
-
-	{
 		path: "/tournament",
 		view: async () => {
 			try {
+
 				let response: Response = await fetch("/components/tournament", {
 					method: 'GET',
 					credentials: 'include'
@@ -222,12 +186,13 @@ const routes: Page[] = [
 					const sessionData = await sessionResponse.json();
 					const id = sessionData.name;
 					createWebSocket(id);
-					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
 						let newTournament = new PongTournament();
-						newTournament.start()
+						newTournament.start();
+						currentCleanupFunction = newTournament.cleanUp;
+
 					} else {
 						console.error('Root element not found');
 					}

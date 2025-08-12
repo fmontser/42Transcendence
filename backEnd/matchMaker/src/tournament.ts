@@ -22,7 +22,7 @@ export class Tournament {
 	matches: Set<Match>;
 
 	private players: Map<number, Player>;
-	private previousPhase: Phase;
+	private phaseLock: Boolean;
 	private phase: Phase;
 
 	private tournamentState = {
@@ -43,7 +43,7 @@ export class Tournament {
 	constructor() {
 		this.players = new Map<number, Player>();
 		this.matches = new Set<Match>();
-		this.previousPhase = Phase.DRAW;
+		this.phaseLock = false;
 		this.phase = Phase.DRAW;
 	}
 
@@ -87,7 +87,7 @@ export class Tournament {
 	}
 
 	public async drawSemifinals(): Promise<void> {
-		this.previousPhase = Phase.SEMIFINALS;
+		this.phaseLock = true;
 
 		await this.drawPairings(4, 500);
 		await this.sendReadyRequest();
@@ -119,7 +119,7 @@ export class Tournament {
 	}
 
 	public async drawFinals(): Promise<void> {
-		this.previousPhase = Phase.FINALS;
+		this.phaseLock = true;
 
 		let winners: Set<Player> = new Set<Player>();
 		let losers: Set<Player> = new Set<Player>();
@@ -196,7 +196,7 @@ export class Tournament {
 	}
 
 	public async endTournament(): Promise<void> {
-		this.previousPhase = Phase.COMPLETED;
+		this.phaseLock = true;
 
 		let winners: Set<Player> = new Set<Player>();
 		for (const m of this.matches) 
@@ -234,7 +234,8 @@ export class Tournament {
 	}
 
 	public async cancel(userId: number): Promise<void> {
-		console.log(`Info: Tournament canceled`);
+		this.phaseLock = true;
+
 		let disconnectedName = await this.getPlayerName(userId);
 		
 		for (const p of this.players) {
@@ -244,13 +245,14 @@ export class Tournament {
 			}));
 		}
 		this.changePhase(Phase.CANCELED);
+		console.log(`Info: Tournament canceled`);
 	}
 
 	public getPlayers(): Map<number, Player> { return (this.players); }
 
 	public getPhase(): any { return (this.phase) };
 
-	public getPreviousPhase(): any { return (this.previousPhase) };
+	public getPhaseLock(): any { return (this.phaseLock) };
 
 	private async getPlayerName(userId: number): Promise<string> {
 		const response = await fetch(`http://dataBase:3000/get/username?id=${userId}`);
@@ -315,6 +317,7 @@ export class Tournament {
 	}
 
 	public changePhase(phase: Phase): void {
+		this.phaseLock = false;
 		this.phase = phase;
 		this.tournamentState.phase = phase;
 	}

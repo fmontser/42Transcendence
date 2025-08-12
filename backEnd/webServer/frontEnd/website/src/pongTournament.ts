@@ -191,4 +191,8 @@ export class PongTournament {
 			this.messageFrame.innerHTML = `User ${userName} disconnected. Tournament was cancelled`;
 		}
 	}
+
+	public cleanUp = () => {
+		this.matchMakerConnector.closeConnection();
+	}
 }
