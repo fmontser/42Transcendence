@@ -193,8 +193,6 @@ const routes: Page[] = [
 						newTournament.start();
 						currentCleanupFunction = newTournament.cleanUp;
 
-						console.log(`DEBUG: cleanUp reference: `, currentCleanupFunction);
-						
 					} else {
 						console.error('Root element not found');
 					}
