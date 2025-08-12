@@ -1,6 +1,5 @@
 import { error } from 'console';
 import { router } from './router.js';
-import { customPushState } from './router.js';
 import {createWebSocket, closeWebSocket, modifyDictionaryWs, ws, dictionaryWs, WsFriendStatus, resetDictionaryWs} from './websocket.js';
 // async function getProfile(): Promise<Response>
 // {
@@ -117,14 +116,18 @@ export async function loadProfile() {
 	});
 
 	if (profileResponse.ok) {
-	  const profile = (await profileResponse.json())[0];
-	  (document.getElementById('pseudo')!).textContent = profile.pseudo || 'Inconnu';
-	  (document.getElementById('pseudoInput')! as HTMLTextAreaElement).value = profile.pseudo || '';
-	  (document.getElementById('bio')!).textContent = profile.bio || 'Inconnu';
-	  (document.getElementById('bioInput')! as HTMLTextAreaElement).value = profile.bio || '';
-	  (document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
-	  (document.getElementById('experience')!).textContent = profile.experience || '0';
-	  (document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
+		const profile = (await profileResponse.json())[0];
+		(document.getElementById('pseudo')!).textContent = profile.pseudo || 'Inconnu';
+		(document.getElementById('pseudoInput')! as HTMLTextAreaElement).value = profile.pseudo || '';
+		(document.getElementById('bio')!).textContent = profile.bio || 'Inconnu';
+		(document.getElementById('bioInput')! as HTMLTextAreaElement).value = profile.bio || '';
+		(document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
+		(document.getElementById('experience')!).textContent = profile.experience || '0';
+		if (profile.avatar)
+			(document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
+		else
+			(document.getElementById('avatar-box')! as HTMLImageElement).src = `public/avatars/default_avatar.jpg`;
+	
 	} else {
 	  console.error('Erreur lors du chargement du profil');
 	}
@@ -518,9 +521,6 @@ function addElement(friend: any, containerElement: string, templateElement: stri
 			//span.classList.add("nav-link")
 			//span.setAttribute('data-path', "friend_profile");
 			span.addEventListener("click", () => {
-
-				 //console.log("friend id before sessionStorage:", friend.friend_id);
-				 //customPushState(null, '', "friend_profile");
 				 history.pushState(null, '', "friend_profile?friendId=" + friend.friend_id);
 				 //changeFriendIDProfile(friend.friend_id)
 				 router();

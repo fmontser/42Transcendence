@@ -173,6 +173,17 @@ function showEndGameScreen(endGameData: EndGameData) {
 	(ctx!).fillText('New Game', playField.width/2, buttonY + 32);
 
 	// Añadir listener para el click en el botón
+	const wrapper = document.createElement('div');
+	wrapper.classList.add('container', 'mx-auto', 'p-4', 'md:p-');
+	wrapper.id = 'home-button-div';
+	const root = document.getElementById('root');
+	const button = document.createElement('button');
+	button.classList.add('text-left', 'nav-link', 'bg-blue-600', 'hover:bg-blue-700', 'text-white', 'font-semibold', 'py-2', 'px-4', 'rounded-lg', 'transition-colors', 'duration-300', 'whitespace-nowrap');
+	button.textContent = 'Home';
+	button.setAttribute('data-path', '/');
+	wrapper.appendChild(button);
+	if (root)
+		root.prepend(wrapper);
 	playField.addEventListener('click', handleNewGameClick, { signal: abortController.signal });
 }
 
@@ -191,6 +202,8 @@ function handleNewGameClick(event: MouseEvent) {
 		
 		// Crear nueva conexión en lugar de usar la antigua (que está cerrada)
 		setupWebSocket();
+		(document.getElementById('home-button-div')!).remove();
+
 	}
 }
 

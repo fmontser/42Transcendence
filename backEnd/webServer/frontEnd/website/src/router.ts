@@ -528,12 +528,12 @@ window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
 
-export function customPushState(state: any, title: string, url: string) {
-	history.pushState(state, title, url);
+// export function customPushState(state: any, title: string, url: string) {
+// 	history.pushState(state, title, url);
 	
-	// Save custom history stack to sessionStorage
-	let stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
-	stack.push({ state, title, url });
-	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
-	console.log("custom push state called");
-}
+// 	// Save custom history stack to sessionStorage
+// 	let stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
+// 	stack.push({ state, title, url });
+// 	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
+// 	console.log("custom push state called");
+// }

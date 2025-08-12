@@ -1,4 +1,5 @@
 // import { getFriendIDProfile } from './profile.js'
+import { router } from './router.js';
 import {createWebSocket} from './websocket.js';
 
 export async function init(friendId: string | null = null): Promise<void> {
@@ -8,7 +9,9 @@ export async function init(friendId: string | null = null): Promise<void> {
 		window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 	}
 	else {
-		return;//TODO send to 404
+		history.pushState(null, '', "/404");
+		router();
+		return;
 	}
 
 	const id = friendId;
@@ -19,7 +22,9 @@ export async function init(friendId: string | null = null): Promise<void> {
 
 	if (!sessionResponse.ok) {
 		console.error("Failed to retrieve friend profile");
-		return;//TODO send to 404
+		history.pushState(null, '', "/404");
+		router();
+		return;
 	}
 
 	const profile = (await sessionResponse.json())[0];
@@ -28,7 +33,10 @@ export async function init(friendId: string | null = null): Promise<void> {
 	(document.getElementById('bio')!).textContent = profile.bio || 'Inconnu';
 	(document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
 	(document.getElementById('experience')!).textContent = profile.experience || '0';
-	(document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
+	if (profile.avatar)
+		(document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
+	else
+		(document.getElementById('avatar-box')! as HTMLImageElement).src = `public/avatars/default_avatar.jpg`;
 	const matchsResponse = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/friend_matchlist?id=${id}`, {
 		method: 'GET',
 		credentials: 'include'
