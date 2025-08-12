@@ -130,4 +130,9 @@ export class MatchMakerConnector {
 		this.tournament.displayPlayfield();
 		this.game.announceMatch();
 	}
+ 
+	public closeConnection = () => {
+		console.log(`DEBUG: cleanup closing connection`);
+		this.ws.close();
+	}
 }

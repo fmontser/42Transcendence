@@ -142,10 +142,6 @@ export class PostTournamentRequest extends Endpoint {
 						case 'tournamentRequest':
 							console.log("Info: Tournament request recieved");
 							tournament = await tournamentManager.requestTournament(connection, userId);
-							if (!tournament) {
-								console.log(`Info: User ${userId} attempted to play multiple instances, closing connection`);
-								connection.close();
-							}
 							break;
 						case 'readyState':
 							console.log(`Info: Recieved readyState from UserId ${userId}`);

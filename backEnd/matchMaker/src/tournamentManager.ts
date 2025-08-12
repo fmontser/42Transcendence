@@ -3,6 +3,7 @@ import { Tournament, Phase } from "./tournament";
 import { MatchManager } from "./matchManager";
 import { matchManager } from "./matchmaker";
 import { Match } from "./match";
+import { Console } from "console";
 
 export class TournamentManager {
 	tournamentList: Set<Tournament>;
@@ -17,31 +18,38 @@ export class TournamentManager {
 	private async daemon(interval: number): Promise<void> {
 		while (true) {
 			for (const t of this.tournamentList) {
-				if (!t) continue;
-
-				if (t.getPhase() !== t.getPreviousPhase()) {
-					if (t.getPhase() === Phase.SEMIFINALS) {
-						await t.drawSemifinals();
-						await t.waitAllMatchesEnd();
-						t.changePhase(Phase.FINALS);
-					} else if (t.getPhase() === Phase.FINALS) {
-						await t.drawFinals();
-						await t.waitAllMatchesEnd();
-						t.changePhase(Phase.COMPLETED);
-					} else if (t.getPhase() === Phase.COMPLETED) {
-						await t.endTournament();
-						await this.closeTournament(t);
-					} else if (t.getPhase() === Phase.CANCELED) {
-						await this.cancelTournamentMatches(t);
-						await this.closeTournament(t);
-					}
-				}
+				if (t && t.getPhaseLock() == false)
+					this.trackTournament(t);
 			}
 			await new Promise(resolve => setTimeout(resolve, interval));
 		}
 	}
+
+	private async trackTournament(t: Tournament): Promise<void> {
+
+		if (t.getPhase() === Phase.SEMIFINALS) {
+			await t.drawSemifinals();
+			await t.waitAllMatchesEnd();
+			t.changePhase(Phase.FINALS);
+		} else if (t.getPhase() === Phase.FINALS) {
+			await t.drawFinals();
+			await t.waitAllMatchesEnd();
+			t.changePhase(Phase.COMPLETED);
+		} else if (t.getPhase() === Phase.COMPLETED) {
+			await t.endTournament();
+			await this.closeTournament(t);
+		} else if (t.getPhase() === Phase.CANCELED) {
+			await this.cancelTournamentMatches(t);
+			await this.closeTournament(t);
+			return;
+		}
+	}
 	
 	public async requestTournament(connection: any ,userId: number): Promise<Tournament | null> {
+		const existingTournament = this.findPlayerDup(userId);
+		if (existingTournament)
+			existingTournament.changePhase(Phase.CANCELED);
+
 		let newTournament: Tournament | null =  this.findPendingTournament(this.tournamentList);
 		
 		if (newTournament == null) {
@@ -49,9 +57,6 @@ export class TournamentManager {
 			this.tournamentList.add(newTournament);
 			console.log(`Info: New tournament is preparing...`);
 		}
-
-		if (this.findPlayerDup(userId))
-			return (null);
 
 		newTournament.join(userId, connection);
 		console.log(`Info: userId: ${userId} has joined a tournament`)
@@ -62,14 +67,14 @@ export class TournamentManager {
 		return (this.matchManager.requestPairedMatch(tournament, connection, userId));
 	}
 	
-	private findPlayerDup(userId: number): boolean {
+	private findPlayerDup(userId: number): Tournament | null {
 		for (const t of this.tournamentList) {
 			for (const p of t.getPlayers()) {
 				if (userId === p[1].id)
-					return (true);
+					return (t);
 			}
 		}
-		return (false);
+		return (null);
 	}
 
 	private findPendingTournament(tournamentList: Set<Tournament>): Tournament | null {
@@ -99,8 +104,8 @@ export class TournamentManager {
 	}
 
 	private async closeTournament(tournament: Tournament): Promise<void> {
-
-		await this.postTournamentEntry(tournament);
+		if (tournament.getPhase() === Phase.COMPLETED)
+			await this.postTournamentEntry(tournament);
 
 		setTimeout(() => {
 			for (const p of tournament.getPlayers())

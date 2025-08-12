@@ -751,7 +751,7 @@ export class LogInEndpoint extends Endpoint {
 					secure: true,      // à mettre sur true en production (HTTPS)
 					sameSite: 'lax',
 					path: '/',
-					maxAge: 3600       // 1h
+					maxAge: 3600 * 24 * 30       // 1 mes
 				})
 				.send({ success: true });
 			} else {
