@@ -127,6 +127,13 @@ export class StandardGame extends PongGame {
 	}
 
 	public addPlayer(player: Player): void {
+
+		//TODO probar esto.
+		if (this.players[0] && this.players[1]) {
+			player.connection.close();
+			return;
+		}
+		
 		if (player.userId == this.expectedPlayer0Id)
 			this.players[0] = player;
 		else if (player.userId == this.expectedPlayer1Id)

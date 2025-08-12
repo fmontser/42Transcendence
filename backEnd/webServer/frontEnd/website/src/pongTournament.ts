@@ -67,6 +67,7 @@ export class PongTournament {
 			if (img) {
 				img.src = c.avatar;
 				img.classList.remove('hidden');
+				img.classList.add('block');
 			}
 			if (btn) {
 				if (c.ready) {
