@@ -3,5 +3,6 @@ import { startAnimation } from './background.js'
 
 
 export async function init() {
-    startAnimation();
+	//TODO uncomment
+    //startAnimation();
 }
