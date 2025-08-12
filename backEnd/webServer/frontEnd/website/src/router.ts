@@ -145,6 +145,7 @@ const routes: Page[] = [
 						root.innerHTML = data;
 						let newGame = new PongGame();
 						newGame.start()
+						currentCleanupFunction = newGame.cleanUp;
 					} else {
 						console.error('Root element not found');
 					}
