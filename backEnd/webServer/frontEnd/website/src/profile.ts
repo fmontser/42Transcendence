@@ -748,72 +748,192 @@ const unblockFriendship = async (ID: number) => {
 
 // Modify AVATAR
 async function modifyAvatar() {
-	const sendAvatarBtn = document.getElementById('sendAvatarBtn');
-	if (sendAvatarBtn) {
-		sendAvatarBtn.addEventListener('click', async () => {
-			const input = document.getElementById('inputAvatar') as HTMLInputElement;
-			if (!input.files || input.files.length === 0) {
-				alert('Please select an image to upload.');
+	// Récup des éléments
+	const form = document.getElementById('formAvatar') as HTMLFormElement | null;
+	const modifyBtn = document.getElementById('modifyAvatarBtn') as HTMLButtonElement | null;
+	const sendBtn = document.getElementById('sendAvatarBtn') as HTMLButtonElement | null;
+	const input = document.getElementById('inputAvatar') as HTMLInputElement | null;
+	const avatarImg = document.getElementById('avatar-box') as HTMLImageElement | null;
+	const deleteAvatarBtn = document.getElementById('deleteAvatarBtn') as HTMLButtonElement | null;
+
+	// Évite de ré-attacher des listeners si la fonction est rappelée
+	if (form?.dataset.initialized === 'true') return;
+	if (form) form.dataset.initialized = 'true';
+
+	// Toggle du formulaire avec le bouton "Modify Avatar"
+	modifyBtn?.addEventListener('click', () => {
+		if (!form) return;
+		form.classList.toggle('hidden');
+		// (optionnel) accessibilité
+		modifyBtn.setAttribute('aria-expanded', String(!form.classList.contains('hidden')));
+	});
+
+	// Envoi de l'avatar
+	sendBtn?.addEventListener('click', async () => {
+		if (!input?.files || input.files.length === 0) {
+			alert('Please select a JPG image to upload.');
+			return;
+		}
+
+		// (optionnel) validation rapide côté client
+		const file = input.files[0];
+		if (file.type !== 'image/jpeg') {
+			alert('Only JPEG is allowed.');
+			return;
+		}
+		if (file.size > 30000) {
+			alert('Max size 30KB.');
+			return;
+		}
+
+		sendBtn.disabled = true;
+
+		try {
+			const formData = new FormData();
+			formData.append('image', file);
+
+			const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
+				method: 'PATCH',
+				credentials: 'include',
+				body: formData,
+			});
+
+			if (reply.status === 422) {
+				alert('Invalid image. Required: JPG 100x100, max 30KB.');
 				return;
 			}
-
-			const formData = new FormData();
-			formData.append('image', input.files[0]);
-
-			try {
-				const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
-					method: 'PATCH',
-					credentials: 'include',
-					body: formData,
-				});
-
-				//TODO mathis, manejar la respuesta de archivo invalido en el frontend (manejar el codigo 422, mostrar mensaje ....)
-				if (reply.status == 422)
-				{
-					//TODO archivo invalido  imagenes de 100x100 jpg max 30000 bytes (30kb)
-					console.log("Invalid file format. 100x100 jpg max 30kb")
-				}
-
-				const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
-					method: 'GET',
-					credentials: 'include',
-				});
-				if (!response.ok)
-				{
-					console.log("Erroooor!");
-				}
-				let session = await response.json();
-				const id = session.name;
-
-				const img = document.createElement('img');
-				img.src = `public/avatars/${id}.jpg`;
-				//console.log("file name: ", input.files[0].name);
-				img.alt = 'My Avatar';
-				//img.width = 300; // optional
-				let avatarBox = document.getElementById("avatar-box");
-				if (avatarBox)
-					avatarBox.appendChild(img);
-			} catch (error) {
-				console.error('Error uploading avatar:', error);
+			if (!reply.ok) {
+				throw new Error(`Upload failed: HTTP ${reply.status}`);
 			}
-		});
-	}
 
-	const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
-	if (deleteAvatarBtn) {
-		deleteAvatarBtn.addEventListener('click', async () => {
-			try {
-				const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_avatar`, {
+			// Récup session pour l’ID
+			const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+				method: 'GET',
+				credentials: 'include',
+			});
+			if (!response.ok) throw new Error('Unable to fetch session');
+
+			const session = await response.json();
+			const id = session.name as string;
+
+			// Met à jour l’avatar (avec cache-busting)
+			if (avatarImg) {
+				avatarImg.src = `public/avatars/${id}.jpg?cb=${Date.now()}`;
+				avatarImg.alt = 'My Avatar';
+			}
+
+			// Reset + re-cache le formulaire après envoi
+			form?.classList.add('hidden');
+			modifyBtn?.setAttribute('aria-expanded', 'false');
+			if (input) input.value = '';
+		} catch (error) {
+			console.error('Error uploading avatar:', error);
+			alert('Upload failed. Please try again.');
+		} finally {
+			sendBtn.disabled = false;
+		}
+	});
+
+	// Suppression de l’avatar (si tu as ce bouton dans le DOM)
+	deleteAvatarBtn?.addEventListener('click', async () => {
+		deleteAvatarBtn.disabled = true;
+		try {
+			const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_avatar`, {
 				method: 'DELETE',
 				credentials: 'include',
-				});
+			});
+			if (!reply.ok) throw new Error(`Delete failed: HTTP ${reply.status}`);
 
-			} catch (error) {
-				console.error('Error deleting avatar:', error);
+			// Option : mettre une image par défaut après suppression
+			if (avatarImg) {
+				avatarImg.src = `public/avatars/default_avatar.jpg?cb=${Date.now()}`;
+				avatarImg.alt = 'Default Avatar';
 			}
-		});
-	}
+
+			// Re-cache le formulaire et reset input
+			form?.classList.add('hidden');
+			modifyBtn?.setAttribute('aria-expanded', 'false');
+			if (input) input.value = '';
+		} catch (error) {
+			console.error('Error deleting avatar:', error);
+			alert('Delete failed. Please try again.');
+		} finally {
+			deleteAvatarBtn.disabled = false;
+		}
+	});
 }
+
+// async function modifyAvatar() {
+// 	document.getElementById("modifyAvatarBtn")?.addEventListener("click", () => {
+// 		const form = document.getElementById("formAvatar");
+// 		form?.classList.toggle("hidden");
+// 	});
+// 	const sendAvatarBtn = document.getElementById('sendAvatarBtn');
+// 	if (sendAvatarBtn) {
+// 		sendAvatarBtn.addEventListener('click', async () => {
+// 			const input = document.getElementById('inputAvatar') as HTMLInputElement;
+// 			if (!input.files || input.files.length === 0) {
+// 				alert('Please select an image to upload.');
+// 				return;
+// 			}
+
+// 			const formData = new FormData();
+// 			formData.append('image', input.files[0]);
+
+// 			try {
+// 				const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/patch/modify_avatar`, {
+// 					method: 'PATCH',
+// 					credentials: 'include',
+// 					body: formData,
+// 				});
+
+// 				//TODO mathis, manejar la respuesta de archivo invalido en el frontend (manejar el codigo 422, mostrar mensaje ....)
+// 				if (reply.status == 422)
+// 				{
+// 					//TODO archivo invalido  imagenes de 100x100 jpg max 30000 bytes (30kb)
+// 					console.log("Invalid file format. 100x100 jpg max 30kb")
+// 				}
+
+// 				const response = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/get/profile_session`, {
+// 					method: 'GET',
+// 					credentials: 'include',
+// 				});
+// 				if (!response.ok)
+// 				{
+// 					console.log("Erroooor!");
+// 				}
+// 				let session = await response.json();
+// 				const id = session.name;
+
+// 				const img = document.createElement('img');
+// 				img.src = `public/avatars/${id}.jpg`;
+// 				//console.log("file name: ", input.files[0].name);
+// 				img.alt = 'My Avatar';
+// 				//img.width = 300; // optional
+// 				let avatarBox = document.getElementById("avatar-box");
+// 				if (avatarBox)
+// 					avatarBox.appendChild(img);
+// 			} catch (error) {
+// 				console.error('Error uploading avatar:', error);
+// 			}
+// 		});
+// 	}
+
+// 	const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+// 	if (deleteAvatarBtn) {
+// 		deleteAvatarBtn.addEventListener('click', async () => {
+// 			try {
+// 				const reply = await fetch(`https://${window.location.hostname}:8443/usermanagement/front/delete/delete_avatar`, {
+// 				method: 'DELETE',
+// 				credentials: 'include',
+// 				});
+
+// 			} catch (error) {
+// 				console.error('Error deleting avatar:', error);
+// 			}
+// 		});
+// 	}
+// }
 
 
 async function deleteAccount() {

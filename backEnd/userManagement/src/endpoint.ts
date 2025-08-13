@@ -97,6 +97,7 @@ export class GetFriendMatchListEndpoint extends Endpoint {
 	}
 }
 
+import sharp from "sharp";
 export class ModifyAvatarEndpoint extends Endpoint {
 	add(server: any): void {
 		server.patch(this.path, { preHandler: server.authenticate }, async (request: any, reply: any) => {
@@ -116,7 +117,19 @@ export class ModifyAvatarEndpoint extends Endpoint {
 				return;
 			}
 
-			const imageBuffer = await file.toBuffer();
+			let imageBuffer = await file.toBuffer();
+
+			try {
+				const resizedImageBuffer = await sharp(imageBuffer)
+					.resize(100, 100)
+					.toFormat("jpeg")
+					.toBuffer();
+				imageBuffer = resizedImageBuffer;
+			} catch (err) {
+				console.error('Error resizing avatar:', err);
+				reply.status(500).send({ error: 'Failed to resize avatar image' });
+				return;
+			}
 
 			try {
 				const formData = new FormData();
