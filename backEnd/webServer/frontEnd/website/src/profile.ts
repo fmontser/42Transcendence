@@ -263,7 +263,10 @@ export async function loadProfile() {
 
 		if (!response.ok) {
 			const errorMessage = (pseudos?.error) ? pseudos.error : 'Error fetching pseudos.';
-			list.innerHTML = `<li class="text-red-500">${errorMessage}</li>`;
+			const li = document.createElement('li');
+			li.className = 'text-red-500';
+			li.textContent = errorMessage || 'Error fetching pseudos.';
+			list.appendChild(li);
 			return;
 		}
 
