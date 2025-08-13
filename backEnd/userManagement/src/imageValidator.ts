@@ -13,14 +13,14 @@ export class ImageValidator {
 		if (imageBuffer.length > maxSizeBytes) 
 			return false;
 
-		try {
-			metaData = await sharp(imageBuffer).metadata();
-			if (metaData.width !== requiredWidth || metaData.height !== requiredHeight) 
-				return false;
+		// try {
+		// 	metaData = await sharp(imageBuffer).metadata();
+		// 	if (metaData.width !== requiredWidth || metaData.height !== requiredHeight) 
+		// 		return false;
 			
-		} catch (error) {
-			return false;
-		}
+		// } catch (error) {
+		// 	return false;
+		// }
 		return true;
 	}
 }
