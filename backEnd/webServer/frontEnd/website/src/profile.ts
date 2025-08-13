@@ -425,6 +425,7 @@ export async function loadProfile() {
 					router();
 				});
 				clone.querySelector('.score-text')!.textContent = `${match.user_score} : ${match.enemy_score}`;
+				clone.querySelector('.match-date')!.textContent = match.date;
 
 				const badge = clone.querySelector('.result-badge')!;
 				badge.textContent = isWin ? 'WIN' : 'LOOSE';

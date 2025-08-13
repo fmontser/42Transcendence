@@ -296,7 +296,8 @@ function setEndPoints(): void {
 				WHEN m.player0_id = self_profile.user_id THEN m.player1_id
 				ELSE m.player0_id
 			END AS enemy_id,
-			winner_profile.pseudo AS winner_pseudo
+			winner_profile.pseudo AS winner_pseudo,
+			m.date AS date
 		FROM matches m
 		JOIN profiles self_profile ON (m.player0_id = self_profile.user_id OR m.player1_id = self_profile.user_id)
 		JOIN profiles enemy_profile ON (

@@ -289,6 +289,26 @@
 <!-- Match template -->
 <template id="match-template">
   <div class="p-4 rounded-lg shadow-md text-white">
+    <!-- Ligne principale : opponent + result + score -->
+    <div class="flex items-center gap-3 flex-wrap">
+      <p class="text-sm text-gray-200">
+        Opponent: <span class="text-indigo-300 font-semibold enemy-pseudo"></span>
+      </p>
+
+      <span class="result-badge inline-block px-2 py-1 text-xs font-bold rounded-full">
+        RESULT
+      </span>
+
+      <p class="text-lg font-bold score-text ml-auto"></p>
+    </div>
+
+    <!-- Ligne secondaire : date -->
+    <p class="match-date text-xs text-gray-400 mt-2"></p>
+  </div>
+</template>
+
+<!-- <template id="match-template">
+  <div class="p-4 rounded-lg shadow-md text-white">
     <div class="flex justify-between items-center">
       <div>
         <p class="text-sm text-gray-200">
@@ -303,5 +323,5 @@
       </div>
     </div>
   </div>
-</template>
+</template> -->
 
