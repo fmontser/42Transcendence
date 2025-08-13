@@ -798,12 +798,20 @@ async function modifyAvatar() {
 				body: formData,
 			});
 
-			if (reply.status === 422) {
-				alert('Invalid image. Required: JPG 100x100, max 30KB.');
-				return;
-			}
+			const statusElem = document.getElementById('statusModifyAvatar');
+
 			if (!reply.ok) {
-				throw new Error(`Upload failed: HTTP ${reply.status}`);
+				const errorData = await reply.json();
+				if (statusElem) {
+					statusElem.textContent = errorData.error || 'Upload failed';
+					statusElem.className = 'text-red-500 font-semibold';
+				}
+				throw new Error(errorData.error || 'Upload failed');
+			} else {
+				if (statusElem) {
+					statusElem.textContent = 'Avatar uploaded successfully';
+					statusElem.className = 'text-green-500 font-semibold';
+				}
 			}
 
 			// Récup session pour l’ID
@@ -842,7 +850,22 @@ async function modifyAvatar() {
 				method: 'DELETE',
 				credentials: 'include',
 			});
-			if (!reply.ok) throw new Error(`Delete failed: HTTP ${reply.status}`);
+			
+			const statusElem = document.getElementById('statusModifyAvatar');
+			
+			if (!reply.ok) {
+				const errorData = await reply.json();
+				if (statusElem) {
+					statusElem.textContent = errorData.error || 'Delete failed';
+					statusElem.className = 'text-red-500 font-semibold';
+				}
+				throw new Error(errorData.error || 'Delete failed');
+			} else {
+				if (statusElem) {
+					statusElem.textContent = 'Avatar deleted successfully';
+					statusElem.className = 'text-green-500 font-semibold';
+				}
+			}
 
 			// Option : mettre une image par défaut après suppression
 			if (avatarImg) {
