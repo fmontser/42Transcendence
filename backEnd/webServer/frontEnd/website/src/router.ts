@@ -54,7 +54,10 @@ const routes: Page[] = [
 					});
 				}
 				else {
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
@@ -103,7 +106,10 @@ const routes: Page[] = [
 					});
 				}
 				else {
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
@@ -151,7 +157,10 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
@@ -199,7 +208,10 @@ const routes: Page[] = [
 					}
 				}
 				else {
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
@@ -380,7 +392,10 @@ const routes: Page[] = [
 				}
 				else
 				{
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
@@ -433,7 +448,10 @@ const routes: Page[] = [
 				}
 				else
 				{
-					await methodNotAllowed();
+					//await methodNotAllowed();
+					history.pushState(null, '', "/login");
+					router();
+					return;
 				}
 			}
 			catch (error: unknown)
