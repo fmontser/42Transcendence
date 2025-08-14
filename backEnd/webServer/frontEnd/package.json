@@ -1,8 +1,8 @@
 {
-  "name": "testwebserver",
+  "name": "webserver",
   "version": "1.0.0",
   "description": "Servicio Webserver para el proyecto Trascendence",
-  "main": "dist/testwebserver.js",
+  "main": "dist/webserver.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/webserver.js",

@@ -41,4 +41,4 @@ COPY --from=builder /usr/src/app/frontEnd/website/public/avatars ./var/www/html/
 
 WORKDIR /var/www/html
 
-CMD ["node", "dist/testwebserver.js"]
+CMD ["node", "dist/webserver.js"]
