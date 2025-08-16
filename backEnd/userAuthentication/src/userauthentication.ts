@@ -85,6 +85,15 @@ function setEndPoints(): void {
 	EndPoints.Endpoint.enableAll(server);
 }
 
+function env(name: string, fallback?: string): string {
+	const v = process.env[name];
+	if (v === undefined) {
+		if (fallback !== undefined) return fallback;
+		throw new Error(`Missing env var ${name}`);
+	}
+	return v;
+}
+
 async function start() {
 
 	try {
@@ -94,8 +103,10 @@ async function start() {
 			credentials: true
 		});
 		await server.register(fastifyCookie);
+		const jwtSecret = env('JWT_SECRET');
 		await server.register(fastifyJwt, {
-			secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
+			// secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
+			secret: jwtSecret,
 			cookie: {
 				cookieName: 'token',
 				signed: false

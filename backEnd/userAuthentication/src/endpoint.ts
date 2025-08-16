@@ -4,6 +4,16 @@ import { OAuth2Client } from 'google-auth-library';
 import { randomUUID } from "crypto";
 
 
+function env(name: string, fallback?: string): string {
+	const v = process.env[name];
+	if (v === undefined) {
+		if (fallback !== undefined) return fallback;
+		throw new Error(`Missing env var ${name}`);
+	}
+	return v;
+}
+  
+
 export abstract class Endpoint {
 
 	protected static list: Set<Endpoint> = new Set();
@@ -150,7 +160,9 @@ export class GoogleAuthEndpoint extends Endpoint {
 
 	constructor(path: string, errorMsg: string) {
 		super(path, errorMsg);
-		this.googleClient = new OAuth2Client("826866714242-u7rb76no703g0n8vauoq926n9cdkfgv3.apps.googleusercontent.com");//TODO: Move to .env file
+		// this.googleClient = new OAuth2Client("826866714242-u7rb76no703g0n8vauoq926n9cdkfgv3.apps.googleusercontent.com");//TODO: Move to .env file
+		const googleApiSecret = env('GOOGLE_API_SECRET');
+		this.googleClient = new OAuth2Client(googleApiSecret); // Use environment variable for client ID
 		Endpoint.list.add(this);
 	}
 	
