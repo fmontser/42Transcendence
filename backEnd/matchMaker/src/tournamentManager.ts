@@ -46,7 +46,7 @@ export class TournamentManager {
 	}
 	
 	public async requestTournament(connection: any ,userId: number): Promise<Tournament | null> {
-		const existingTournament = this.findPlayerDup(userId);
+		const existingTournament = this.findPlayerTournament(userId);
 		if (existingTournament)
 			existingTournament.changePhase(Phase.CANCELED);
 
@@ -67,7 +67,7 @@ export class TournamentManager {
 		return (this.matchManager.requestPairedMatch(tournament, connection, userId));
 	}
 	
-	private findPlayerDup(userId: number): Tournament | null {
+	private findPlayerTournament(userId: number): Tournament | null {
 		for (const t of this.tournamentList) {
 			for (const p of t.getPlayers()) {
 				if (userId === p[1].id)

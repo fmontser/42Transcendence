@@ -97,11 +97,7 @@ export class PostMatchRequest extends Endpoint {
 					switch (jsonData.type) {
 						case 'matchRequest':
 							console.log(`Info: Recieved matchRequest from userId ${userId}`);
-							const match: Match | any = matchManager.requestMatch(connection, userId);
-							if (!match) {
-								console.log(`Info: User ${userId} attempted to play multiple instances, closing connection`);
-								connection.close();
-							}
+							matchManager.requestMatch(connection, userId);
 							break;
 					}
 				} catch (error) {

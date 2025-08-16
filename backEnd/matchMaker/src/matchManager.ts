@@ -13,16 +13,18 @@ export class MatchManager {
 		this.matchList = new Set<Match>();
 	}
 
-	public async requestMatch(connection: any ,userId: number): Promise<Match | null> {
+	public async requestMatch(connection: any ,userId: number): Promise<Match> {
+		//TODO comprobar que esto no interfiere...
+		const existingMatch = this.findPlayerMatch(userId);
+		if (existingMatch)
+			this.requestPongCancel(existingMatch);
+		
 		let newMatch: Match | null = this.findPendingMatch();
 
 		if (newMatch == null) {
 			newMatch = new Match();
 			this.matchList.add(newMatch);
 		}
-
-		if (this.findPlayerDup(userId))
-			return null;
 
 		await newMatch.addPlayer(connection, userId);
 		console.log(`Info: UserId ${userId} is waiting for a match...`);
@@ -45,12 +47,12 @@ export class MatchManager {
 		return (newMatch);
 	}
 
-	private findPlayerDup(userId: number): boolean {
+	private findPlayerMatch(userId: number): Match | null {
 		for (const m of this.matchList) {
 			if (userId === m.player0Id || userId === m.player1Id)
-				return (true)
+				return (m)
 		}
-		return (false);
+		return (null);
 	}
 
 	private findPendingMatch(): Match | null {
@@ -102,6 +104,18 @@ export class MatchManager {
 	private cleanMatch(match: Match): void {
 		match.status = Status.COMPLETED;
 		this.matchList.delete(match);
+	}
+
+	private async requestPongCancel(match: Match): Promise<void> {
+		const ws = new WebSocket('ws://serverpong:3000/delete/match');
+
+		ws.on('open', () => {
+			ws.send(JSON.stringify({
+				type: 'cancelMatch'
+			}));
+			console.log("Info: Cancel request sent to serverPong");
+			ws.close();
+		});
 	}
 
 	private async requestNewPongInstance(match: Match): Promise<void> {

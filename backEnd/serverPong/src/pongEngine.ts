@@ -142,7 +142,7 @@ export class StandardGame extends PongGame {
 
 	private playersReady(): boolean {
 		for (let player of this.players) {
-			if (player.isReady == false)
+			if (player && player.isReady == false)
 				return (false);
 		}
 		return (true);
