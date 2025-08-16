@@ -5,7 +5,6 @@ import {createWebSocket, closeWebSocket} from './websocket.js';
 let currentCleanupFunction: any = null;
 
 console.log('SPA loaded');
-history.pushState(null, '', window.location.href);
 
 interface Page {
 	path: string;
@@ -528,10 +527,9 @@ export const router = async () => {
 
 document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', e => {
-	//console.log(">>>>>>>>>>>>> click listener called");
 	const target = e.target as HTMLElement;
+
 	if (target.matches('.nav-link')) {
-		//console.log(">>>>>>>>>>>>> nav-link found");
 		e.preventDefault();
 		const href = target.getAttribute('data-path')!;
 
@@ -547,12 +545,3 @@ window.addEventListener('popstate', router);
 
 document.addEventListener('DOMContentLoaded', router);
 
-// export function customPushState(state: any, title: string, url: string) {
-// 	history.pushState(state, title, url);
-	
-// 	// Save custom history stack to sessionStorage
-// 	let stack = JSON.parse(sessionStorage.getItem('myHistoryStack') || '[]');
-// 	stack.push({ state, title, url });
-// 	sessionStorage.setItem('myHistoryStack', JSON.stringify(stack));
-// 	console.log("custom push state called");
-// }
