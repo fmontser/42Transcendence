@@ -146,6 +146,7 @@ export class PongGame {
 	}
 
 	public cleanUp = () => {
-		this.serverPongConnector.closeConnection();
+		if (this.serverPongConnector)
+			this.serverPongConnector.closeConnection();
 	}
 }
