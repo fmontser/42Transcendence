@@ -150,8 +150,6 @@ export class Tournament {
 
 		this.resetAllReadyStates();
 
-		this.changePhase(Phase.FINALS);
-
 		setTimeout(() => {}, 3000);
 
 		await this.broadcastStatus();

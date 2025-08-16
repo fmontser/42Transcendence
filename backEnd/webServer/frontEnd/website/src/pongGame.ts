@@ -150,11 +150,11 @@ export class PongGame {
 	}
 
 	public cleanUp = () => {
-		if (this.matchMakerConnector)
+ 		if (this.matchMakerConnector)
 			this.matchMakerConnector.closeConnection();
 		if (this.serverPongConnector)
 			this.serverPongConnector.closeConnection();
-		if (this.countDownInterval)
+ 		if (this.countDownInterval)
 			clearInterval(this.countDownInterval);
 	}
 }

@@ -27,6 +27,8 @@ export class TournamentManager {
 
 	private async trackTournament(t: Tournament): Promise<void> {
 
+		console.log(`DEBUG: >>>> tracktournament ${t.getPhaseLock()} - ${t.getPhase()}`);
+
 		if (t.getPhase() === Phase.SEMIFINALS) {
 			await t.drawSemifinals();
 			await t.waitAllMatchesEnd();
@@ -41,7 +43,6 @@ export class TournamentManager {
 		} else if (t.getPhase() === Phase.CANCELED) {
 			await this.cancelTournamentMatches(t);
 			await this.closeTournament(t);
-			return;
 		}
 	}
 	

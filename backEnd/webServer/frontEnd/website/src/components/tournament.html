@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Pong Tournament</title>
+<title>Pong Tournament</title>
 <body class="bg-gray-900 h-full">
 	<div id="messageFrame" class="hidden bg-gradient-to-r from-teal-700 to-indigo-800 text-cyan-200 justify-center items-center text-4xl w-full h-full"></div>
-	<div id="gameFrame" class="hidden bg-gray-900 w-full h-full">
+	<div id="gameFrame" class="hidden bg-gray-900 flex flex-col items-center">
 		<div id="score" class="w-full text-center text-white text-2xl font-mono">0 - 0</div>
 		<canvas id="playField" width="1280" height="720" class="border-2 border-white"></canvas>
 	</div>
@@ -28,9 +23,7 @@
 				</div>
 			</div>
 		</div>
-
-		<!-- TODO fran cambiar estilo del texto al que tenia el css (ahora es plano), ver github -->
-		 
+	 
 		<!-- 2nd Place Section -->
 		<div class="podium-section flex items-center bg-gradient-to-r from-teal-700 to-indigo-800 border border-slate-700 rounded-sm w-full h-1/3">
 			<div class="podium-header text-5xl font-sans flex justify-center items-center bg-gradient-to-r from-teal-900/25 to-purple-900/15 border border-slate-700 border-t-cyan-400 border-b-black border-r-[10px] border-r-purple-500/60 w-[15%] h-full">
