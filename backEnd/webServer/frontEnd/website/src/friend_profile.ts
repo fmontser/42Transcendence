@@ -32,7 +32,6 @@ export async function init(friendId: string | null = null): Promise<void> {
 	(document.getElementById('pseudo')!).textContent = profile.pseudo || 'Inconnu';
 	(document.getElementById('bio')!).textContent = profile.bio || 'Inconnu';
 	(document.getElementById('creationDate')!).textContent = profile.date_creation || 'Inconnue';
-	(document.getElementById('experience')!).textContent = profile.experience || '0';
 	if (profile.avatar)
 		(document.getElementById('avatar-box')! as HTMLImageElement).src = profile.avatar;
 	else
@@ -51,6 +50,8 @@ export async function init(friendId: string | null = null): Promise<void> {
 		
 			const matchTemplate = document.getElementById('match-template') as HTMLTemplateElement;
 
+			let wins = 0;
+			let looses = 0;
 			matchsData.forEach((match: any) => {
 				const isWin = match.winner_pseudo === match.user_pseudo;
 
@@ -65,14 +66,19 @@ export async function init(friendId: string | null = null): Promise<void> {
 				const badge = clone.querySelector('.result-badge')!;
 				badge.textContent = isWin ? 'WIN' : 'LOOSE';
 				if (isWin) {
+					wins++;
 					badge.classList.add('bg-green-500', 'text-green-900');
 				} else {
+					looses++;
 					badge.classList.add('bg-red-500', 'text-red-900');
 				}
 				  
 				matchsContainer!.prepend(clone);
 			});
 
+		  
+			(document.getElementById('wins')!).textContent = String(wins) || '0';
+			(document.getElementById('looses')!).textContent = String(looses) || '0';
 		  
 		} else {
 		  if (matchsContainer)
