@@ -1,3 +1,4 @@
+import { clearTimeout } from "timers";
 import { MatchMakerConnector } from "./matchMakerConnector.js";
 import { ServerPongConnector } from "./serverPongConnector.js";
 
@@ -120,7 +121,6 @@ export class PongGame {
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
 
-		console.log(`DEBUG: f canvas`);
 		// results
 		this.ctx2d.fillStyle = 'white';
 		this.ctx2d.font = '48px monospace';
@@ -150,7 +150,11 @@ export class PongGame {
 	}
 
 	public cleanUp = () => {
+		if (this.matchMakerConnector)
+			this.matchMakerConnector.closeConnection();
 		if (this.serverPongConnector)
 			this.serverPongConnector.closeConnection();
+		if (this.countDownInterval)
+			clearInterval(this.countDownInterval);
 	}
 }

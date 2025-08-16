@@ -40,7 +40,6 @@ export class ServerPongConnector {
 					break;
 				case 'endGame':
 				case 'playerDisconnected':
-					console.log(`DEBUG: endGame/disconnected msg recieved`, data.type);
 					this.game.drawEndGameScreen(data);
 					break;
 			}
@@ -104,7 +103,6 @@ export class ServerPongConnector {
 	}
 
 	public closeConnection = () => {
-		console.log(`DEBUG: cleanup closing connection`);
 		this.ws.close();
 	}
 }

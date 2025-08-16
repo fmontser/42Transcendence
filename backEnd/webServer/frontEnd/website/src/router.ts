@@ -528,10 +528,9 @@ export const router = async () => {
 
 document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('click', e => {
-	//console.log(">>>>>>>>>>>>> click listener called");
 	const target = e.target as HTMLElement;
+
 	if (target.matches('.nav-link')) {
-		//console.log(">>>>>>>>>>>>> nav-link found");
 		e.preventDefault();
 		const href = target.getAttribute('data-path')!;
 
