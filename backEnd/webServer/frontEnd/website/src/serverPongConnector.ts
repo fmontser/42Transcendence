@@ -1,3 +1,4 @@
+import { setTimeout } from "timers";
 import { PongGame } from "./pongGame.js";
 
 export class ServerPongConnector {
@@ -40,6 +41,7 @@ export class ServerPongConnector {
 					break;
 				case 'endGame':
 				case 'playerDisconnected':
+					console.log(`DEBUG: endGame/disconnected msg recieved`, data.type);
 					this.game.drawEndGameScreen(data);
 					break;
 			}
@@ -87,9 +89,11 @@ export class ServerPongConnector {
 	}
 
 	private sendStartRequest() {
-		this.ws.send(JSON.stringify({
-			type: 'startRequest'
-		}));
+		setInterval(() => {
+			this.ws.send(JSON.stringify({
+				type: 'startRequest'
+			}));
+		}, 3000);
 	}
 
 	private handleSetupResponse(data: any) {
@@ -100,7 +104,6 @@ export class ServerPongConnector {
 		this.sendStartRequest();
 	}
 
-	 
 	public closeConnection = () => {
 		console.log(`DEBUG: cleanup closing connection`);
 		this.ws.close();

@@ -8,6 +8,8 @@ export class PongGame {
 	private matchMakerConnector!: MatchMakerConnector;
 	private serverPongConnector!: ServerPongConnector;
 
+	private countDownInterval!: any;
+
 	public leftPlayerName!: string;
 	public rightPlayerName!: string;
 
@@ -33,6 +35,7 @@ export class PongGame {
 
 	public announceMatch(): void {
 		let countdown = 3;
+		this.serverPongConnector = new ServerPongConnector(this);
 
 		const drawCurrentAnnounceState = (currentCountdownValue: any) => {
 			this.ctx2d.fillStyle = '#1a1a1a';
@@ -60,21 +63,17 @@ export class PongGame {
 
 		drawCurrentAnnounceState(countdown);
 
-		const countdownInterval = setInterval(() => {
+		this.countDownInterval = setInterval(() => {
 			countdown--;
 
 			if (countdown > 0) {
 				drawCurrentAnnounceState(countdown);
 			} else {
-				clearInterval(countdownInterval);
+				clearInterval(this.countDownInterval);
 				this.ctx2d.fillStyle = '#1a1a1a';
 				this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
 			}
 		}, 1000);
-
-		setTimeout(() => {
-			this.serverPongConnector = new ServerPongConnector(this);
-		}, 3000);
 	}
 
 	private drawWaitScreen(): void {
@@ -113,10 +112,15 @@ export class PongGame {
 	}
 
 	public drawEndGameScreen(endGameData: any): void {
+		//clear countdown
+		if (this.countDownInterval)
+			clearInterval(this.countDownInterval);
+
 		// canvas
 		this.ctx2d.fillStyle = '#1a1a1a';
 		this.ctx2d.fillRect(0, 0, this.playField.width, this.playField.height);
 
+		console.log(`DEBUG: f canvas`);
 		// results
 		this.ctx2d.fillStyle = 'white';
 		this.ctx2d.font = '48px monospace';
@@ -127,7 +131,7 @@ export class PongGame {
 			this.ctx2d.fillText('RAGE QUIT!', this.playField.width/2, this.playField.height/3);
 		else
 			this.ctx2d.fillText('Game Over!', this.playField.width/2, this.playField.height/3);
-	
+
 		// score
 		this.scoreElement.textContent = `${endGameData.score[0]} - ${endGameData.score[1]}`;
 		this.ctx2d.font = '36px monospace';

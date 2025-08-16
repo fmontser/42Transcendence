@@ -14,10 +14,11 @@ export class MatchManager {
 	}
 
 	public async requestMatch(connection: any ,userId: number): Promise<Match> {
-		//TODO comprobar que esto no interfiere...
 		const existingMatch = this.findPlayerMatch(userId);
-		if (existingMatch)
-			this.requestPongCancel(existingMatch);
+		if (existingMatch) {
+			await this.requestPongCancel(existingMatch, userId);
+			this.matchList.delete(existingMatch);
+		}
 		
 		let newMatch: Match | null = this.findPendingMatch();
 
@@ -106,12 +107,13 @@ export class MatchManager {
 		this.matchList.delete(match);
 	}
 
-	private async requestPongCancel(match: Match): Promise<void> {
+	private async requestPongCancel(match: Match, userId: number): Promise<void> {
 		const ws = new WebSocket('ws://serverpong:3000/delete/match');
 
 		ws.on('open', () => {
 			ws.send(JSON.stringify({
-				type: 'cancelMatch'
+				type: 'cancelMatch',
+				disconnectedId: userId
 			}));
 			console.log("Info: Cancel request sent to serverPong");
 			ws.close();
