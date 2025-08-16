@@ -188,7 +188,7 @@ export class PongTournament {
 		
 
 		if (this.messageFrame) {
-			this.messageFrame.innerHTML = `User ${userName} disconnected. Tournament was cancelled`;
+			this.messageFrame.textContent = `User ${userName} disconnected. Tournament was cancelled`;
 		}
 	}
 
