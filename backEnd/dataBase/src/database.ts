@@ -161,6 +161,12 @@ function setEndPoints(): void {
 	);
 
 	new EndPoints.getEndpoint(
+		"/get/pseudo",
+		"SELECT pseudo as name FROM profiles WHERE user_id = ?",
+		"Failed to get users"
+	);
+
+	new EndPoints.getEndpoint(
 		"/get/user_id",
 		`SELECT id from users WHERE name = ?`,
 		"Failed to get users"
