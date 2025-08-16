@@ -255,7 +255,7 @@ export class Tournament {
 	public getPhaseLock(): any { return (this.phaseLock) };
 
 	private async getPlayerName(userId: number): Promise<string> {
-		const response = await fetch(`http://dataBase:3000/get/username?id=${userId}`);
+		const response = await fetch(`http://dataBase:3000/get/pseudo?id=${userId}`);//changing endpoint from /get/username to /get/pseudo
 		const data = await response.json();
 		return (data[0].name);
 	}
