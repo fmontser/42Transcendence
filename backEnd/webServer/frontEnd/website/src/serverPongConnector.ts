@@ -1,4 +1,3 @@
-import { setTimeout } from "timers";
 import { PongGame } from "./pongGame.js";
 
 export class ServerPongConnector {
@@ -89,7 +88,7 @@ export class ServerPongConnector {
 	}
 
 	private sendStartRequest() {
-		setInterval(() => {
+		setTimeout(() => {
 			this.ws.send(JSON.stringify({
 				type: 'startRequest'
 			}));
