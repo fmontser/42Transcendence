@@ -4,5 +4,5 @@ import { startAnimation } from './background.js'
 
 export async function init() {
 	//TODO uncomment
-    //startAnimation();
+    startAnimation();
 }
