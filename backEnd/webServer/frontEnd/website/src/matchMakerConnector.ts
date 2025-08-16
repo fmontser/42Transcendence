@@ -43,10 +43,6 @@ export class MatchMakerConnector {
 						console.log("Info: Recieved match response from matchMaker");
 						this.handleMatchResponse(data);
 						break;
-					case 'error':
-						console.log(`Error: ${data.message}`);
-						//TODO inyectar web de error con el mensaje??
-						break;
 				}
 			};
 		}
@@ -76,10 +72,6 @@ export class MatchMakerConnector {
 						console.log(`Info: Tournament was cancelled`);
 						this.tournament.cancelTournament(data.userName);
 						break;
-					case 'error':
-						console.log(`Error: ${data.message}`);
-						//TODO inyectar web de error con el mensaje??
-						break;
 				}
 			};
 		}
@@ -88,10 +80,6 @@ export class MatchMakerConnector {
 			console.log('Disconected from match maker.');
 		};
 
-		this.ws.onerror = (error: any) => {
-			console.error('WebSocket error:', error);
-			//TODO inyectar web de error con el mensaje??
-		};
 	}
 
 	private sendMatchRequest(): void {

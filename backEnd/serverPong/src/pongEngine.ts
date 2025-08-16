@@ -140,9 +140,17 @@ export class StandardGame extends PongGame {
 			console.log(`Info: added player, ${this.players[0].name} vs ${this.players[1].name}`);
 	}
 
+	public getPlayerById(userId: number): Player | null {
+		for (const p of this.players) {
+			if (p.userId == userId)
+				return  (p)
+		}
+		return (null);
+	}
+
 	private playersReady(): boolean {
 		for (let player of this.players) {
-			if (player.isReady == false)
+			if (!player || player.isReady == false)
 				return (false);
 		}
 		return (true);

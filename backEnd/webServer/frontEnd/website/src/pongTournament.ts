@@ -193,6 +193,7 @@ export class PongTournament {
 	}
 
 	public cleanUp = () => {
-		this.matchMakerConnector.closeConnection();
+		if (this.matchMakerConnector)
+			this.matchMakerConnector.closeConnection();
 	}
 }

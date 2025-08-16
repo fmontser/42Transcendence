@@ -131,8 +131,10 @@ export class DeleteOngoingMatch extends Endpoint {
 						case 'cancelMatch':
 							console.log("Info: Match cancel request recieved");
 							targetMatch = standardGameManager.getGamebyUserId(jsonData.userId);
-							if (targetMatch)
+							if (targetMatch){
+								targetMatch.gameEnd(targetMatch.getPlayerById(jsonData.disconnectedId));
 								standardGameManager.deleteGame(targetMatch);
+							}
 							connection.close();
 							break;
 					}
