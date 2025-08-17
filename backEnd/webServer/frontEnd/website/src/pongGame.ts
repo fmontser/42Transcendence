@@ -139,8 +139,7 @@ export class PongGame {
 			this.playField.width/2, this.playField.height/2);
 		
 		// winner
-		let winnerName: string = endGameData.score[0] > endGameData.score[1] ? this.leftPlayerName : this.rightPlayerName;
-		this.ctx2d.fillText(`Winner: ${winnerName}`, this.playField.width/2, this.playField.height/2 + 50);
+		this.ctx2d.fillText(`Winner: ${endGameData.winnerName}`, this.playField.width/2, this.playField.height/2 + 50);
 	}
 
 	public setGameState(data: any): void {
