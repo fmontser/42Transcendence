@@ -235,6 +235,7 @@ export class StandardGame extends PongGame {
 		connection.send(JSON.stringify({
 			type: this.endType,
 			winnerId: this.winnerId,
+			winnerName: this.getPlayerById(this.winnerId)?.name,
 			loserId: this.loserId,
 			score: [this.players[0].score, this.players[1].score]
 		}))
@@ -243,16 +244,20 @@ export class StandardGame extends PongGame {
 
 	public gameEnd(disconnectedPlayer: Player | null): void {
 
-		if (this.status == Status.COMPLETED)
+		if (this.status == Status.COMPLETED || this.status == Status.DISCONNECTED)//added : || this.status == Status.DISCONNECTED bc gameEnd is called multiple times and if there is a disconnection the call that is posted in database was the one without disconnection
 			return;
 		if (disconnectedPlayer != null) {
 			this.winnerId = this.players[0].userId != disconnectedPlayer.userId ? this.players[0].userId : this.players[1].userId;
 			this.loserId = this.players[0].userId == disconnectedPlayer.userId ? this.players[0].userId : this.players[1].userId;
+
+			console.log(`Info: Player disconnected: ${disconnectedPlayer.userId}`);
+			console.log(`Info: WinnerId: ${this.winnerId} LoserId: ${this.loserId}`);
 			this.endType = 'playerDisconnected';
 			this.status = Status.DISCONNECTED;
 		} else {
 			this.winnerId = this.players[0].score > this.players[1].score ? this.players[0].userId : this.players[1].userId;
 			this.loserId = this.players[0].score < this.players[1].score ? this.players[0].userId : this.players[1].userId;
+			console.log(`Info: Game ended normally: winnerId: ${this.winnerId} loserId: ${this.loserId}`);
 			this.endType = 'endGame';
 			this.status = Status.COMPLETED;
 		}
@@ -260,6 +265,7 @@ export class StandardGame extends PongGame {
 		this.broadcastSend(JSON.stringify({
 			type: this.endType,
 			winnerId: this.winnerId,
+			winnerName: this.getPlayerById(this.winnerId)?.name,
 			loserId: this.loserId,
 			score: [this.players[0].score, this.players[1].score]
 		}));
