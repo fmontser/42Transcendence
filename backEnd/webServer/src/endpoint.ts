@@ -36,9 +36,7 @@ export class AccessLoginEndpoint extends Endpoint {
 				reply.status(405)
 			}
 			const filePath = path.join('website/dist/components', `login.html`);
-			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');
-			//console.log('File found:', data);
 			reply.header('Content-Disposition', 'filename="login.html"');
 			reply.type('text/html; charset=utf-8');
 			reply.send(data);
@@ -55,9 +53,7 @@ export class AccessSigninEndpoint extends Endpoint {
 				reply.status(405)
 			}
 			const filePath = path.join('website/dist/components', `signin.html`);
-			console.log("The file path:", filePath)
 			const data = await fs.readFile(filePath, 'utf-8');
-			//console.log('File found:', data);
 			reply.type('text/html; charset=utf-8')
 			reply.send(data);
 		});
@@ -89,15 +85,12 @@ async function isAuthentified (request: any): Promise<boolean>
 	let cred = false;
 	try
 	{
-		//console.log("The token:");
-		//console.log(token);
 		let response = await fetch(`http://userAuthentication:3000/userauthentication/front/get/profile_session_with_token?token=${token}`, {
 			method: 'GET',
 		});
 		let data = await response.json();
 		if (response.ok)
 		{
-			console.log(data.id)
 			cred = true;
 		}
 	}
@@ -116,22 +109,16 @@ async function isAuthentified (request: any): Promise<boolean>
 export class AccessComponentEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request: any, reply: any) => {
-			//console.log(`AccessComponent endpoint: ${this.path} called`);
 			const requestedFile = request.params.name;
-			//console.log("raw cookie:");
-			//console.log(request.headers.cookie);
 			let cred = await isAuthentified(request);
 			if (cred) //Has credentials fet
 			{
 				console.log('User has credentials.');
-				console.log('File:', requestedFile);
 				if (pages.includes(requestedFile))
 				{
 					const filePath = path.join('website/dist/components', `${requestedFile}.html`);
-					console.log("The file path:", filePath)
 					try {
 						const data = await fs.readFile(filePath, 'utf-8');
-						//console.log('File found:', data);
 						reply.type('text/html; charset=utf-8')
 						reply.send(data);
 					}
@@ -158,14 +145,11 @@ export class AccessComponentEndpoint extends Endpoint {
 			else //Doesn't have credentials
 			{
 				console.log('User doesnt have credentials.');
-				console.log('File:', requestedFile);
 				if (requestedFile == "login" || requestedFile == "signin" || requestedFile == "404" || requestedFile == "405")
 				{
 					const filePath = path.join('website/dist/components', `${requestedFile}.html`);
-					console.log("The file path:", filePath)
 					try {
 						const data = await fs.readFile(filePath, 'utf-8');
-						//console.log('File found:', data);
 						reply.type('text/html; charset=utf-8')
 						reply.send(data);
 					}
@@ -215,7 +199,6 @@ export class PostAvatarEndpoint extends Endpoint {
 				const avatarsDir = path.join('website', 'public', 'avatars');
 				const filePath = path.join(avatarsDir, hashedId + ".jpg");
 
-				console.log(`Writing avatar for hash ${hashedId} to ${filePath}`);
 
 				await fs.mkdir(avatarsDir, { recursive: true });
 				await fs.writeFile(filePath, imageBuffer);

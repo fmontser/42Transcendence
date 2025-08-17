@@ -11,13 +11,10 @@ const signinForm: HTMLFormElement = document.getElementById('signin-form') as HT
 		signinForm.addEventListener('submit', async (event: SubmitEvent) => {
 			const target = event.target as HTMLElement;
 			const href = target.getAttribute('data-path')!;
-			console.log("target", target, "ref", href)
 
 			event.preventDefault();
 			const formData = new FormData(signinForm);
 			const formProps = Object.fromEntries(formData) as { name: string, pass: string };
-			console.log("Username:", formProps.name);
-			console.log("Passwowrd:", formProps.pass);
 			try 
 			{
 				const response = await fetch("/userauthentication/front/post/create", {
@@ -42,7 +39,6 @@ const signinForm: HTMLFormElement = document.getElementById('signin-form') as HT
 					{
 						console.log("loginResponse ok");
 						if (target.matches('.spa-form')) {
-							console.log(">>>>>>>>>>>>> nav-link found");
 							history.pushState(null, '', href);
 							router();
 						}

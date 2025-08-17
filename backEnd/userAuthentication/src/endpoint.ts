@@ -62,7 +62,6 @@ async function broadcast(id: string, status: boolean): Promise<void> {
 
 	const friends = await response.json();
 	const friendsIds = friends.map((friend: { id: string }) => friend.id);
-	console.log(`friends of ${id}: ${friendsIds}`);
 
 	if (friendsIds.length === 0) {
 		console.log(`No friends found for user ${id}`);
@@ -124,10 +123,8 @@ export class ProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, async (request:any, reply:any) => {
 			const token = request.query.token
-			console.log(`Token received: ${token}`);
 			try {
 				const decoded = server.jwt.verify(token);
-				console.log('Decoded token:', decoded);
 				reply.send({ id: decoded.id });
 			} catch (err) {
 				reply.status(401).send({ error: 'Invalid token' });
@@ -160,7 +157,6 @@ export class GoogleAuthEndpoint extends Endpoint {
 
 	constructor(path: string, errorMsg: string) {
 		super(path, errorMsg);
-		// this.googleClient = new OAuth2Client("826866714242-u7rb76no703g0n8vauoq926n9cdkfgv3.apps.googleusercontent.com");//TODO: Move to .env file
 		const googleApiSecret = env('GOOGLE_API_SECRET');
 		this.googleClient = new OAuth2Client(googleApiSecret); // Use environment variable for client ID
 		Endpoint.list.add(this);
@@ -234,7 +230,6 @@ export class GoogleAuthEndpoint extends Endpoint {
 						return;
 					}
 
-					console.log(`User ${userEmail} created successfully with ID ${id}`);
 					// reply.send({ message: 'User created successfully'});
 				} else if (data[0].two_fa) {
 					const token = server.jwt.sign({ id, twofa: true }, { expiresIn: '5m' });
@@ -298,9 +293,7 @@ export class LogInEndpoint extends Endpoint {
 			}
 			const data = await response.json();
 
-			console.log(request.body);
 
-			console.log(data);
 			if (data.length === 0) {
 				reply.status(404).send({ error: 'Invalid username or password' });
 				return;
@@ -309,7 +302,6 @@ export class LogInEndpoint extends Endpoint {
 				reply.status(403).send({ error: 'Please connect using Google Sign-In' });
 				return;
 			}
-			console.log(data[0].pass, pass);
 
 			const isValidPassword = await bcrypt.compare(pass, data[0].pass);
 
@@ -330,7 +322,6 @@ export class LogInEndpoint extends Endpoint {
 			else {
 				const token = server.jwt.sign({ id });
 
-				console.log(`User ${name} logged in successfully, token: ${token}`);
 				reply.setCookie('token', token, {
 					httpOnly: true,
 					secure: true,
@@ -473,7 +464,6 @@ export class TwoFASetupEndpoint extends Endpoint {
 
 			// Générer un QR code pour l’app Authenticator
 			const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url!);
-			console.log(`2FA setup initiated for user ${user.id}, secret: ${secret.base32}`);
 
 			reply.send({
 				message: "Scan this QR code with Google Authenticator",
@@ -578,7 +568,6 @@ export class TwoFALoginEndpoint extends Endpoint {
       console.log(`LogIn2FAEndpoint: ${this.path} called`);
       const { tempToken, google_token } = req.body;
 
-	  console.log(`tempToken: ${tempToken}, google_token: ${google_token}`);
 
       if (!tempToken || !google_token) {
         return reply.status(400).send({ error: "Missing tempToken or google_token" });
@@ -618,7 +607,6 @@ export class TwoFALoginEndpoint extends Endpoint {
       const secret = userData[0].two_fa_secret;
 	  const two_fa = userData[0].two_fa;
 
-	  console.log(`2FA login for user ${userId}, secret: ${secret}, two_fa: ${two_fa}`);
 
       if (!two_fa) {
         return reply.status(400).send({ error: "2FA not enabled for this user" });

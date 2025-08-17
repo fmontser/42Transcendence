@@ -93,7 +93,6 @@ export class PostNewMatch extends Endpoint {
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
 						case 'postMatchRequest':
@@ -211,7 +210,6 @@ export class GetLocalGame extends Endpoint {
 			connection.on('message', (data: any) => {
 				try {
 					const jsonData = JSON.parse(data.toString());
-					console.log("Received message:", jsonData);
 
 					switch (jsonData.type) {
 						case 'setupRequest':

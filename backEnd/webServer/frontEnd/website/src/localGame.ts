@@ -303,12 +303,6 @@ export function showStartScreen() {
 
 	console.log("Game Started:", gameStarted, "Game Active:", gameActive);
 
-	console.log("ctx: ", ctx);
-	if (ctx)
-		console.log("True");
-	else
-		console.log("False");
-
 	// Fondo
 	(ctx!).fillStyle = '#1a1a1a';
 	(ctx!).fillRect(0, 0, playField.width, playField.height);

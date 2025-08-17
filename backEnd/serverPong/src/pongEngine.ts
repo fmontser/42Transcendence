@@ -244,7 +244,7 @@ export class StandardGame extends PongGame {
 
 	public gameEnd(disconnectedPlayer: Player | null): void {
 
-		if (this.status == Status.COMPLETED || this.status == Status.DISCONNECTED)//added : || this.status == Status.DISCONNECTED bc gameEnd is called multiple times and if there is a disconnection the call that is posted in database was the one without disconnection
+		if (this.status == Status.COMPLETED || this.status == Status.DISCONNECTED)
 			return;
 		if (disconnectedPlayer != null) {
 			this.winnerId = this.players[0].userId != disconnectedPlayer.userId ? this.players[0].userId : this.players[1].userId;

@@ -10,13 +10,10 @@ if (loginForm)
 	loginForm.addEventListener('submit', async (event: SubmitEvent) => {
 		const target = event.target as HTMLElement;
 		const href = target.getAttribute('data-path')!;
-		console.log("target", target, "ref", href)
 
 		event.preventDefault();
 		const formData = new FormData(loginForm);
 		const formProps = Object.fromEntries(formData) as { name: string, pass: string };
-		console.log("Username:", formProps.name);
-		console.log("Passwowrd:", formProps.pass);
 		try 
 		{
 			const response = await fetch("/userauthentication/front/post/login", {
@@ -38,7 +35,6 @@ if (loginForm)
 			{
 				console.log("response ok");
 				if (target.matches('.spa-form')) {
-					console.log(">>>>>>>>>>>>> nav-link found");
 					history.pushState(null, '', href);
 					router();
 				}

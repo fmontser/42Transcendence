@@ -165,7 +165,6 @@ async function start() {
 		await server.register(fastifyCookie);
 		const jwtSecret = env('JWT_SECRET');
 		await server.register(fastifyJwt, {
-			// secret: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9eeyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0zzafemlzfzeanflzanlfknzaelnflzakenflkdFAZEGreglrngAEg12345grlek3124dsqknZA1234lkqndv231dfqdsklnlaez2134geklrnbp', // TODO put in a .env file
 			secret: jwtSecret,
 			cookie: {
 				cookieName: 'token',

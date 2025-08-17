@@ -40,7 +40,6 @@ const routes: Page[] = [
 					const sessionData = await sessionResponse.json();
 					const id = sessionData.name;
 					createWebSocket(id);
-					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -53,7 +52,6 @@ const routes: Page[] = [
 					});
 				}
 				else {
-					//await methodNotAllowed();
 					history.pushState(null, '', "/login");
 					router();
 					return;
@@ -91,7 +89,6 @@ const routes: Page[] = [
 					const sessionData = await sessionResponse.json();
 					const id = sessionData.name;
 					createWebSocket(id);
-					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -144,7 +141,6 @@ const routes: Page[] = [
 					createWebSocket(id);
 
 					let data: string = await response.text();
-					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -235,7 +231,6 @@ const routes: Page[] = [
 					method: 'GET',
 					credentials: 'include'
 				});
-				//console.log("/home request sent.");
 				if (response.ok)
 				{
 					let data: string = await response.text();
@@ -246,7 +241,6 @@ const routes: Page[] = [
 					const sessionData = await sessionResponse.json();
 					const id = sessionData.name;
 					createWebSocket(id);
-					//console.log("html:", data);
 					const root = document.getElementById('root');
 					if (root) {
 						root.innerHTML = data;
@@ -293,9 +287,7 @@ const routes: Page[] = [
 						root.innerHTML = data;
 					}
 					const existingScript = document.querySelector("script[src*='/dist/login.js']");
-					//console.log(existingScript);
 					if (existingScript) {
-						//console.log('Found and removed existing script:', existingScript);
 						existingScript.remove();
 					}
 
@@ -311,7 +303,6 @@ const routes: Page[] = [
 					router();
 					return;
 				}
-				//import("");
 			}
 			catch (error: unknown)
 			{
@@ -421,7 +412,6 @@ const routes: Page[] = [
 					return;
 				}
 				
-				console.log("friendId:", friendId);
 				let response: Response = await fetch("/components/friend_profile", {
 					method: 'GET',
 					credentials: 'include'
@@ -447,7 +437,6 @@ const routes: Page[] = [
 				}
 				else
 				{
-					//await methodNotAllowed();
 					history.pushState(null, '', "/login");
 					router();
 					return;
@@ -477,12 +466,8 @@ const routes: Page[] = [
 				});
 				closeWebSocket();
 
-				//window.location.href="/login";
-				//console.log("go login");
 				history.pushState(null, '', "/login");
-				//console.log("before router");
 				router();
-				//console.log("After router");
 			}
 			catch (error: unknown)
 			{
@@ -534,7 +519,6 @@ document.addEventListener('click', e => {
 		const href = target.getAttribute('data-path')!;
 
 		history.pushState(null, '', href);
-		console.log("href: ", href);
 		
 		router();
 	}

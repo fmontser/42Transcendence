@@ -15,8 +15,7 @@ export async function resetDictionaryWs() {
 		console.log("Error getting friends");
 	}
 
-	const data = await response.json(); // ex: [{ pseudo: 'eqwq', id: 2, status: true }]
-	console.log(data)
+	const data = await response.json();
 	data.forEach((friend: any) => {
 		dictionaryWs[friend.id] = friend.status
 	});
@@ -35,12 +34,6 @@ export async function createWebSocket(userId: string) : Promise<WebSocket | null
 	ws.onopen = () => {
 		console.log("WebSocket connected → user online");
 	};
-
-	// ws.onmessage = (event) => {
-	// 	const data = JSON.parse(event.data);
-	// 	dictionaryWs[data.id] = data.status;
-	// 	console.log(`Message received: ${data.id} is ${data.status ? 'online' : 'offline'}`);
-	// };
 
 	ws.onclose = () => {
 		console.log("WebSocket closed → user offline");

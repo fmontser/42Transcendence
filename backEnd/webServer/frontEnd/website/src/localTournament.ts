@@ -300,11 +300,6 @@ function showStartScreen() {
 
 	console.log("Game Started:", gameStarted, "Game Active:", gameActive);
 
-	console.log("ctx: ", ctx);
-	if (ctx)
-		console.log("True");
-	else
-		console.log("False");
 
 	// Fondo
 	(ctx!).fillStyle = '#1a1a1a';
@@ -331,7 +326,6 @@ async function loadDOM()
 	if (response.ok)
 	{
 		let data: string = await response.text();
-		//console.log("html:", data);
 		const root = document.getElementById('root');
 		if (root) {
 			root.innerHTML = data;

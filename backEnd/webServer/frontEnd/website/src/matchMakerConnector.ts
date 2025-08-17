@@ -120,7 +120,6 @@ export class MatchMakerConnector {
 	}
  
 	public closeConnection = () => {
-		console.log(`DEBUG: cleanup closing connection`);
 		this.ws.close();
 	}
 }

@@ -33,7 +33,6 @@ export class GetMatchListEndpoint extends Endpoint {
 					throw new Error(`Failed to fetch match list: ${response.statusText}`);
 				}
 				const data = await response.json();
-				console.log('GetMatchListEndpoint: Data received:', data);
 				reply.send(data);
 			} catch (error) {
 				console.error('Error fetching match list:', error);
@@ -54,32 +53,6 @@ export class GetFriendMatchListEndpoint extends Endpoint {
 				return;
 			}
 
-			// const response1 = await fetch(
-			// 	`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
-			// 	{ method: 'GET' }
-			// );
-			// if (!response1.ok) {
-			// 	server.log.error(`GetFriendMatchListEndpoint: ${this.errorMsg} - `, response1.statusText);
-			// 	reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-			// 	return;
-			// }
-			// const friends = await response1.json();
-			// console.log('GetFriendMatchListEndpoint: Friends data received:', friends);
-			// let isFriend = false;
-			// for (const friend of friends) {
-			// 	if (friend.id.toString() === friendId) {
-			// 		console.log(`GetFriendMatchListEndpoint: User ${user.id} is friends with ${friendId}`);
-			// 		isFriend = true;
-			// 		break;
-			// 	}
-			// 	console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friend.id}`);
-			// }
-
-			// if (!isFriend) {
-			// 	console.log(`GetFriendMatchListEndpoint: User ${user.id} is not friends with ${friendId}`);
-			// 	reply.status(403).send({ error: 'You are not friends with this user' });
-			// 	return;
-			// }
 
 			try {
 				const response = await fetch(`http://dataBase:3000/get/matchs?id=${friendId}`);
@@ -87,7 +60,6 @@ export class GetFriendMatchListEndpoint extends Endpoint {
 					throw new Error(`Failed to fetch match list: ${response.statusText}`);
 				}
 				const data = await response.json();
-				console.log('GetFriendMatchListEndpoint: Data received:', data);
 				reply.send(data);
 			} catch (error) {
 				console.error('Error fetching match list:', error);
@@ -107,7 +79,6 @@ export class ModifyAvatarEndpoint extends Endpoint {
 			const file = await request.file();
 			const userId = request.user.id;
 
-			//TODO mathis, hashear el userId
 			let hashedId: string = userId;
 
 			let avatarLink: string = `public/avatars/${hashedId}.jpg`
@@ -202,7 +173,6 @@ export class SeeAllUsersEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeAllUsersEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -220,7 +190,6 @@ export class SeeAllProfilesEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeAllProfilesEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -238,7 +207,6 @@ export class SeeAllFriendsEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeAllFriendsEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -261,7 +229,6 @@ export class SeePseudosEndpoint extends Endpoint {
 				reply.status(404).send({ error: 'No pseudos found' });
 				return;
 			}
-			console.log('SeePseudosEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}	
@@ -289,7 +256,6 @@ export class SeeProfileEndpoint extends Endpoint {
 				reply.status(404).send({ error: 'User not found' });
 				return;
 			}
-			console.log('SeeProfileEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -307,37 +273,6 @@ export class SeeFriendProfileEndpoint extends Endpoint {
 				return;
 			}
 
-			// const response1 = await fetch(
-			// 	`http://dataBase:3000/get/friends_user?id1=${user.id}&id2=${user.id}&id3=${user.id}&id4=${user.id}&id5=${user.id}`,
-			// 	{ method: 'GET' }
-			// );
-			// if (!response1.ok) {
-			// 	server.log.error(`SeeUserFriendshihpsEndpoint: ${this.errorMsg} - `, response1.statusText);
-			// 	reply.status(500).send({ error: `Internal server error: ${this.errorMsg}` });
-			// 	return;
-			// }
-			// const friends = await response1.json();
-			// console.log('SeeFriendProfileEndpoint: Friends data received:', friends);
-			// let isFriend = false;
-			// for (const friend of friends) {
-			// 	if (friend.id.toString() === friendId) {
-			// 		console.log(`SeeFriendProfileEndpoint: User ${user.id} is friends with ${friendId}`);
-			// 		isFriend = true;
-			// 		break;
-			// 	}
-			// 	console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friend.id}`);
-			// }
-
-			// if (!isFriend) {
-			// 	console.log(`SeeFriendProfileEndpoint: User ${user.id} is not friends with ${friendId}`);
-			// 	reply.status(403).send({ error: 'You are not friends with this user' });
-			// 	return;
-			// }
-			// const id = request.query.id;
-			// if (!id) {
-			// 	reply.status(400).send({ error: 'User ID is required' });
-			// 	return;
-			// }
 			const response2 = await fetch(`http://dataBase:3000/get/profile?user=${friendId}`, {
 				method: 'GET'});
 			if (!response2.ok) {
@@ -350,7 +285,6 @@ export class SeeFriendProfileEndpoint extends Endpoint {
 				reply.status(404).send({ error: 'User not found' });
 				return;
 			}
-			console.log('SeeFriendProfileEndpoint: Data received:', data);
 			reply.send(data);
 		});
 	}
@@ -418,7 +352,6 @@ export class SeeUserFriendshihpsEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeUserFriendshihpsEndpoint: Data received:', data);
 
 			
 			reply.send(data);
@@ -442,7 +375,6 @@ export class SeeFriendIdEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeFriendIdEndpoint: Data received:', data);
 
 			
 			reply.send(data);
@@ -463,7 +395,6 @@ export class SeeFriendshihpsPendingEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeFriendshihpsPendingEndpoint: Data received:', data);
 
 			
 			reply.send(data);
@@ -512,7 +443,6 @@ export class SeeFriendshihpsAcceptedEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeFriendshihpsAcceptedEndpoint: Data received:', data);
 
 			
 			reply.send(data);
@@ -561,7 +491,6 @@ export class SeeFriendshihpsBlockedEndpoint extends Endpoint {
 				return;
 			}
 			const data = await response.json();
-			console.log('SeeFriendshihpsBlockedEndpoint: Data received:', data);
 
 			
 			reply.send(data);
@@ -745,20 +674,15 @@ export class LogInEndpoint extends Endpoint {
 			}
 			const data = await response.json();
 
-			console.log(request.body);
-
-			console.log(data);
 			if (data.length === 0) {
 				reply.status(404).send({ error: 'User not found' });
 				return;
 			}
 			const id = data[0].id;
-			console.log(data[0].pass, pass);
 
 			if (pass === data[0].pass) { // Remplace par une vraie vérification de mot de passe
 				const token = server.jwt.sign({ id });
 
-				console.log(`User ${name} logged in successfully, token: ${token}`);
 				reply.setCookie('token', token, {
 					httpOnly: true,
 					secure: true,      // à mettre sur true en production (HTTPS)
@@ -778,8 +702,6 @@ export class ProfileEndpoint extends Endpoint {
 	add(server: any): void {
 		server.get(this.path, { preHandler: server.authenticate }, async (request:any, reply:any) => {
 			console.log(`ProfileEndpoint: ${this.path} called`);
-			console.log('Cookies reçus:', request.cookies);
-  			console.log('Utilisateur JWT:', request.user);
 			const user = request.user;
 			reply.send({ name: user.id });
 		});
