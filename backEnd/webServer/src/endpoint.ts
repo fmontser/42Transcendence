@@ -1,10 +1,7 @@
 import path from 'node:path';
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-//import { fileURLToPath } from 'url';
 import { promises as fs } from 'node:fs';
 
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = path.dirname(__filename);
 
 export abstract class Endpoint {
 

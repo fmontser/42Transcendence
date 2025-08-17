@@ -13,21 +13,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const server = Fastify({
-	logger: false // It's good practice to enable logging
+	logger: false
 });
 
 const staticPath = path.join(__dirname, '..', 'website');
 
-//    Serves files from the 'public' directory
 server.register(fastifyStatic, {
 	root: path.join(__dirname, '..', 'website'),
-	// Optional: All other fastify-static options can be specified here
 });
 
 
 
 server.setNotFoundHandler(async (request: FastifyRequest, reply: FastifyReply) => {
-	// The client-side router will handle the 404
 	return reply.sendFile('index.html');
 });
 
@@ -56,11 +53,6 @@ function setEndPoints(): void {
 		"/access/signin",
 		"Unknown error."
 	);
-	
-	// new EndPoints.AccessProfileEndpoint(
-	// 	"/access/profile",
-	// 	"Unknown error."
-	// );
 
 	new EndPoints.PostAvatarEndpoint(
 		"/post/avatar",
